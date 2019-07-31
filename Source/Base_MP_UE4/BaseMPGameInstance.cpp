@@ -5,15 +5,39 @@
 
 #include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
-
-
+#include "UObject/ConstructorHelpers.h"
+#include "Blueprint/UserWidget.h"
 
 UBaseMPGameInstance::UBaseMPGameInstance(const FObjectInitializer & ObjectInitializer) {
-	UE_LOG(LogTemp, Warning, TEXT("GameInstance Constructor"));
+	ConstructorHelpers::FClassFinder<UUserWidget> MenuBPClass(TEXT("/Game/MenuSystem/WBP_MainMenu"));
+	if (!ensure(MenuBPClass.Class != nullptr)) return;
+
+	MainMenuClass = MenuBPClass.Class;
 }
 
 void UBaseMPGameInstance::Init()  {
-	UE_LOG(LogTemp, Warning, TEXT("GameInstance Init"));
+	UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *MainMenuClass->GetName());
+}
+
+
+void UBaseMPGameInstance::LoadMainMenu() {
+	if (!ensure(MainMenuClass != nullptr)) return;
+
+	UUserWidget* MainMenu = CreateWidget<UUserWidget>(this, MainMenuClass);
+	if (!ensure(MainMenu != nullptr)) return;
+
+	MainMenu->AddToViewport();
+
+	APlayerController* PlayerController = GetFirstLocalPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	FInputModeUIOnly InputModeData;
+	InputModeData.SetWidgetToFocus(MainMenu->TakeWidget());
+	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	PlayerController->SetInputMode(InputModeData);
+	PlayerController->bShowMouseCursor = true;
+	MainMenu->bIsFocusable = true;
 }
 
 void UBaseMPGameInstance::Host() {

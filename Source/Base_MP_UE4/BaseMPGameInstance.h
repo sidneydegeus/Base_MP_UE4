@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "BaseMPGameInstance.generated.h"
 
+class UUserWidget;
 /**
  * 
  */
@@ -13,12 +14,19 @@ UCLASS()
 class BASE_MP_UE4_API UBaseMPGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
 
+// Variables
+private:
+	TSubclassOf<UUserWidget> MainMenuClass;
+
+// Functions
 public:
 	UBaseMPGameInstance(const FObjectInitializer & ObjectInitializer);
 
 	virtual void Init();
+
+	UFUNCTION(BlueprintCallable)
+		void LoadMainMenu();
 
 	UFUNCTION(Exec)
 		void Host();
