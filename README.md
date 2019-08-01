@@ -8,3 +8,9 @@ I've sort of done this already before but the idea is that this is a very clean 
 
 
 Might get updated in terms of branches to have a template for various ways (e.g. using regular connect by ip or using steam as a server)
+
+
+
+
+Usage of royalty free music:
+Main Menu (David_Hilowitz_-_Film_Cue_025_-_Dark_Science) - https://soundcloud.com/dhilowitz/sets/royalty-free-film-music
