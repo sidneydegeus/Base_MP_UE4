@@ -9,16 +9,21 @@
 #include "Blueprint/UserWidget.h"
 
 #include "MenuSystem/MainMenu.h"
+#include "MenuSystem/InGameMenu.h"
+#include "MenuSystem/MenuWidget.h"
 
 UBaseMPGameInstance::UBaseMPGameInstance(const FObjectInitializer & ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> MenuBPClass(TEXT("/Game/MenuSystem/WBP_MainMenu"));
 	if (!ensure(MenuBPClass.Class != nullptr)) return;
-
 	MainMenuClass = MenuBPClass.Class;
+
+	ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuBPClass(TEXT("/Game/MenuSystem/WBP_InGameMenu"));
+	if (!ensure(InGameMenuBPClass.Class != nullptr)) return;
+	InGameMenuClass = InGameMenuBPClass.Class;
 }
 
 void UBaseMPGameInstance::Init()  {
-	UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *MainMenuClass->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *InGameMenuClass->GetName());
 }
 
 
@@ -31,6 +36,17 @@ void UBaseMPGameInstance::LoadMainMenu() {
 	MainMenu->Setup();
 
 	MainMenu->SetMainMenuInterface(this);
+}
+
+void UBaseMPGameInstance::LoadInGameMenu() {
+	if (!ensure(InGameMenuClass != nullptr)) return;
+
+	UInGameMenu* InGameMenu = CreateWidget<UInGameMenu>(this, InGameMenuClass);
+	if (!ensure(InGameMenu != nullptr)) return;
+
+	InGameMenu->Setup();
+
+	InGameMenu->SetMainMenuInterface(this);
 }
 
 void UBaseMPGameInstance::Host() {
@@ -46,7 +62,6 @@ void UBaseMPGameInstance::Host() {
 }
 
 void UBaseMPGameInstance::Join(const FString& Address) {
-	UE_LOG(LogTemp, Warning, TEXT("Joining server..."), *MainMenuClass->GetName());
 	UEngine* Engine = GetEngine();
 	if (!ensure(Engine != nullptr)) return;
 

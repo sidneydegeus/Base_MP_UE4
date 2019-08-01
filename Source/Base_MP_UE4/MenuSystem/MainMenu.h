@@ -3,17 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
-#include "MainMenuInterface.h"
+#include "MenuWidget.h"
 #include "MainMenu.generated.h"
 
-class UButton;
-class UWidgetSwitcher;
 /**
  * 
  */
 UCLASS()
-class BASE_MP_UE4_API UMainMenu : public UUserWidget
+class BASE_MP_UE4_API UMainMenu : public UMenuWidget
 {
 	GENERATED_BODY()
 
@@ -48,13 +45,7 @@ private:
 
 
 
-	IMainMenuInterface* MainMenuInterface;
-
 //Functions
-public:
-	void SetMainMenuInterface(IMainMenuInterface* MainMenuInterface);
-	void Setup();
-
 protected:
 	virtual bool Initialize() override;
 
@@ -71,8 +62,6 @@ private:
 
 	UFUNCTION()
 		void OpenJoinMenu();
-
-	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
 
 	bool bAddDynamicsMainMenu();
 	bool bAddDynamicsJoinMenu();

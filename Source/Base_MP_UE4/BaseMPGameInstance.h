@@ -7,8 +7,6 @@
 #include "MenuSystem/MainMenuInterface.h"
 #include "BaseMPGameInstance.generated.h"
 
-class UUserWidget;
-class APlayerController;
 /**
  * 
  */
@@ -19,7 +17,8 @@ class BASE_MP_UE4_API UBaseMPGameInstance : public UGameInstance, public IMainMe
 
 // Variables
 private:
-	TSubclassOf<UUserWidget> MainMenuClass;
+	TSubclassOf<class UUserWidget> MainMenuClass;
+	TSubclassOf<class UUserWidget> InGameMenuClass;
 
 // Functions
 public:
@@ -30,10 +29,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void LoadMainMenu();
 
-	UFUNCTION(Exec)
-		void Host();
+	UFUNCTION(BlueprintCallable)
+		void LoadInGameMenu();
 
 	UFUNCTION(Exec)
-		void Join(const FString& Address);
+		void Host() override;
+
+	UFUNCTION(Exec)
+		void Join(const FString& Address) override;
 
 };

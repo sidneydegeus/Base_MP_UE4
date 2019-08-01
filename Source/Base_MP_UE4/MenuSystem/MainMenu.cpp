@@ -17,28 +17,6 @@ bool UMainMenu::Initialize() {
 	return true;
 }
 
-void UMainMenu::SetMainMenuInterface(IMainMenuInterface* MainMenuInterface) {
-	this->MainMenuInterface = MainMenuInterface;
-}
-
-void UMainMenu::Setup() {
-	this->AddToViewport();
-	this->bIsFocusable = true;
-
-	UWorld* World = GetWorld();
-	if (!ensure(World != nullptr)) return;
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-
-	FInputModeUIOnly InputModeData;
-	InputModeData.SetWidgetToFocus(this->TakeWidget());
-	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	PlayerController->SetInputMode(InputModeData);
-	PlayerController->bShowMouseCursor = true;
-}
-
 void UMainMenu::HostServer() {
 	if (MainMenuInterface != nullptr) {
 		MainMenuInterface->Host();
@@ -63,21 +41,6 @@ void UMainMenu::OpenJoinMenu() {
 	if (!ensure(MenuSwitcher != nullptr)) return;
 	if (!ensure(JoinMenu != nullptr)) return;
 	MenuSwitcher->SetActiveWidget(JoinMenu);
-}
-
-void UMainMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) {
-	RemoveFromViewport();
-	auto* World = GetWorld();
-	if (!ensure(World != nullptr)) return;
-
-	auto* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-
-	FInputModeGameOnly inputMode;
-	PlayerController->SetInputMode(inputMode);
-	PlayerController->bShowMouseCursor = false;
-
-	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
 }
 
 bool UMainMenu::bAddDynamicsMainMenu() {
