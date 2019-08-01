@@ -4,16 +4,15 @@
 #include "MainMenu.h"
 
 #include "Components/Button.h"
+#include "Components/WidgetSwitcher.h"
+#include "Components/EditableTextBox.h"
 
 bool UMainMenu::Initialize() {
 	bool Success = Super::Initialize();
 	if (!Success) return false;
 
-	if (!ensure(HostButton != nullptr)) return false;
-	HostButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
-
-	if (!ensure(JoinButton != nullptr)) return false;
-	JoinButton->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
+	if (!bAddDynamicsMainMenu()) return false;
+	if (!bAddDynamicsJoinMenu()) return false;
 
 	return true;
 }
@@ -47,7 +46,23 @@ void UMainMenu::HostServer() {
 }
 
 void UMainMenu::JoinServer() {
-	UE_LOG(LogTemp, Warning, TEXT("joining server!!"));
+	if (MainMenuInterface != nullptr) {
+		if (!ensure(IPAddressTextBox != nullptr)) return;
+		const FString& Address = IPAddressTextBox->GetText().ToString();
+		MainMenuInterface->Join(Address);
+	}
+}
+
+void UMainMenu::OpenMainMenu() {
+	if (!ensure(MenuSwitcher != nullptr)) return;
+	if (!ensure(MainMenu != nullptr)) return;
+	MenuSwitcher->SetActiveWidget(MainMenu);
+}
+
+void UMainMenu::OpenJoinMenu() {
+	if (!ensure(MenuSwitcher != nullptr)) return;
+	if (!ensure(JoinMenu != nullptr)) return;
+	MenuSwitcher->SetActiveWidget(JoinMenu);
 }
 
 void UMainMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) {
@@ -63,4 +78,20 @@ void UMainMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) {
 	PlayerController->bShowMouseCursor = false;
 
 	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
+}
+
+bool UMainMenu::bAddDynamicsMainMenu() {
+	if (!ensure(MainMenu_HostButton != nullptr)) return false;
+	MainMenu_HostButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+	if (!ensure(MainMenu_JoinButton != nullptr)) return false;
+	MainMenu_JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
+	return true;
+}
+
+bool UMainMenu::bAddDynamicsJoinMenu() {
+	if (!ensure(JoinMenu_JoinButton != nullptr)) return false;
+	JoinMenu_JoinButton->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
+	if (!ensure(JoinMenu_BackButton != nullptr)) return false;
+	JoinMenu_BackButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
+	return true;
 }

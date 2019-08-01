@@ -46,6 +46,7 @@ void UBaseMPGameInstance::Host() {
 }
 
 void UBaseMPGameInstance::Join(const FString& Address) {
+	UE_LOG(LogTemp, Warning, TEXT("Joining server..."), *MainMenuClass->GetName());
 	UEngine* Engine = GetEngine();
 	if (!ensure(Engine != nullptr)) return;
 
