@@ -8,6 +8,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 
+#include "MenuSystem/MainMenu.h"
+
 UBaseMPGameInstance::UBaseMPGameInstance(const FObjectInitializer & ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> MenuBPClass(TEXT("/Game/MenuSystem/WBP_MainMenu"));
 	if (!ensure(MenuBPClass.Class != nullptr)) return;
@@ -23,21 +25,12 @@ void UBaseMPGameInstance::Init()  {
 void UBaseMPGameInstance::LoadMainMenu() {
 	if (!ensure(MainMenuClass != nullptr)) return;
 
-	UUserWidget* MainMenu = CreateWidget<UUserWidget>(this, MainMenuClass);
+	UMainMenu* MainMenu = CreateWidget<UMainMenu>(this, MainMenuClass);
 	if (!ensure(MainMenu != nullptr)) return;
 
-	MainMenu->AddToViewport();
+	MainMenu->Setup();
 
-	APlayerController* PlayerController = GetFirstLocalPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-
-	FInputModeUIOnly InputModeData;
-	InputModeData.SetWidgetToFocus(MainMenu->TakeWidget());
-	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	PlayerController->SetInputMode(InputModeData);
-	PlayerController->bShowMouseCursor = true;
-	MainMenu->bIsFocusable = true;
+	MainMenu->SetMainMenuInterface(this);
 }
 
 void UBaseMPGameInstance::Host() {

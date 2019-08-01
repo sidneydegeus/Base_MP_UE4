@@ -4,14 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "MenuSystem/MainMenuInterface.h"
 #include "BaseMPGameInstance.generated.h"
 
 class UUserWidget;
+class APlayerController;
 /**
  * 
  */
 UCLASS()
-class BASE_MP_UE4_API UBaseMPGameInstance : public UGameInstance
+class BASE_MP_UE4_API UBaseMPGameInstance : public UGameInstance, public IMainMenuInterface
 {
 	GENERATED_BODY()
 
@@ -33,4 +35,5 @@ public:
 
 	UFUNCTION(Exec)
 		void Join(const FString& Address);
+
 };
