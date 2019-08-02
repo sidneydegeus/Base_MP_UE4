@@ -22,6 +22,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		class UButton* InGameMenu_QuitToMainMenuButton;
 
+	UPROPERTY(meta = (BindWidget))
+		class UButton* InGameMenu_ExitGameButton;
+
 //Functions
 protected:
 	virtual bool Initialize() override;
@@ -32,4 +35,7 @@ private:
 
 	UFUNCTION()
 		void QuitToMainMenu();
+
+	UFUNCTION()
+		void ExitGame();
 };
