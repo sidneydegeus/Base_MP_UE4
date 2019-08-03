@@ -3,3 +3,7 @@
 
 #include "BaseMPGameInstance.h"
 
+
+void UBaseMPGameInstance::Init() {
+	Super::Init();
+}

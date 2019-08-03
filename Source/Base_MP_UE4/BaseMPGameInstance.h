@@ -14,4 +14,7 @@ class BASE_MP_UE4_API UBaseMPGameInstance : public UMenuSystemGameInstance
 {
 	GENERATED_BODY()
 	
+//Functions
+public:
+	virtual void Init() override;
 };

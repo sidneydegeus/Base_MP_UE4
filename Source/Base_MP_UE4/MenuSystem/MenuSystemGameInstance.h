@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "MenuSystem/MainMenuInterface.h"
+#include "OnlineSubsystem.h"
 #include "MenuSystemGameInstance.generated.h"
 
 /**
@@ -23,22 +24,31 @@ protected:
 private:
 	TSubclassOf<class UUserWidget> MainMenuClass;
 	TSubclassOf<class UUserWidget> InGameMenuClass;
+	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
 // Functions
 public:
 	UMenuSystemGameInstance(const FObjectInitializer & ObjectInitializer);
 
-	virtual void Init();
+	virtual void Init() override;
 
 	UFUNCTION(BlueprintCallable)
-		void LoadMainMenu();
+		void LoadMainMenuWidget();
 
 	UFUNCTION(BlueprintCallable)
-		void LoadInGameMenu();
+		void LoadInGameMenuWidget();
 
 	UFUNCTION(Exec)
 		void Host() override;
 
 	UFUNCTION(Exec)
 		void Join(const FString& Address) override;
+
+private:
+	void OnCreateSessionComplete(FName SessionName, bool Success);
+	void OnDestroySessionComplete(FName SessionName, bool Success);
+	void OnFindSessionsComplete(bool Success);
+
+	void CreateSession();
 };

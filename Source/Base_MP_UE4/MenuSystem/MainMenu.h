@@ -32,6 +32,10 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		class UButton* MainMenu_ExitGameButton;
 
+	UPROPERTY(meta = (BindWidget))
+		class UButton* MainMenu_ServersButton;
+	
+
 
 	//Join Menu
 	UPROPERTY(meta = (BindWidget))
@@ -46,9 +50,25 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		class UEditableTextBox* IPAddressTextBox;
 
+	//Server Menu
+	UPROPERTY(meta = (BindWidget))
+		class UWidget* ServersMenu;
 
+	UPROPERTY(meta = (BindWidget))
+		class UPanelWidget* ServerList;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* ServersMenu_JoinButton;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* ServersMenu_BackButton;
+
+	TSubclassOf<class UUserWidget> ServerRowClass;
 
 //Functions
+public:
+	UMainMenu(const FObjectInitializer& ObjectInitializer);
+
 protected:
 	virtual bool Initialize() override;
 
@@ -61,6 +81,9 @@ private:
 		void JoinServer();
 
 	UFUNCTION()
+		void JoinIP();
+
+	UFUNCTION()
 		void ExitGame();
 
 	UFUNCTION()
@@ -69,6 +92,10 @@ private:
 	UFUNCTION()
 		void OpenJoinMenu();
 
+	UFUNCTION()
+		void OpenServersMenu();
+
 	bool bAddDynamicsMainMenu();
 	bool bAddDynamicsJoinMenu();
+	bool bAddDynamicsServerMenu();
 };
