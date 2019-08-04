@@ -3,71 +3,37 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MenuWidget.h"
+#include "MenuSystem/SubMenuWidget.h"
 #include "MainMenu.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BASE_MP_UE4_API UMainMenu : public UMenuWidget
+class BASE_MP_UE4_API UMainMenu : public USubMenuWidget
 {
 	GENERATED_BODY()
 
 //Variables
 private:
 	UPROPERTY(meta = (BindWidget))
-		class UWidgetSwitcher* MenuSwitcher;
-
-	//Main menu
-	UPROPERTY(meta = (BindWidget))
-		class UWidget* MainMenu;
+		class UButton* HostButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* MainMenu_HostButton;
+		class UButton* JoinButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* MainMenu_JoinButton;
+		class UButton* ServersButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* MainMenu_ExitGameButton;
+		class UButton* ExitGameButton;
 
-	UPROPERTY(meta = (BindWidget))
-		class UButton* MainMenu_ServersButton;
-	
-
-
-	//Join Menu
-	UPROPERTY(meta = (BindWidget))
-		class UWidget* JoinMenu;
-
-	UPROPERTY(meta = (BindWidget))
-		class UButton* JoinMenu_JoinButton;
-
-	UPROPERTY(meta = (BindWidget))
-		class UButton* JoinMenu_BackButton;
-
-	UPROPERTY(meta = (BindWidget))
-		class UEditableTextBox* IPAddressTextBox;
-
-	//Server Menu
-	UPROPERTY(meta = (BindWidget))
-		class UWidget* ServersMenu;
-
-	UPROPERTY(meta = (BindWidget))
-		class UPanelWidget* ServerList;
-
-	UPROPERTY(meta = (BindWidget))
-		class UButton* ServersMenu_JoinButton;
-
-	UPROPERTY(meta = (BindWidget))
-		class UButton* ServersMenu_BackButton;
-
-	TSubclassOf<class UUserWidget> ServerRowClass;
+	TSubclassOf<class USubMenuWidget> JoinMenuClass;
+	TSubclassOf<class USubMenuWidget> ServersMenuClass;
 
 //Functions
 public:
-	UMainMenu(const FObjectInitializer& ObjectInitializer);
+	UMainMenu(const FObjectInitializer & ObjectInitializer);
 
 protected:
 	virtual bool Initialize() override;
@@ -78,16 +44,7 @@ private:
 		void HostServer();
 
 	UFUNCTION()
-		void JoinServer();
-
-	UFUNCTION()
-		void JoinIP();
-
-	UFUNCTION()
 		void ExitGame();
-
-	UFUNCTION()
-		void OpenMainMenu();
 
 	UFUNCTION()
 		void OpenJoinMenu();
@@ -95,7 +52,4 @@ private:
 	UFUNCTION()
 		void OpenServersMenu();
 
-	bool bAddDynamicsMainMenu();
-	bool bAddDynamicsJoinMenu();
-	bool bAddDynamicsServerMenu();
 };

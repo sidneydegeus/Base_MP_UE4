@@ -22,7 +22,7 @@ protected:
 		FString HostMap;
 
 private:
-	TSubclassOf<class UUserWidget> MainMenuClass;
+	TSubclassOf<class UUserWidget> GameMenuClass;
 	TSubclassOf<class UUserWidget> InGameMenuClass;
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
@@ -34,7 +34,7 @@ public:
 	virtual void Init() override;
 
 	UFUNCTION(BlueprintCallable)
-		void LoadMainMenuWidget();
+		void LoadGameMenuWidget();
 
 	UFUNCTION(BlueprintCallable)
 		void LoadInGameMenuWidget();

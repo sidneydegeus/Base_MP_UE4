@@ -12,16 +12,16 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 
-#include "MenuSystem/MainMenu.h"
+#include "MenuSystem/GameMenu.h"
 #include "MenuSystem/InGameMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
 const static FName SESSION_NAME = TEXT("My Session Game");
 
 UMenuSystemGameInstance::UMenuSystemGameInstance(const FObjectInitializer & ObjectInitializer) {
-	ConstructorHelpers::FClassFinder<UUserWidget> MenuBPClass(TEXT("/Game/MenuSystem/WBP_MainMenu"));
-	if (!ensure(MenuBPClass.Class != nullptr)) return;
-	MainMenuClass = MenuBPClass.Class;
+	ConstructorHelpers::FClassFinder<UUserWidget> GameMenuBPClass(TEXT("/Game/MenuSystem/WBP_GameMenu"));
+	if (!ensure(GameMenuBPClass.Class != nullptr)) return;
+	GameMenuClass = GameMenuBPClass.Class;
 
 	ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuBPClass(TEXT("/Game/MenuSystem/WBP_InGameMenu"));
 	if (!ensure(InGameMenuBPClass.Class != nullptr)) return;
@@ -49,13 +49,13 @@ void UMenuSystemGameInstance::Init() {
 }
 
 
-void UMenuSystemGameInstance::LoadMainMenuWidget() {
-	if (!ensure(MainMenuClass != nullptr)) return;
-	UMainMenu* MainMenu = CreateWidget<UMainMenu>(this, MainMenuClass);
-	if (!ensure(MainMenu != nullptr)) return;
+void UMenuSystemGameInstance::LoadGameMenuWidget() {
+	if (!ensure(GameMenuClass != nullptr)) return;
+	UGameMenu* GameMenu = CreateWidget<UGameMenu>(this, GameMenuClass);
+	if (!ensure(GameMenu != nullptr)) return;
 
-	MainMenu->Setup();
-	MainMenu->SetMainMenuInterface(this);
+	GameMenu->Setup();
+	GameMenu->SetMainMenuInterface(this);
 }
 
 void UMenuSystemGameInstance::LoadInGameMenuWidget() {
