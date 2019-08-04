@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "MainMenuInterface.generated.h"
+#include "MenuInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UMainMenuInterface : public UInterface
+class UMenuInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -16,7 +16,7 @@ class UMainMenuInterface : public UInterface
 /**
  * 
  */
-class BASE_MP_UE4_API IMainMenuInterface
+class BASE_MP_UE4_API IMenuInterface
 {
 	GENERATED_BODY()
 

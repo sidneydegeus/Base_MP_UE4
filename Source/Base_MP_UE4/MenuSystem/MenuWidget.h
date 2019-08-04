@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MainMenuInterface.h"
+#include "MenuSystem/MenuInterface.h"
 #include "MenuSystem/SubMenuWidget.h"
 #include "MenuWidget.generated.h"
 
@@ -18,7 +18,7 @@ class BASE_MP_UE4_API UMenuWidget : public UUserWidget
 
 // Variables
 protected:
-	IMainMenuInterface* MainMenuInterface;
+	IMenuInterface* MainMenuInterface;
 
 	UPROPERTY(meta = (BindWidget))
 		class UWidgetSwitcher* MenuSwitcher;
@@ -31,14 +31,14 @@ private:
 
 // functions
 public:
-	void SetMainMenuInterface(IMainMenuInterface* ToSetMainMenuInterface);
+	void SetMainMenuInterface(IMenuInterface* ToSetMainMenuInterface);
 	void Setup();
 
 	void OpenSubMenuWidget(TSubclassOf<USubMenuWidget> SubMenuClass);
 	void OpenPreviousSubMenuWidget();
 
 	//maybe remove and make the ServerMenu (and others) UMenuWidgets instead
-	IMainMenuInterface* GetMainMenuInterface();
+	IMenuInterface* GetMainMenuInterface();
 
 protected:
 	void TearDownWidget();

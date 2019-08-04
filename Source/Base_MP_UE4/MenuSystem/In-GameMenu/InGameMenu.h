@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MenuWidget.h"
+#include "MenuSystem/MenuWidget.h"
 #include "InGameMenu.generated.h"
 
 /**

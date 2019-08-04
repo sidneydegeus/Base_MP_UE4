@@ -7,7 +7,7 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "MenuSystem/MenuWidget.h"
-#include "MenuSystem/ServerRow.h"
+#include "MenuSystem/GameMenu/ServersMenu/ServerRow.h"
 
 UServersMenu::UServersMenu(const FObjectInitializer & ObjectInitializer) : Super(ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> ServerRowBPClass(TEXT(

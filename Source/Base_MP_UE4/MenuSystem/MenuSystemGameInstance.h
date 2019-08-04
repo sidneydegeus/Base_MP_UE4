@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
-#include "MenuSystem/MainMenuInterface.h"
+#include "MenuSystem/MenuInterface.h"
 #include "OnlineSubsystem.h"
 #include "MenuSystemGameInstance.generated.h"
 
@@ -12,7 +12,7 @@
  * 
  */
 UCLASS()
-class BASE_MP_UE4_API UMenuSystemGameInstance : public UGameInstance, public IMainMenuInterface
+class BASE_MP_UE4_API UMenuSystemGameInstance : public UGameInstance, public IMenuInterface
 {
 	GENERATED_BODY()
 	

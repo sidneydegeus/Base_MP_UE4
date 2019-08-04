@@ -8,7 +8,7 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "MenuSystem/MenuWidget.h"
-#include "MenuSystem/ServersMenu/ServersMenu.h"
+#include "MenuSystem/GameMenu/ServersMenu/ServersMenu.h"
 
 UMainMenu::UMainMenu(const FObjectInitializer & ObjectInitializer) : Super(ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> JoinMenuBPClass(TEXT(

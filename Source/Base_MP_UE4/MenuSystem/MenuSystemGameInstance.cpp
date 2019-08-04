@@ -12,8 +12,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 
-#include "MenuSystem/GameMenu.h"
-#include "MenuSystem/InGameMenu.h"
+#include "MenuSystem/GameMenu/GameMenu.h"
+#include "MenuSystem/In-GameMenu/InGameMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
 const static FName SESSION_NAME = TEXT("My Session Game");
