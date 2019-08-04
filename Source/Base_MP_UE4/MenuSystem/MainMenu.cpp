@@ -11,11 +11,15 @@
 #include "MenuSystem/ServersMenu/ServersMenu.h"
 
 UMainMenu::UMainMenu(const FObjectInitializer & ObjectInitializer) : Super(ObjectInitializer) {
-	ConstructorHelpers::FClassFinder<UUserWidget> JoinMenuBPClass(TEXT("/Game/MenuSystem/WBP_JoinMenu"));
+	ConstructorHelpers::FClassFinder<UUserWidget> JoinMenuBPClass(TEXT(
+		"/Game/MenuSystem/Menus/GameMenu/JoinMenu/WBP_JoinMenu"
+	));
 	if (!ensure(JoinMenuBPClass.Class != nullptr)) return;
 	JoinMenuClass = JoinMenuBPClass.Class;
 
-	ConstructorHelpers::FClassFinder<UUserWidget> ServersMenuBPClass(TEXT("/Game/MenuSystem/WBP_ServersMenu"));
+	ConstructorHelpers::FClassFinder<UUserWidget> ServersMenuBPClass(TEXT(
+		"/Game/MenuSystem/Menus/GameMenu/ServersMenu/WBP_ServersMenu"		
+	));
 	if (!ensure(ServersMenuBPClass.Class != nullptr)) return;
 	ServersMenuClass = ServersMenuBPClass.Class;
 }

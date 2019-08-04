@@ -6,7 +6,9 @@
 #include "UObject/ConstructorHelpers.h"
 
 UGameMenu::UGameMenu(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
-	ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT("/Game/MenuSystem/WBP_MainMenu"));
+	ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT(
+		"/Game/MenuSystem/Menus/GameMenu/MainMenu/WBP_MainMenu"
+	));
 	if (!ensure(MainMenuBPClass.Class != nullptr)) return;
 	MainMenuClass = MainMenuBPClass.Class;
 }

@@ -19,11 +19,15 @@
 const static FName SESSION_NAME = TEXT("My Session Game");
 
 UMenuSystemGameInstance::UMenuSystemGameInstance(const FObjectInitializer & ObjectInitializer) {
-	ConstructorHelpers::FClassFinder<UUserWidget> GameMenuBPClass(TEXT("/Game/MenuSystem/WBP_GameMenu"));
+	ConstructorHelpers::FClassFinder<UUserWidget> GameMenuBPClass(TEXT(
+		"/Game/MenuSystem/Menus/GameMenu/WBP_GameMenu"
+	));
 	if (!ensure(GameMenuBPClass.Class != nullptr)) return;
 	GameMenuClass = GameMenuBPClass.Class;
 
-	ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuBPClass(TEXT("/Game/MenuSystem/WBP_InGameMenu"));
+	ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuBPClass(TEXT(
+		"/Game/MenuSystem/Menus/In-GameMenu/WBP_InGameMenu"
+	));
 	if (!ensure(InGameMenuBPClass.Class != nullptr)) return;
 	InGameMenuClass = InGameMenuBPClass.Class;
 }
