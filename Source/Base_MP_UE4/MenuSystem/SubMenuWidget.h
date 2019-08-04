@@ -16,12 +16,13 @@ class BASE_MP_UE4_API USubMenuWidget : public UUserWidget
 	
 //Variables
 protected:
-	class UMenuWidget* Menu;
-	class USubMenuWidget* PreviousSubMenu;
+
+	UPROPERTY()
+		class UMenuWidget* Menu;
 
 //Functions
 public:
-	void SetMenu(class UMenuWidget* ToSetMenu);
+	virtual void SetMenu(class UMenuWidget* ToSetMenu);
 
 protected:
 	UFUNCTION()

@@ -23,13 +23,21 @@ private:
 		class UButton* JoinButton;
 
 	UPROPERTY(meta = (BindWidget))
+		class UButton* RefreshButton;
+
+	UPROPERTY(meta = (BindWidget))
 		class UButton* BackButton;
 
 	TSubclassOf<class UUserWidget> ServerRowClass;
 
+	TOptional<uint32> SelectedIndex;
+
 //Functions
 public:
 	UServersMenu(const FObjectInitializer& ObjectInitializer);
+	void SetServerList(TArray<FString> ServerNames);
+	void SelectIndex(uint32 Index);
+	virtual void SetMenu(class UMenuWidget* ToSetMenu) override;
 
 protected:
 	virtual bool Initialize() override;
@@ -37,4 +45,8 @@ protected:
 private:
 	UFUNCTION()
 		void JoinServer();
+
+	UFUNCTION()
+		void RefreshServerList();
+
 };

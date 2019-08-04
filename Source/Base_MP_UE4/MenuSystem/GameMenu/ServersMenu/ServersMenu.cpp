@@ -4,6 +4,7 @@
 #include "ServersMenu.h"
 
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "UObject/ConstructorHelpers.h"
 
 #include "MenuSystem/MenuWidget.h"
@@ -25,16 +26,52 @@ bool UServersMenu::Initialize() {
 	JoinButton->OnClicked.AddDynamic(this, &UServersMenu::JoinServer);
 
 	if (!ensure(BackButton != nullptr)) return false;
+	RefreshButton->OnClicked.AddDynamic(this, &UServersMenu::RefreshServerList);
+
+	if (!ensure(BackButton != nullptr)) return false;
 	BackButton->OnClicked.AddDynamic(this, &UServersMenu::Back);
 
+	//RefreshServerList();
 	return true;
 }
 
+void UServersMenu::SelectIndex(uint32 Index) {
+	UE_LOG(LogTemp, Warning, TEXT("clicked button %d"), Index);
+	//UE_LOG(LogTemp, Warning, TEXT("button server row clicked"));
+	SelectedIndex = Index;
+}
+
+void UServersMenu::SetMenu(UMenuWidget * ToSetMenu) {
+	Super::SetMenu(ToSetMenu);
+	RefreshServerList();
+}
+
 void UServersMenu::JoinServer() {
-	if (Menu->GetMainMenuInterface() != nullptr) {
-		if (!ensure(ServerRowClass != nullptr)) return;
+	if (SelectedIndex.IsSet() && Menu->GetMenuInterface() != nullptr) {
+		Menu->GetMenuInterface()->Join(SelectedIndex.GetValue());
+	}
+}
+
+void UServersMenu::RefreshServerList() {
+	if (Menu->GetMenuInterface() != nullptr) {
+		Menu->GetMenuInterface()->RefreshServerList(this);
+	}
+}
+
+void UServersMenu::SetServerList(TArray<FString> ServerNames) {
+	if (!ensure(ServerRowClass != nullptr)) return;
+	ServerList->ClearChildren();
+
+	uint32 i = 0;
+	for (const FString& ServerName : ServerNames) {
 		UServerRow* ServerRow = CreateWidget<UServerRow>(this, ServerRowClass);
 		if (!ensure(ServerRow != nullptr)) return;
+		ServerRow->ServerName->SetText(FText::FromString(ServerName));
+		ServerRow->Setup(this, i);
+		++i;
+
 		ServerList->AddChild(ServerRow);
 	}
 }
+
+

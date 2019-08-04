@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "MenuSystem/MenuInterface.h"
+//#include "MenuSystem/GameMenu/ServersMenu/ServersMenu.h"
 #include "OnlineSubsystem.h"
+#include "OnlineSessionInterface.h"
 #include "MenuSystemGameInstance.generated.h"
 
 /**
@@ -27,6 +29,10 @@ private:
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
+	//UGLY, THINK OF A CLEANER WAY
+	UPROPERTY()
+		class UServersMenu* ServersMenu;
+
 // Functions
 public:
 	UMenuSystemGameInstance(const FObjectInitializer & ObjectInitializer);
@@ -43,12 +49,15 @@ public:
 		void Host() override;
 
 	UFUNCTION(Exec)
-		void Join(const FString& Address) override;
+		void Join(uint32 Index) override;
+
+	void RefreshServerList(class UServersMenu* ToSetServersMenu) override;
 
 private:
 	void OnCreateSessionComplete(FName SessionName, bool Success);
 	void OnDestroySessionComplete(FName SessionName, bool Success);
 	void OnFindSessionsComplete(bool Success);
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 	void CreateSession();
 };

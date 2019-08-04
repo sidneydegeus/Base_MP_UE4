@@ -13,5 +13,26 @@ UCLASS()
 class BASE_MP_UE4_API UServerRow : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+//Variables
+public:
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* ServerName;
+
+private:
+	UPROPERTY(meta = (BindWidget))
+		class UButton* ServerRowButton;
+
+	UPROPERTY()
+		class UServersMenu* Parent;
+
+	uint32 Index;
+
+//Functions
+public:
+	void Setup(UServersMenu* InParent, uint32 InIndex);
+
+private:
+	UFUNCTION()
+		void OnServerRowButtonClicked();
 };

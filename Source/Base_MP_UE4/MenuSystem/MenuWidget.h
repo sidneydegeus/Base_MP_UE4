@@ -23,11 +23,15 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 		class UWidgetSwitcher* MenuSwitcher;
 
-	USubMenuWidget* ActiveSubMenu;
+	UPROPERTY()
+		USubMenuWidget* ActiveSubMenu;
 
 private:
-	TArray<USubMenuWidget*> PreviousSubMenuWidgets;
-	USubMenuWidget* ActiveSubMenuWidget = nullptr;
+	UPROPERTY()
+		TArray<USubMenuWidget*> PreviousSubMenuWidgets;
+
+	UPROPERTY()
+		USubMenuWidget* ActiveSubMenuWidget = nullptr;
 
 // functions
 public:
@@ -38,7 +42,7 @@ public:
 	void OpenPreviousSubMenuWidget();
 
 	//maybe remove and make the ServerMenu (and others) UMenuWidgets instead
-	IMenuInterface* GetMainMenuInterface();
+	IMenuInterface* GetMenuInterface();
 
 protected:
 	void TearDownWidget();

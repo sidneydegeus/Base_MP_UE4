@@ -44,8 +44,8 @@ bool UMainMenu::Initialize() {
 }
 
 void UMainMenu::HostServer() {
-	if (Menu->GetMainMenuInterface() != nullptr) {
-		Menu->GetMainMenuInterface()->Host();
+	if (Menu->GetMenuInterface() != nullptr) {
+		Menu->GetMenuInterface()->Host();
 	}
 }
 

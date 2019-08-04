@@ -10,7 +10,7 @@ void UMenuWidget::SetMainMenuInterface(IMenuInterface* ToSetMainMenuInterface) {
 	MainMenuInterface = ToSetMainMenuInterface;
 }
 
-IMenuInterface* UMenuWidget::GetMainMenuInterface() {
+IMenuInterface* UMenuWidget::GetMenuInterface() {
 	return this->MainMenuInterface;
 }
 

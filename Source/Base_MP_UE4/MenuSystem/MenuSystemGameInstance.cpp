@@ -5,7 +5,7 @@
 
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
-#include "OnlineSessionInterface.h"
+
 
 #include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
@@ -14,6 +14,7 @@
 
 #include "MenuSystem/GameMenu/GameMenu.h"
 #include "MenuSystem/In-GameMenu/InGameMenu.h"
+#include "MenuSystem/GameMenu/ServersMenu/ServersMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
 const static FName SESSION_NAME = TEXT("My Session Game");
@@ -41,13 +42,8 @@ void UMenuSystemGameInstance::Init() {
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMenuSystemGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UMenuSystemGameInstance::OnDestroySessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UMenuSystemGameInstance::OnFindSessionsComplete);
-		
-			SessionSearch = MakeShareable(new FOnlineSessionSearch());
-			if (SessionSearch.IsValid()) {
-				SessionSearch->bIsLanQuery = true;
-				UE_LOG(LogTemp, Warning, TEXT("Start finding sessions"));
-				SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
-			}
+			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMenuSystemGameInstance::OnJoinSessionComplete);
+
 		}
 	}
 }
@@ -69,18 +65,6 @@ void UMenuSystemGameInstance::LoadInGameMenuWidget() {
 
 	InGameMenu->Setup();
 	InGameMenu->SetMainMenuInterface(this);
-}
-
-void UMenuSystemGameInstance::Host() {
-	if (SessionInterface.IsValid()) {
-		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
-		if (ExistingSession != nullptr) {
-			SessionInterface->DestroySession(SESSION_NAME);
-		}
-		else {
-			CreateSession();
-		}
-	}
 }
 
 void UMenuSystemGameInstance::OnCreateSessionComplete(FName SessionName, bool Success) {
@@ -115,22 +99,59 @@ void UMenuSystemGameInstance::CreateSession() {
 
 void UMenuSystemGameInstance::OnFindSessionsComplete(bool Success) {
 	UE_LOG(LogTemp, Warning, TEXT("Finding sessions complete"));
-	if (Success && SessionSearch.IsValid()) {
-		// post shit
-		auto results = SessionSearch->SearchResults;
-		for (const auto& result : results) {
-			UE_LOG(LogTemp, Warning, TEXT("Found Session Names: %s"), *result.GetSessionIdStr());		
+	if (Success && SessionSearch.IsValid() && ServersMenu != nullptr) {
+		TArray<FString> ServerNames;
+		for (const auto& result : SessionSearch->SearchResults) {
+			ServerNames.Add(result.GetSessionIdStr());
 		}
-
+		ServersMenu->SetServerList(ServerNames);
 	}
 }
 
-void UMenuSystemGameInstance::Join(const FString& Address) {
+void UMenuSystemGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result) {
+	if (!SessionInterface.IsValid()) return;
+
+	FString Address;
+	if (!SessionInterface->GetResolvedConnectString(SessionName, Address)) {
+		UE_LOG(LogTemp, Warning, TEXT("Could not get connect string"));
+		return;
+	}
+
 	UEngine* Engine = GetEngine();
 	if (!ensure(Engine != nullptr)) return;
 	Engine->AddOnScreenDebugMessage(0, 5, FColor::Green, FString::Printf(TEXT("Joining %s"), *Address));
 
+
 	APlayerController* PlayerController = GetFirstLocalPlayerController();
 	if (!ensure(PlayerController != nullptr)) return;
 	PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
+}
+
+void UMenuSystemGameInstance::Host() {
+	if (SessionInterface.IsValid()) {
+		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
+		if (ExistingSession != nullptr) {
+			SessionInterface->DestroySession(SESSION_NAME);
+		}
+		else {
+			CreateSession();
+		}
+	}
+}
+
+void UMenuSystemGameInstance::Join(uint32 Index) {
+	if (!SessionInterface.IsValid()) return;
+	if (!SessionSearch.IsValid()) return;
+
+	SessionInterface->JoinSession(0, SESSION_NAME, SessionSearch->SearchResults[Index]);
+}
+
+void UMenuSystemGameInstance::RefreshServerList(class UServersMenu* ToSetServersMenu) {
+	ServersMenu = ToSetServersMenu;
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	if (SessionSearch.IsValid()) {
+		SessionSearch->bIsLanQuery = true;
+		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+		UE_LOG(LogTemp, Warning, TEXT("Looking for sessions"));
+	}
 }
