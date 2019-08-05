@@ -90,10 +90,15 @@ void UMenuSystemGameInstance::OnDestroySessionComplete(FName SessionName, bool S
 void UMenuSystemGameInstance::CreateSession() {
 	if (SessionInterface.IsValid()) {
 		FOnlineSessionSettings SessionSettings;
-		SessionSettings.bIsLANMatch = true;
+		SessionSettings.bIsLANMatch = false;
 		SessionSettings.NumPublicConnections = 4;
 		SessionSettings.bShouldAdvertise = true;
+		SessionSettings.bUsesPresence = true;
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
+		//SessionSettings.bIsLANMatch = true;
+		//SessionSettings.NumPublicConnections = 4;
+		//SessionSettings.bShouldAdvertise = true;
+		//SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
 	}
 }
 
@@ -150,8 +155,11 @@ void UMenuSystemGameInstance::RefreshServerList(class UServersMenu* ToSetServers
 	ServersMenu = ToSetServersMenu;
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	if (SessionSearch.IsValid()) {
-		SessionSearch->bIsLanQuery = true;
-		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+		SessionSearch->MaxSearchResults = 100;
+		SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+		//SessionSearch->bIsLanQuery = true;
 		UE_LOG(LogTemp, Warning, TEXT("Looking for sessions"));
+		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+
 	}
 }

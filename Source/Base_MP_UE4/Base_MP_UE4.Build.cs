@@ -15,7 +15,8 @@ public class Base_MP_UE4 : ModuleRules
             "InputCore",
             "HeadMountedDisplay",
             "UMG",
-            "OnlineSubsystem"
+            "OnlineSubsystem",
+            "OnlineSubsystemSteam"
         });
 	}
 }
