@@ -153,16 +153,6 @@ void UMenuSystemGameInstance::Join(uint32 Index) {
 
 void UMenuSystemGameInstance::RefreshServerList(class UServersMenu* ToSetServersMenu) {
 	ServersMenu = ToSetServersMenu;
-	//SessionSearch = MakeShareable(new FOnlineSessionSearch());
-	//if (SessionSearch.IsValid()) {
-	//	SessionSearch->MaxSearchResults = 100;
-	//	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
-	//	//SessionSearch->bIsLanQuery = true;
-	//	UE_LOG(LogTemp, Warning, TEXT("Looking for sessions"));
-	//	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
-
-	//}
-
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	if (SessionSearch.IsValid())
 	{
