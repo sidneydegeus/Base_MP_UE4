@@ -28,10 +28,12 @@ private:
 	TSubclassOf<class UUserWidget> InGameMenuClass;
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
+	FString DesiredServerName;
 
 	//UGLY, THINK OF A CLEANER WAY
 	UPROPERTY()
 		class UServersMenu* ServersMenu;
+
 
 // Functions
 public:
@@ -46,7 +48,7 @@ public:
 		void LoadInGameMenuWidget();
 
 	UFUNCTION(Exec)
-		void Host() override;
+		void Host(FString ServerName) override;
 
 	UFUNCTION(Exec)
 		void Join(uint32 Index) override;

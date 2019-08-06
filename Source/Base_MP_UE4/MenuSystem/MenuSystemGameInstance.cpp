@@ -18,7 +18,8 @@
 #include "MenuSystem/GameMenu/ServersMenu/ServersMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
-const static FName SESSION_NAME = TEXT("My Session Game");
+const static FName SESSION_NAME = TEXT("Game");
+const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UMenuSystemGameInstance::UMenuSystemGameInstance(const FObjectInitializer & ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> GameMenuBPClass(TEXT(
@@ -102,6 +103,12 @@ void UMenuSystemGameInstance::CreateSession() {
 		SessionSettings.NumPublicConnections = 4;
 		SessionSettings.bShouldAdvertise = true;
 		SessionSettings.bUsesPresence = true;
+		SessionSettings.Set(
+			SERVER_NAME_SETTINGS_KEY, 
+			DesiredServerName, 
+			EOnlineDataAdvertisementType::ViaOnlineServiceAndPing
+		);
+
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
 	}
 }
@@ -116,6 +123,15 @@ void UMenuSystemGameInstance::OnFindSessionsComplete(bool Success) {
 			Data.MaxPlayerCount = result.Session.SessionSettings.NumPublicConnections;
 			Data.CurrentPlayerCount = Data.MaxPlayerCount - result.Session.NumOpenPublicConnections;
 			Data.HostUserName = result.Session.OwningUserName;
+
+			FString ServerName;
+			if (result.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, ServerName)) {
+				Data.ServerName = ServerName;
+			}
+			else {
+				Data.ServerName = "Could not find name.";
+			}
+
 			ServerDataList.Add(Data);
 		}
 		ServersMenu->SetServerList(ServerDataList);
@@ -141,7 +157,8 @@ void UMenuSystemGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSe
 	PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 }
 
-void UMenuSystemGameInstance::Host() {
+void UMenuSystemGameInstance::Host(FString ServerName) {
+	DesiredServerName = ServerName;
 	if (SessionInterface.IsValid()) {
 		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
 		if (ExistingSession != nullptr) {

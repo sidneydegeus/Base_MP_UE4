@@ -19,16 +19,17 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		class UButton* HostButton;
 
-	UPROPERTY(meta = (BindWidget))
-		class UButton* JoinButton;
+	//UPROPERTY(meta = (BindWidget))
+	//	class UButton* JoinButton;
 
 	UPROPERTY(meta = (BindWidget))
 		class UButton* ServersButton;
 
 	UPROPERTY(meta = (BindWidget))
 		class UButton* ExitGameButton;
-
-	TSubclassOf<class USubMenuWidget> JoinMenuClass;
+	
+	TSubclassOf<class USubMenuWidget> HostMenuClass;
+	//TSubclassOf<class USubMenuWidget> JoinMenuClass;
 	TSubclassOf<class USubMenuWidget> ServersMenuClass;
 
 //Functions
@@ -43,13 +44,13 @@ private:
 	UFUNCTION()
 		void HostServer();
 
-	UFUNCTION()
-		void QuitGame();
-
-	UFUNCTION()
-		void OpenJoinMenu();
+	//UFUNCTION()
+	//	void OpenJoinMenu();
 
 	UFUNCTION()
 		void OpenServersMenu();
+
+	UFUNCTION()
+		void QuitGame();
 
 };
