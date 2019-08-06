@@ -37,5 +37,5 @@ private:
 		void QuitToMainMenu();
 
 	UFUNCTION()
-		void ExitGame();
+		void QuitGame();
 };

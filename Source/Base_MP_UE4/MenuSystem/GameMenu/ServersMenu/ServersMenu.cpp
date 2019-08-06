@@ -12,7 +12,7 @@
 
 UServersMenu::UServersMenu(const FObjectInitializer & ObjectInitializer) : Super(ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> ServerRowBPClass(TEXT(
-		"/Game/MenuSystem/Menus/GameMenu/ServersMenu/WBP_ServerRow"
+		"/Game/MenuSystem/Menus/GameMenu/ServersMenu/WBP_ServerRow"	
 	));
 	if (!ensure(ServerRowBPClass.Class != nullptr)) return;
 	ServerRowClass = ServerRowBPClass.Class;

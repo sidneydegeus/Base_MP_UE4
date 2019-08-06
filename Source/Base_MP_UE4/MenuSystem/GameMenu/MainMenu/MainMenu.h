@@ -44,7 +44,7 @@ private:
 		void HostServer();
 
 	UFUNCTION()
-		void ExitGame();
+		void QuitGame();
 
 	UFUNCTION()
 		void OpenJoinMenu();

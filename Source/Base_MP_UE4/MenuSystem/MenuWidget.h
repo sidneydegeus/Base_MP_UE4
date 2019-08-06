@@ -18,7 +18,7 @@ class BASE_MP_UE4_API UMenuWidget : public UUserWidget
 
 // Variables
 protected:
-	IMenuInterface* MainMenuInterface;
+	IMenuInterface* MenuInterface;
 
 	UPROPERTY(meta = (BindWidget))
 		class UWidgetSwitcher* MenuSwitcher;

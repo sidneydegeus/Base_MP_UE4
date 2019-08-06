@@ -6,7 +6,7 @@
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
-#include "Kismet/KismetSystemLibrary.h"
+
 
 bool UInGameMenu::Initialize() {
 	bool Success = Super::Initialize();
@@ -19,7 +19,7 @@ bool UInGameMenu::Initialize() {
 	InGameMenu_QuitToMainMenuButton->OnClicked.AddDynamic(this, &UInGameMenu::QuitToMainMenu);
 
 	if (!ensure(InGameMenu_ExitGameButton != nullptr)) return false;
-	InGameMenu_ExitGameButton->OnClicked.AddDynamic(this, &UInGameMenu::ExitGame);
+	InGameMenu_ExitGameButton->OnClicked.AddDynamic(this, &UInGameMenu::QuitGame);
 
 	return true;
 }
@@ -38,6 +38,8 @@ void UInGameMenu::QuitToMainMenu() {
 	}
 }
 
-void UInGameMenu::ExitGame() {
-	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
+void UInGameMenu::QuitGame() {
+	if (GetMenuInterface() != nullptr) {
+		GetMenuInterface()->QuitGame();
+	}
 }

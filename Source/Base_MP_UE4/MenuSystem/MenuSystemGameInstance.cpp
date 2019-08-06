@@ -11,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #include "MenuSystem/GameMenu/GameMenu.h"
 #include "MenuSystem/In-GameMenu/InGameMenu.h"
@@ -170,4 +171,8 @@ void UMenuSystemGameInstance::RefreshServerList(class UServersMenu* ToSetServers
 		UE_LOG(LogTemp, Warning, TEXT("Starting Find Session"));
 		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 	}
+}
+
+void UMenuSystemGameInstance::QuitGame() {
+	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
 }

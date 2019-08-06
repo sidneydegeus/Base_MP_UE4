@@ -25,4 +25,5 @@ public:
 	virtual void Host() = 0;
 	virtual void Join(uint32 Index) = 0;
 	virtual void RefreshServerList(class UServersMenu* ToSetServersMenu) = 0;
+	virtual void QuitGame() = 0;
 };

@@ -4,7 +4,6 @@
 #include "MainMenu.h"
 
 #include "Components/Button.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 
 #include "MenuSystem/MenuWidget.h"
@@ -38,7 +37,7 @@ bool UMainMenu::Initialize() {
 	ServersButton->OnClicked.AddDynamic(this, &UMainMenu::OpenServersMenu);
 
 	if (!ensure(ExitGameButton != nullptr)) return false;
-	ExitGameButton->OnClicked.AddDynamic(this, &UMainMenu::ExitGame);
+	ExitGameButton->OnClicked.AddDynamic(this, &UMainMenu::QuitGame);
 
 	return true;
 }
@@ -50,14 +49,20 @@ void UMainMenu::HostServer() {
 }
 
 void UMainMenu::OpenJoinMenu() {
-	Menu->OpenSubMenuWidget(JoinMenuClass);
+	if (Menu->GetMenuInterface() != nullptr) {
+		Menu->OpenSubMenuWidget(JoinMenuClass);
+	}
 }
 
 void UMainMenu::OpenServersMenu() {
-	Menu->OpenSubMenuWidget(ServersMenuClass);
+	if (Menu->GetMenuInterface() != nullptr) {
+		Menu->OpenSubMenuWidget(ServersMenuClass);
+	}
 }
 
-void UMainMenu::ExitGame() {
-	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
+void UMainMenu::QuitGame() {
+	if (Menu->GetMenuInterface() != nullptr) {
+		Menu->GetMenuInterface()->QuitGame();
+	}
 }
 

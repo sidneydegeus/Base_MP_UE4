@@ -7,11 +7,11 @@
 #include "MenuSystem/SubMenuWidget.h"
 
 void UMenuWidget::SetMainMenuInterface(IMenuInterface* ToSetMainMenuInterface) {
-	MainMenuInterface = ToSetMainMenuInterface;
+	MenuInterface = ToSetMainMenuInterface;
 }
 
 IMenuInterface* UMenuWidget::GetMenuInterface() {
-	return this->MainMenuInterface;
+	return this->MenuInterface;
 }
 
 void UMenuWidget::Setup() {

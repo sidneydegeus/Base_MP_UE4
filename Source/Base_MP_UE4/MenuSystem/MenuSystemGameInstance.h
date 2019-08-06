@@ -51,6 +51,10 @@ public:
 	UFUNCTION(Exec)
 		void Join(uint32 Index) override;
 
+	UFUNCTION(Exec)
+		void QuitGame() override;
+
+
 	void RefreshServerList(class UServersMenu* ToSetServersMenu) override;
 
 private:
