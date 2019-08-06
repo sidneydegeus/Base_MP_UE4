@@ -37,6 +37,7 @@ void UMenuSystemGameInstance::Init() {
 	//UE_LOG(LogTemp, Warning, TEXT("Found class %s"), *InGameMenuClass->GetName());
 	IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
 	if (Subsystem != nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("Found subsystem %s"), *Subsystem->GetSubsystemName().ToString());
 		SessionInterface = Subsystem->GetSessionInterface();
 		if (SessionInterface.IsValid()) {
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMenuSystemGameInstance::OnCreateSessionComplete);
@@ -90,26 +91,33 @@ void UMenuSystemGameInstance::OnDestroySessionComplete(FName SessionName, bool S
 void UMenuSystemGameInstance::CreateSession() {
 	if (SessionInterface.IsValid()) {
 		FOnlineSessionSettings SessionSettings;
-		SessionSettings.bIsLANMatch = false;
+		if (IOnlineSubsystem::Get()->GetSubsystemName() == "NULL") {
+			SessionSettings.bIsLANMatch = true;
+		}
+		else {
+			SessionSettings.bIsLANMatch = false;
+		}
+
 		SessionSettings.NumPublicConnections = 4;
 		SessionSettings.bShouldAdvertise = true;
 		SessionSettings.bUsesPresence = true;
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
-		//SessionSettings.bIsLANMatch = true;
-		//SessionSettings.NumPublicConnections = 4;
-		//SessionSettings.bShouldAdvertise = true;
-		//SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
 	}
 }
 
 void UMenuSystemGameInstance::OnFindSessionsComplete(bool Success) {
 	UE_LOG(LogTemp, Warning, TEXT("Finding sessions complete"));
 	if (Success && SessionSearch.IsValid() && ServersMenu != nullptr) {
-		TArray<FString> ServerNames;
+		TArray<FServerData> ServerDataList;
 		for (const auto& result : SessionSearch->SearchResults) {
-			ServerNames.Add(result.GetSessionIdStr());
+			FServerData Data;
+			Data.ServerName = result.GetSessionIdStr();
+			Data.MaxPlayerCount = result.Session.SessionSettings.NumPublicConnections;
+			Data.CurrentPlayerCount = Data.MaxPlayerCount - result.Session.NumOpenPublicConnections;
+			Data.HostUserName = result.Session.OwningUserName;
+			ServerDataList.Add(Data);
 		}
-		ServersMenu->SetServerList(ServerNames);
+		ServersMenu->SetServerList(ServerDataList);
 	}
 }
 

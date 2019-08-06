@@ -19,6 +19,16 @@ public:
 	UPROPERTY(meta = (BindWidget))
 		class UTextBlock* ServerName;
 
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* HostUserName;
+
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* ServerPlayerCount;
+
+
+	UPROPERTY(BlueprintReadOnly)
+		bool Selected = false;
+
 private:
 	UPROPERTY(meta = (BindWidget))
 		class UButton* ServerRowButton;

@@ -6,6 +6,16 @@
 #include "MenuSystem/SubMenuWidget.h"
 #include "ServersMenu.generated.h"
 
+USTRUCT()
+struct FServerData {
+	GENERATED_BODY()
+
+	FString ServerName;
+	FString HostUserName;
+	uint16 CurrentPlayerCount;
+	uint16 MaxPlayerCount;
+};
+
 /**
  * 
  */
@@ -29,15 +39,16 @@ private:
 		class UButton* BackButton;
 
 	TSubclassOf<class UUserWidget> ServerRowClass;
-
 	TOptional<uint32> SelectedIndex;
 
 //Functions
 public:
 	UServersMenu(const FObjectInitializer& ObjectInitializer);
-	void SetServerList(TArray<FString> ServerNames);
-	void SelectIndex(uint32 Index);
 	virtual void SetMenu(class UMenuWidget* ToSetMenu) override;
+
+	void SetServerList(TArray<FServerData> ServerNames);
+	void SelectIndex(uint32 Index);
+
 
 protected:
 	virtual bool Initialize() override;
@@ -48,5 +59,7 @@ private:
 
 	UFUNCTION()
 		void RefreshServerList();
+
+	void UpdateChildren();
 
 };

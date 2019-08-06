@@ -36,9 +36,17 @@ bool UServersMenu::Initialize() {
 }
 
 void UServersMenu::SelectIndex(uint32 Index) {
-	UE_LOG(LogTemp, Warning, TEXT("clicked button %d"), Index);
-	//UE_LOG(LogTemp, Warning, TEXT("button server row clicked"));
 	SelectedIndex = Index;
+	UpdateChildren();
+}
+
+void UServersMenu::UpdateChildren() {
+	for (int32 i = 0; i < ServerList->GetChildrenCount(); ++i) {
+		auto Row = Cast<UServerRow>(ServerList->GetChildAt(i));
+		if (Row != nullptr) {
+			Row->Selected = (SelectedIndex.IsSet() && SelectedIndex.GetValue() == i);
+		}
+	}
 }
 
 void UServersMenu::SetMenu(UMenuWidget * ToSetMenu) {
@@ -58,15 +66,19 @@ void UServersMenu::RefreshServerList() {
 	}
 }
 
-void UServersMenu::SetServerList(TArray<FString> ServerNames) {
+void UServersMenu::SetServerList(TArray<FServerData> ServerDataList) {
 	if (!ensure(ServerRowClass != nullptr)) return;
 	ServerList->ClearChildren();
 
 	uint32 i = 0;
-	for (const FString& ServerName : ServerNames) {
+	for (const FServerData& Data : ServerDataList) {
 		UServerRow* ServerRow = CreateWidget<UServerRow>(this, ServerRowClass);
 		if (!ensure(ServerRow != nullptr)) return;
-		ServerRow->ServerName->SetText(FText::FromString(ServerName));
+		ServerRow->ServerName->SetText(FText::FromString(Data.ServerName));
+		ServerRow->HostUserName->SetText(FText::FromString(Data.HostUserName));
+		ServerRow->ServerPlayerCount->SetText(
+			FText::FromString(FString::Printf(TEXT("%d/%d"), Data.CurrentPlayerCount, Data.MaxPlayerCount))
+		);
 		ServerRow->Setup(this, i);
 		++i;
 
