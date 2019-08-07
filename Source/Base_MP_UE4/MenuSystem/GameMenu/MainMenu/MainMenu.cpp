@@ -16,12 +16,6 @@ UMainMenu::UMainMenu(const FObjectInitializer & ObjectInitializer) : Super(Objec
 	if (!ensure(HostMenuBPClass.Class != nullptr)) return;
 	HostMenuClass = HostMenuBPClass.Class;
 
-	//ConstructorHelpers::FClassFinder<UUserWidget> JoinMenuBPClass(TEXT(
-	//	"/Game/MenuSystem/Menus/GameMenu/JoinMenu/WBP_JoinMenu"
-	//));
-	//if (!ensure(JoinMenuBPClass.Class != nullptr)) return;
-	//JoinMenuClass = JoinMenuBPClass.Class;
-
 	ConstructorHelpers::FClassFinder<UUserWidget> ServersMenuBPClass(TEXT(
 		"/Game/MenuSystem/Menus/GameMenu/ServersMenu/WBP_ServersMenu"		
 	));
@@ -35,9 +29,6 @@ bool UMainMenu::Initialize() {
 
 	if (!ensure(HostButton != nullptr)) return false;
 	HostButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
-
-	//if (!ensure(JoinButton != nullptr)) return false;
-	//JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
 
 	if (!ensure(ServersButton != nullptr)) return false;
 	ServersButton->OnClicked.AddDynamic(this, &UMainMenu::OpenServersMenu);
@@ -53,12 +44,6 @@ void UMainMenu::HostServer() {
 		Menu->OpenSubMenuWidget(HostMenuClass);
 	}
 }
-
-//void UMainMenu::OpenJoinMenu() {
-//	if (Menu->GetMenuInterface() != nullptr) {
-//		Menu->OpenSubMenuWidget(JoinMenuClass);
-//	}
-//}
 
 void UMainMenu::OpenServersMenu() {
 	if (Menu->GetMenuInterface() != nullptr) {

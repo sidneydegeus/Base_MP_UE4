@@ -21,7 +21,10 @@ class BASE_MP_UE4_API UMenuSystemGameInstance : public UGameInstance, public IMe
 // Variables
 protected:
 	UPROPERTY(EditDefaultsOnly)
-		FString HostMap;
+		FString LobbyMap;
+
+	UPROPERTY(EditDefaultsOnly)
+		FString GameMap;
 
 private:
 	TSubclassOf<class UUserWidget> GameMenuClass;
@@ -30,7 +33,7 @@ private:
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 	FString DesiredServerName;
 
-	//UGLY, THINK OF A CLEANER WAY
+	//TODO: UGLY, THINK OF A CLEANER WAY
 	UPROPERTY()
 		class UServersMenu* ServersMenu;
 

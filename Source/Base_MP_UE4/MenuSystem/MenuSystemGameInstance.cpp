@@ -81,7 +81,7 @@ void UMenuSystemGameInstance::OnCreateSessionComplete(FName SessionName, bool Su
 
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
-	World->ServerTravel(HostMap + "?listen");
+	World->ServerTravel(LobbyMap + "?listen");
 }
 
 void UMenuSystemGameInstance::OnDestroySessionComplete(FName SessionName, bool Success) {
