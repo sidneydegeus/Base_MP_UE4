@@ -5,6 +5,7 @@
 
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 #include "UObject/ConstructorHelpers.h"
 
 #include "MenuSystem/MenuWidget.h"
@@ -63,10 +64,12 @@ void UServersMenu::JoinServer() {
 void UServersMenu::RefreshServerList() {
 	if (Menu->GetMenuInterface() != nullptr) {
 		Menu->GetMenuInterface()->RefreshServerList(this);
+		Loading->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
 void UServersMenu::SetServerList(TArray<FServerData> ServerDataList) {
+	Loading->SetVisibility(ESlateVisibility::Collapsed);
 	if (!ensure(ServerRowClass != nullptr)) return;
 	ServerList->ClearChildren();
 

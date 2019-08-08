@@ -38,7 +38,11 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		class UButton* BackButton;
 
+	UPROPERTY(meta = (BindWidget))
+		class UImage* Loading;
+
 	TSubclassOf<class UUserWidget> ServerRowClass;
+
 	TOptional<uint32> SelectedIndex;
 
 //Functions
