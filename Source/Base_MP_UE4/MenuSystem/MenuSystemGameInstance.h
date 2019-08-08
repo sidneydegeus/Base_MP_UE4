@@ -19,7 +19,7 @@ class BASE_MP_UE4_API UMenuSystemGameInstance : public UGameInstance, public IMe
 	GENERATED_BODY()
 	
 // Variables
-protected:
+public:
 	UPROPERTY(EditDefaultsOnly)
 		FString LobbyMap;
 
@@ -59,7 +59,7 @@ public:
 	UFUNCTION(Exec)
 		void QuitGame() override;
 
-
+	void StartSession();
 	void RefreshServerList(class UServersMenu* ToSetServersMenu) override;
 
 private:

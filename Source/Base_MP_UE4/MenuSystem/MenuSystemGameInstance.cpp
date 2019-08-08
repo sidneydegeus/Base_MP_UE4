@@ -18,7 +18,7 @@
 #include "MenuSystem/GameMenu/ServersMenu/ServersMenu.h"
 #include "MenuSystem/MenuWidget.h"
 
-const static FName SESSION_NAME = TEXT("Game");
+//const static FName SESSION_NAME = TEXT("Game");
 const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UMenuSystemGameInstance::UMenuSystemGameInstance(const FObjectInitializer & ObjectInitializer) {
@@ -46,17 +46,14 @@ void UMenuSystemGameInstance::Init() {
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UMenuSystemGameInstance::OnDestroySessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UMenuSystemGameInstance::OnFindSessionsComplete);
 			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMenuSystemGameInstance::OnJoinSessionComplete);
-
 		}
 	}
 }
-
 
 void UMenuSystemGameInstance::LoadGameMenuWidget() {
 	if (!ensure(GameMenuClass != nullptr)) return;
 	UGameMenu* GameMenu = CreateWidget<UGameMenu>(this, GameMenuClass);
 	if (!ensure(GameMenu != nullptr)) return;
-
 	GameMenu->Setup();
 	GameMenu->SetMainMenuInterface(this);
 }
@@ -65,7 +62,6 @@ void UMenuSystemGameInstance::LoadInGameMenuWidget() {
 	if (!ensure(InGameMenuClass != nullptr)) return;
 	UInGameMenu* InGameMenu = CreateWidget<UInGameMenu>(this, InGameMenuClass);
 	if (!ensure(InGameMenu != nullptr)) return;
-
 	InGameMenu->Setup();
 	InGameMenu->SetMainMenuInterface(this);
 }
@@ -109,7 +105,7 @@ void UMenuSystemGameInstance::CreateSession() {
 			EOnlineDataAdvertisementType::ViaOnlineServiceAndPing
 		);
 
-		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
+		SessionInterface->CreateSession(0, NAME_GameSession, SessionSettings);
 	}
 }
 
@@ -131,7 +127,6 @@ void UMenuSystemGameInstance::OnFindSessionsComplete(bool Success) {
 			else {
 				Data.ServerName = "Could not find name.";
 			}
-
 			ServerDataList.Add(Data);
 		}
 		ServersMenu->SetServerList(ServerDataList);
@@ -160,9 +155,9 @@ void UMenuSystemGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSe
 void UMenuSystemGameInstance::Host(FString ServerName) {
 	DesiredServerName = ServerName;
 	if (SessionInterface.IsValid()) {
-		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
+		auto ExistingSession = SessionInterface->GetNamedSession(NAME_GameSession);
 		if (ExistingSession != nullptr) {
-			SessionInterface->DestroySession(SESSION_NAME);
+			SessionInterface->DestroySession(NAME_GameSession);
 		}
 		else {
 			CreateSession();
@@ -173,8 +168,13 @@ void UMenuSystemGameInstance::Host(FString ServerName) {
 void UMenuSystemGameInstance::Join(uint32 Index) {
 	if (!SessionInterface.IsValid()) return;
 	if (!SessionSearch.IsValid()) return;
+	SessionInterface->JoinSession(0, NAME_GameSession, SessionSearch->SearchResults[Index]);
+}
 
-	SessionInterface->JoinSession(0, SESSION_NAME, SessionSearch->SearchResults[Index]);
+void UMenuSystemGameInstance::StartSession() {
+	if (SessionInterface.IsValid()) {
+		SessionInterface->StartSession(NAME_GameSession);
+	}
 }
 
 void UMenuSystemGameInstance::RefreshServerList(class UServersMenu* ToSetServersMenu) {
