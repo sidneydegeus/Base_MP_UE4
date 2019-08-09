@@ -6,7 +6,7 @@
 #include "Components/WidgetSwitcher.h"
 #include "MenuSystem/SubMenuWidget.h"
 
-void UMenuWidget::SetMainMenuInterface(IMenuInterface* ToSetMainMenuInterface) {
+void UMenuWidget::SetMenuInterface(IMenuInterface* ToSetMainMenuInterface) {
 	MenuInterface = ToSetMainMenuInterface;
 }
 

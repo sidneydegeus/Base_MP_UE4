@@ -55,7 +55,7 @@ void UMenuSystemGameInstance::LoadGameMenuWidget() {
 	UGameMenu* GameMenu = CreateWidget<UGameMenu>(this, GameMenuClass);
 	if (!ensure(GameMenu != nullptr)) return;
 	GameMenu->Setup();
-	GameMenu->SetMainMenuInterface(this);
+	GameMenu->SetMenuInterface(this);
 }
 
 void UMenuSystemGameInstance::LoadInGameMenuWidget() {
@@ -63,7 +63,7 @@ void UMenuSystemGameInstance::LoadInGameMenuWidget() {
 	UInGameMenu* InGameMenu = CreateWidget<UInGameMenu>(this, InGameMenuClass);
 	if (!ensure(InGameMenu != nullptr)) return;
 	InGameMenu->Setup();
-	InGameMenu->SetMainMenuInterface(this);
+	InGameMenu->SetMenuInterface(this);
 }
 
 void UMenuSystemGameInstance::OnCreateSessionComplete(FName SessionName, bool Success) {
