@@ -35,7 +35,7 @@ private:
 
 // functions
 public:
-	void SetMainMenuInterface(IMenuInterface* ToSetMainMenuInterface);
+	void SetMenuInterface(IMenuInterface* ToSetMenuInterface);
 	void Setup();
 
 	void OpenSubMenuWidget(TSubclassOf<USubMenuWidget> SubMenuClass);

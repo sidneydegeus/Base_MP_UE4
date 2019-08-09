@@ -1,0 +1,24 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "Lobby.h"
+
+#include "UObject/ConstructorHelpers.h"
+
+ULobby::ULobby(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
+	//ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT(
+	//	"/Game/MenuSystem/Menus/GameMenu/MainMenu/WBP_MainMenu"
+	//));
+	//if (!ensure(MainMenuBPClass.Class != nullptr)) return;
+	//MainMenuClass = MainMenuBPClass.Class;
+}
+
+bool ULobby::Initialize() {
+	bool Success = Super::Initialize();
+	if (!Success) return false;
+
+	//if (!ensure(MainMenuClass != nullptr)) return false;
+	//OpenSubMenuWidget(MainMenuClass);
+
+	return true;
+}
