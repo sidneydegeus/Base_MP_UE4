@@ -6,7 +6,7 @@
 #include "Components/InputComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/Engine.h"
-#include "GameFrameWork/GameState.h"
+#include "Vehicle/BaseVehicleMovementComponent.h"
 
 void ABaseVehicle::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -16,6 +16,10 @@ void ABaseVehicle::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 ABaseVehicle::ABaseVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+
+	//TODO: do the following in a function that can be overridden by child classes
+	// so that different movement components can be added 
+	MovementComponent = CreateDefaultSubobject<UBaseVehicleMovementComponent>(TEXT("MovementComponent"));
 }
 
 void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
@@ -31,52 +35,34 @@ void ABaseVehicle::BeginPlay() {
 void ABaseVehicle::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
+	if (MovementComponent == nullptr) return;
+
 	if (Role == ROLE_AutonomousProxy) {
-		FVehicleMove Move = CreateVehicleMove(DeltaTime);
-		SimulateMove(Move);
+		FVehicleMove Move = MovementComponent->CreateVehicleMove(DeltaTime);
+		MovementComponent->SimulateMove(Move);
 		UnacknowledgedMoves.Add(Move);
 		Server_SendMove(Move);
 	}
 
 	if (Role == ROLE_Authority && GetRemoteRole() == ROLE_SimulatedProxy) {
-		FVehicleMove Move = CreateVehicleMove(DeltaTime);
+		FVehicleMove Move = MovementComponent->CreateVehicleMove(DeltaTime);
 		Server_SendMove(Move);
 	}
 
 	if (Role == ROLE_SimulatedProxy) {
-		SimulateMove(ServerState.LastMove);
+		MovementComponent->SimulateMove(ServerState.LastMove);
 	}
 }
 
 void ABaseVehicle::OnRep_ServerState() {
+	if (MovementComponent == nullptr) return;
 	SetActorTransform(ServerState.Tranform);
-	Velocity = ServerState.Velocity;
+	MovementComponent->SetVelocity(ServerState.Velocity);
 
 	ClearAcknowledgedMoves(ServerState.LastMove);
 	for (const FVehicleMove& Move : UnacknowledgedMoves) {
-		SimulateMove(Move);
+		MovementComponent->SimulateMove(Move);
 	}
-}
-
-void ABaseVehicle::SimulateMove(const FVehicleMove& Move) {
-	FVector Force = GetActorForwardVector() * MaxDrivingForce * Move.Throttle;
-	Force += GetAirResistance();
-	Force += GetRollingResistance();
-
-	FVector Acceleration = Force / Mass;
-	Velocity = Velocity + Acceleration * Move.DeltaTime;
-
-	ApplyRotation(Move.DeltaTime, Move.SteeringThrow);
-	UpdateLocationFromVelocity(Move.DeltaTime);
-}
-
-FVehicleMove ABaseVehicle::CreateVehicleMove(float DeltaTime) {
-	FVehicleMove Move;
-	Move.DeltaTime = DeltaTime;
-	Move.SteeringThrow = SteeringThrow;
-	Move.Throttle = Throttle;
-	Move.Time = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
-	return Move;
 }
 
 void ABaseVehicle::ClearAcknowledgedMoves(FVehicleMove LastMove) {
@@ -89,52 +75,23 @@ void ABaseVehicle::ClearAcknowledgedMoves(FVehicleMove LastMove) {
 	UnacknowledgedMoves = NewMoves;
 }
 
-FVector ABaseVehicle::GetAirResistance() {
-	return -Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
-}
-
-FVector ABaseVehicle::GetRollingResistance() {
-	float AccelerationDueToGravity = -GetWorld()->GetGravityZ() / 100;
-	float NormalForce = Mass * AccelerationDueToGravity;
-	return -Velocity.GetSafeNormal() * RollingResistanceCoefficient * NormalForce;
-}
-
-
-void ABaseVehicle::ApplyRotation(float DeltaTime, float SteeringThrow) {
-	float DeltaLocation = FVector::DotProduct(GetActorForwardVector(), Velocity) * DeltaTime;
-	float RotationAngle = DeltaLocation / MinTurningRadius * SteeringThrow;
-	FQuat RotationDelta(GetActorUpVector(), RotationAngle);
-
-	Velocity = RotationDelta.RotateVector(Velocity);
-
-	AddActorWorldRotation(RotationDelta);
-}
-
-void ABaseVehicle::UpdateLocationFromVelocity(float DeltaTime) {
-	FVector Translation = Velocity * 100 * DeltaTime;
-
-	FHitResult Hit;
-	AddActorWorldOffset(Translation, true, &Hit);
-	if (Hit.IsValidBlockingHit()) {
-		Velocity = FVector::ZeroVector;
-	}
-}
-
 void ABaseVehicle::MoveForward(float Throw) {
-	UE_LOG(LogTemp, Warning, TEXT("Throw %d"), Throw);
-	Throttle = Throw;
+	if (MovementComponent == nullptr) return;
+	MovementComponent->SetThrottle(Throw);
 }
 
 void ABaseVehicle::MoveRight(float Throw) {
-	SteeringThrow = Throw;
+	if (MovementComponent == nullptr) return;
+	MovementComponent->SetSteeringThrow(Throw);
 }
 
 void ABaseVehicle::Server_SendMove_Implementation(const FVehicleMove& Move) {
-	SimulateMove(Move);
+	if (MovementComponent == nullptr) return;
+	MovementComponent->SimulateMove(Move);
 
 	ServerState.LastMove = Move;
 	ServerState.Tranform = GetActorTransform();
-	ServerState.Velocity = Velocity;
+	ServerState.Velocity = MovementComponent->GetVelocity();
 }
 
 bool ABaseVehicle::Server_SendMove_Validate(const FVehicleMove& Move) {

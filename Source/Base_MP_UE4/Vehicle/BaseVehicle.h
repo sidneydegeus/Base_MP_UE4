@@ -4,24 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Vehicle/BaseVehicleMovementComponent.h"
 #include "BaseVehicle.generated.h"
-
-USTRUCT()
-struct FVehicleMove
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY()
-		float Throttle;
-	UPROPERTY()
-		float SteeringThrow;
-
-	UPROPERTY()
-		float DeltaTime;
-	UPROPERTY()
-		float Time;
-};
-
 
 USTRUCT()
 struct FVehicleState
@@ -45,32 +29,13 @@ class BASE_MP_UE4_API ABaseVehicle : public APawn
 
 //Variables
 protected:
-	float Throttle;
-	float SteeringThrow;
-	FVector Velocity;
-	TArray<FVehicleMove> UnacknowledgedMoves;
-
-	UPROPERTY(EditAnywhere)
-		float Mass = 1000;
-
-	// The force applied to the car when the throttle is fully down (N).
-	UPROPERTY(EditAnywhere)
-		float MaxDrivingForce = 10000;
-
-	// Minimum radius of the car turning circle at full lock (m).
-	UPROPERTY(EditAnywhere)
-		float MinTurningRadius = 10;
-
-	// Higher means more drag.
-	UPROPERTY(EditAnywhere)
-		float DragCoefficient = 16;
-
-	// Higher means more rolling resistance.
-	UPROPERTY(EditAnywhere)
-		float RollingResistanceCoefficient = 0.015;
+	TArray<FVehicleMove> UnacknowledgedMoves;	
 
 	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
 		FVehicleState ServerState;
+
+	UPROPERTY(EditAnywhere)
+		UBaseVehicleMovementComponent* MovementComponent;
 
 //Functions 
 public:	
@@ -82,15 +47,7 @@ protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-	void SimulateMove(const FVehicleMove& Move);
-	FVehicleMove CreateVehicleMove(float DeltaTime);
 	void ClearAcknowledgedMoves(FVehicleMove LastMove);
-
-	FVector GetAirResistance();
-	FVector GetRollingResistance();
-
-	void ApplyRotation(float DeltaTime, float SteeringThrow);
-	void UpdateLocationFromVelocity(float DeltaTime);
 
 	UFUNCTION()
 		void OnRep_ServerState();
