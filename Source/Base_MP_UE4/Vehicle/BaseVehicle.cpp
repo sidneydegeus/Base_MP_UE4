@@ -5,12 +5,12 @@
 
 #include "Components/InputComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
+#include "GameFrameWork/GameState.h"
 
 void ABaseVehicle::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABaseVehicle, ServerState);
-	DOREPLIFETIME(ABaseVehicle, Throttle);
-	DOREPLIFETIME(ABaseVehicle, SteeringThrow);
 }
 
 ABaseVehicle::ABaseVehicle() {
@@ -31,31 +31,62 @@ void ABaseVehicle::BeginPlay() {
 void ABaseVehicle::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
-	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
-
-	Force += GetAirResistance();
-	Force += GetRollingResistance();
-
-	FVector Acceleration = Force / Mass;
-
-	Velocity = Velocity + Acceleration * DeltaTime;
-
-	ApplyRotation(DeltaTime);
-
-	UpdateLocationFromVelocity(DeltaTime);
-
-	if (HasAuthority()) {
-		ServerState.Tranform = GetActorTransform();
-		ServerState.Velocity = Velocity;
-		//TODO: Update last move
+	if (Role == ROLE_AutonomousProxy) {
+		FVehicleMove Move = CreateVehicleMove(DeltaTime);
+		SimulateMove(Move);
+		UnacknowledgedMoves.Add(Move);
+		Server_SendMove(Move);
 	}
 
-	//DrawDebugString(GetWorld(), FVector(0, 0, 100), GetEnumText(Role), this, FColor::White, DeltaTime);
+	if (Role == ROLE_Authority && GetRemoteRole() == ROLE_SimulatedProxy) {
+		FVehicleMove Move = CreateVehicleMove(DeltaTime);
+		Server_SendMove(Move);
+	}
+
+	if (Role == ROLE_SimulatedProxy) {
+		SimulateMove(ServerState.LastMove);
+	}
 }
 
 void ABaseVehicle::OnRep_ServerState() {
 	SetActorTransform(ServerState.Tranform);
 	Velocity = ServerState.Velocity;
+
+	ClearAcknowledgedMoves(ServerState.LastMove);
+	for (const FVehicleMove& Move : UnacknowledgedMoves) {
+		SimulateMove(Move);
+	}
+}
+
+void ABaseVehicle::SimulateMove(const FVehicleMove& Move) {
+	FVector Force = GetActorForwardVector() * MaxDrivingForce * Move.Throttle;
+	Force += GetAirResistance();
+	Force += GetRollingResistance();
+
+	FVector Acceleration = Force / Mass;
+	Velocity = Velocity + Acceleration * Move.DeltaTime;
+
+	ApplyRotation(Move.DeltaTime, Move.SteeringThrow);
+	UpdateLocationFromVelocity(Move.DeltaTime);
+}
+
+FVehicleMove ABaseVehicle::CreateVehicleMove(float DeltaTime) {
+	FVehicleMove Move;
+	Move.DeltaTime = DeltaTime;
+	Move.SteeringThrow = SteeringThrow;
+	Move.Throttle = Throttle;
+	Move.Time = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+	return Move;
+}
+
+void ABaseVehicle::ClearAcknowledgedMoves(FVehicleMove LastMove) {
+	TArray<FVehicleMove> NewMoves;
+	for (const FVehicleMove& Move : UnacknowledgedMoves) {
+		if (Move.Time > LastMove.Time) {
+			NewMoves.Add(Move);
+		}
+	}
+	UnacknowledgedMoves = NewMoves;
 }
 
 FVector ABaseVehicle::GetAirResistance() {
@@ -69,7 +100,7 @@ FVector ABaseVehicle::GetRollingResistance() {
 }
 
 
-void ABaseVehicle::ApplyRotation(float DeltaTime) {
+void ABaseVehicle::ApplyRotation(float DeltaTime, float SteeringThrow) {
 	float DeltaLocation = FVector::DotProduct(GetActorForwardVector(), Velocity) * DeltaTime;
 	float RotationAngle = DeltaLocation / MinTurningRadius * SteeringThrow;
 	FQuat RotationDelta(GetActorUpVector(), RotationAngle);
@@ -90,6 +121,7 @@ void ABaseVehicle::UpdateLocationFromVelocity(float DeltaTime) {
 }
 
 void ABaseVehicle::MoveForward(float Throw) {
+	UE_LOG(LogTemp, Warning, TEXT("Throw %d"), Throw);
 	Throttle = Throw;
 }
 
@@ -97,12 +129,15 @@ void ABaseVehicle::MoveRight(float Throw) {
 	SteeringThrow = Throw;
 }
 
-void ABaseVehicle::Server_SendMove_Implementation(FVehicleMove Move) {
-	Throttle = Move.Throttle;
-	SteeringThrow = Move.SteeringThrow;
+void ABaseVehicle::Server_SendMove_Implementation(const FVehicleMove& Move) {
+	SimulateMove(Move);
+
+	ServerState.LastMove = Move;
+	ServerState.Tranform = GetActorTransform();
+	ServerState.Velocity = Velocity;
 }
 
-bool ABaseVehicle::Server_SendMove_Validate(FVehicleMove Move) {
+bool ABaseVehicle::Server_SendMove_Validate(const FVehicleMove& Move) {
 	return true; //TODO: Make better validation
 }
 

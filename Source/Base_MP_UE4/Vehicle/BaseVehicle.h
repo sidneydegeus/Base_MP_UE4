@@ -48,6 +48,7 @@ protected:
 	float Throttle;
 	float SteeringThrow;
 	FVector Velocity;
+	TArray<FVehicleMove> UnacknowledgedMoves;
 
 	UPROPERTY(EditAnywhere)
 		float Mass = 1000;
@@ -69,7 +70,7 @@ protected:
 		float RollingResistanceCoefficient = 0.015;
 
 	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
-		FVehicleState  ServerState;
+		FVehicleState ServerState;
 
 //Functions 
 public:	
@@ -81,10 +82,14 @@ protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
+	void SimulateMove(const FVehicleMove& Move);
+	FVehicleMove CreateVehicleMove(float DeltaTime);
+	void ClearAcknowledgedMoves(FVehicleMove LastMove);
+
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
 
-	void ApplyRotation(float DeltaTime);
+	void ApplyRotation(float DeltaTime, float SteeringThrow);
 	void UpdateLocationFromVelocity(float DeltaTime);
 
 	UFUNCTION()
@@ -94,12 +99,8 @@ protected:
 	virtual void MoveRight(float Throw);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		virtual void Server_SendMove(FVehicleMove Move);
-		virtual void Server_SendMove_Implementation(FVehicleMove Move);
-		virtual bool Server_SendMove_Validate(FVehicleMove Move);
+		virtual void Server_SendMove(const FVehicleMove& Move);
+		virtual void Server_SendMove_Implementation(const FVehicleMove& Move);
+		virtual bool Server_SendMove_Validate(const FVehicleMove& Move);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-		virtual void Server_MoveRight(float Throw);
-		virtual void Server_MoveRight_Implementation(float Throw);
-		virtual bool Server_MoveRight_Validate(float Throw);
 };
