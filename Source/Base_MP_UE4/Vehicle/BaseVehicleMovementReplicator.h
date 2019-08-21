@@ -50,6 +50,7 @@ protected:
 
 private:
 	void ClearAcknowledgedMoves(FVehicleMove LastMove);
+	void UpdateServerState(const FVehicleMove& Move);
 
 	UFUNCTION()
 		void OnRep_ServerState();

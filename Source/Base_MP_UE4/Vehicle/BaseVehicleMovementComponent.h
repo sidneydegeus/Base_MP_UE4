@@ -36,6 +36,8 @@ protected:
 	float SteeringThrow;
 	FVector Velocity;
 
+	FVehicleMove LastMove;
+
 	UPROPERTY(EditAnywhere)
 		float Mass = 1000;
 
@@ -57,6 +59,9 @@ protected:
 
 // Functions
 public:
+	UBaseVehicleMovementComponent();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 	void SimulateMove(const FVehicleMove& Move);
 	FVehicleMove CreateVehicleMove(float DeltaTime);
 
@@ -65,6 +70,8 @@ public:
 
 	void SetThrottle(float Value) { Throttle = Value; };
 	void SetSteeringThrow(float Value) { SteeringThrow = Value; };
+
+	FVehicleMove GetLastMove() { return LastMove; };
 
 protected:
 	FVector GetAirResistance();

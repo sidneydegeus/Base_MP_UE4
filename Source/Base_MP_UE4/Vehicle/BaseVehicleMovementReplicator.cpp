@@ -24,17 +24,15 @@ void UBaseVehicleMovementReplicator::TickComponent(float DeltaTime, ELevelTick T
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (MovementComponent == nullptr) return;
+	FVehicleMove LastMove = MovementComponent->GetLastMove();
 
 	if (GetOwnerRole() == ROLE_AutonomousProxy) {
-		FVehicleMove Move = MovementComponent->CreateVehicleMove(DeltaTime);
-		MovementComponent->SimulateMove(Move);
-		UnacknowledgedMoves.Add(Move);
-		Server_SendMove(Move);
+		UnacknowledgedMoves.Add(LastMove);
+		Server_SendMove(LastMove);
 	}
 
-	if (GetOwnerRole() == ROLE_Authority && GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy) {
-		FVehicleMove Move = MovementComponent->CreateVehicleMove(DeltaTime);
-		Server_SendMove(Move);
+	if (GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy) {
+		UpdateServerState(LastMove);
 	}
 
 	if (GetOwnerRole() == ROLE_SimulatedProxy) {
@@ -63,13 +61,16 @@ void UBaseVehicleMovementReplicator::ClearAcknowledgedMoves(FVehicleMove LastMov
 	UnacknowledgedMoves = NewMoves;
 }
 
-void UBaseVehicleMovementReplicator::Server_SendMove_Implementation(const FVehicleMove& Move) {
-	if (MovementComponent == nullptr) return;
-	MovementComponent->SimulateMove(Move);
-
+void UBaseVehicleMovementReplicator::UpdateServerState(const FVehicleMove& Move) {
 	ServerState.LastMove = Move;
 	ServerState.Tranform = GetOwner()->GetActorTransform();
 	ServerState.Velocity = MovementComponent->GetVelocity();
+}
+
+void UBaseVehicleMovementReplicator::Server_SendMove_Implementation(const FVehicleMove& Move) {
+	if (MovementComponent == nullptr) return;
+	MovementComponent->SimulateMove(Move);
+	UpdateServerState(Move);
 }
 
 bool UBaseVehicleMovementReplicator::Server_SendMove_Validate(const FVehicleMove& Move) {

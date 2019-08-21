@@ -6,6 +6,19 @@
 #include "Engine/Engine.h"
 #include "GameFrameWork/GameState.h"
 
+UBaseVehicleMovementComponent::UBaseVehicleMovementComponent() {
+	PrimaryComponentTick.bCanEverTick = true;
+}
+
+void UBaseVehicleMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (GetOwnerRole() == ROLE_AutonomousProxy || GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy) {
+		LastMove = CreateVehicleMove(DeltaTime);
+		SimulateMove(LastMove);
+	}
+}
+
 void UBaseVehicleMovementComponent::SimulateMove(const FVehicleMove& Move) {
 	FVector Force = GetOwner()->GetActorForwardVector() * MaxDrivingForce * Move.Throttle;
 	Force += GetAirResistance();
