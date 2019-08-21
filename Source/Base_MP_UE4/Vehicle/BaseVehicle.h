@@ -5,22 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Vehicle/BaseVehicleMovementComponent.h"
+#include "Vehicle/BaseVehicleMovementReplicator.h"
 #include "BaseVehicle.generated.h"
-
-USTRUCT()
-struct FVehicleState
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY()
-		FTransform Tranform;
-
-	UPROPERTY()
-		FVector Velocity;
-
-	UPROPERTY()
-		FVehicleMove LastMove;
-};
 
 UCLASS()
 class BASE_MP_UE4_API ABaseVehicle : public APawn
@@ -29,13 +15,12 @@ class BASE_MP_UE4_API ABaseVehicle : public APawn
 
 //Variables
 protected:
-	TArray<FVehicleMove> UnacknowledgedMoves;	
 
-	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
-		FVehicleState ServerState;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere)
 		UBaseVehicleMovementComponent* MovementComponent;
+	UPROPERTY(VisibleAnywhere)
+		UBaseVehicleMovementReplicator* MovementReplicator;
 
 //Functions 
 public:	
@@ -45,19 +30,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
-
-	void ClearAcknowledgedMoves(FVehicleMove LastMove);
-
-	UFUNCTION()
-		void OnRep_ServerState();
 
 	virtual void MoveForward(float Throw);
 	virtual void MoveRight(float Throw);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-		virtual void Server_SendMove(const FVehicleMove& Move);
-		virtual void Server_SendMove_Implementation(const FVehicleMove& Move);
-		virtual bool Server_SendMove_Validate(const FVehicleMove& Move);
 
 };

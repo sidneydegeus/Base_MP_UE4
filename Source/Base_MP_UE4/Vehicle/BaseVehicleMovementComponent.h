@@ -23,7 +23,7 @@ struct FVehicleMove
 };
 
 /**
- * 
+ * Base Vehicle movement physics. Derive and overwrite functions from this class if you want more custom functionality.
  */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class BASE_MP_UE4_API UBaseVehicleMovementComponent : public UNavMovementComponent
