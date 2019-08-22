@@ -5,16 +5,23 @@
 
 #include "Components/InputComponent.h"
 #include "Vehicle/BaseVehicleMovementComponent.h"
+#include "Components/SceneComponent.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 ABaseVehicle::ABaseVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	bReplicateMovement = false;
+	NetUpdateFrequency = 30;
 
-	//TODO: do the following in a function that can be overridden by child classes
-	// so that different movement components can be added 
-	MovementComponent = CreateDefaultSubobject<UBaseVehicleMovementComponent>(TEXT("MovementComponent"));
-	MovementReplicator = CreateDefaultSubobject<UBaseVehicleMovementReplicator>(TEXT("MovementReplicator"));
+	CreateCameraComponent();
+	CreateMovementComponent();
+	CreateMovementReplicator();
+}
+
+void ABaseVehicle::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
 }
 
 void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
@@ -27,8 +34,12 @@ void ABaseVehicle::BeginPlay() {
 	Super::BeginPlay();
 }
 
-void ABaseVehicle::Tick(float DeltaTime) {
-	Super::Tick(DeltaTime);
+void ABaseVehicle::CreateMovementComponent() {
+	MovementComponent = CreateDefaultSubobject<UBaseVehicleMovementComponent>(TEXT("MovementComponent"));
+}
+
+void ABaseVehicle::CreateMovementReplicator() {
+	MovementReplicator = CreateDefaultSubobject<UBaseVehicleMovementReplicator>(TEXT("MovementReplicator"));
 }
 
 void ABaseVehicle::MoveForward(float Throw) {
@@ -41,6 +52,17 @@ void ABaseVehicle::MoveRight(float Throw) {
 	MovementComponent->SetSteeringThrow(Throw);
 }
 
+void ABaseVehicle::CreateCameraComponent() {
+	USceneComponent* Base = CreateDefaultSubobject<USceneComponent>(FName("Base"));
+	SetRootComponent(Base);
 
+	AzimuthGimbal = CreateDefaultSubobject<USceneComponent>(FName("AzimuthGimbal"));
+	AzimuthGimbal->SetupAttachment(Base);
 
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArm"));
+	SpringArm->SetupAttachment(AzimuthGimbal);
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
+	Camera->SetupAttachment(SpringArm);
+}
 

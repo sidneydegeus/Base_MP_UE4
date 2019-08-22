@@ -15,12 +15,18 @@ class BASE_MP_UE4_API ABaseVehicle : public APawn
 
 //Variables
 protected:
-
+	UPROPERTY(VisibleAnywhere)
+		class USceneComponent* AzimuthGimbal;
+	UPROPERTY(VisibleAnywhere)
+		class USpringArmComponent* SpringArm;
+	UPROPERTY(VisibleAnywhere)
+		class UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere)
 		UBaseVehicleMovementComponent* MovementComponent;
 	UPROPERTY(VisibleAnywhere)
 		UBaseVehicleMovementReplicator* MovementReplicator;
+
 
 //Functions 
 public:	
@@ -30,8 +36,12 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void CreateMovementComponent();
+	virtual void CreateMovementReplicator();
 
 	virtual void MoveForward(float Throw);
 	virtual void MoveRight(float Throw);
 
+private:
+	void CreateCameraComponent();
 };
