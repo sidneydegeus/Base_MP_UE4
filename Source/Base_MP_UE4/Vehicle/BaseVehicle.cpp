@@ -9,6 +9,7 @@
 ABaseVehicle::ABaseVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+	bReplicateMovement = false;
 
 	//TODO: do the following in a function that can be overridden by child classes
 	// so that different movement components can be added 

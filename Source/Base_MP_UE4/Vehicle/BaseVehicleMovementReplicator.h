@@ -13,7 +13,7 @@ struct FVehicleState
 	GENERATED_USTRUCT_BODY()
 
 		UPROPERTY()
-		FTransform Tranform;
+		FTransform Transform;
 
 	UPROPERTY()
 		FVector Velocity;
@@ -30,6 +30,11 @@ class BASE_MP_UE4_API UBaseVehicleMovementReplicator : public UActorComponent
 //Variables
 private:
 	TArray<FVehicleMove> UnacknowledgedMoves;
+
+	float ClientTimeSinceUpdate;
+	float ClientTimeBetweenLastUpdates;
+	FTransform ClientStartTransform;
+	FVector ClientStartVelocity;
 
 	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
 		FVehicleState ServerState;
@@ -51,9 +56,13 @@ protected:
 private:
 	void ClearAcknowledgedMoves(FVehicleMove LastMove);
 	void UpdateServerState(const FVehicleMove& Move);
+	void ClientTick(float DeltaTime);
 
 	UFUNCTION()
 		void OnRep_ServerState();
+	void SimulatedProxy_OnRep_ServerState();
+	void AutonomousProxy_OnRep_ServerState();
+
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		virtual void Server_SendMove(const FVehicleMove& Move);

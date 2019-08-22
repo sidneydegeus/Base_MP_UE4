@@ -36,18 +36,7 @@ void UBaseVehicleMovementReplicator::TickComponent(float DeltaTime, ELevelTick T
 	}
 
 	if (GetOwnerRole() == ROLE_SimulatedProxy) {
-		MovementComponent->SimulateMove(ServerState.LastMove);
-	}
-}
-
-void UBaseVehicleMovementReplicator::OnRep_ServerState() {
-	if (MovementComponent == nullptr) return;
-	GetOwner()->SetActorTransform(ServerState.Tranform);
-	MovementComponent->SetVelocity(ServerState.Velocity);
-
-	ClearAcknowledgedMoves(ServerState.LastMove);
-	for (const FVehicleMove& Move : UnacknowledgedMoves) {
-		MovementComponent->SimulateMove(Move);
+		ClientTick(DeltaTime);
 	}
 }
 
@@ -63,8 +52,76 @@ void UBaseVehicleMovementReplicator::ClearAcknowledgedMoves(FVehicleMove LastMov
 
 void UBaseVehicleMovementReplicator::UpdateServerState(const FVehicleMove& Move) {
 	ServerState.LastMove = Move;
-	ServerState.Tranform = GetOwner()->GetActorTransform();
+	ServerState.Transform = GetOwner()->GetActorTransform();
 	ServerState.Velocity = MovementComponent->GetVelocity();
+}
+
+void UBaseVehicleMovementReplicator::ClientTick(float DeltaTime) {
+	ClientTimeSinceUpdate += DeltaTime;
+
+	if (ClientTimeBetweenLastUpdates < KINDA_SMALL_NUMBER) return;
+	if (MovementComponent == nullptr) return;
+
+	float LerpRatio = ClientTimeSinceUpdate / ClientTimeBetweenLastUpdates;
+	FVector StartLocation = ClientStartTransform.GetLocation();
+	FVector TargetLocation = ServerState.Transform.GetLocation();
+
+	float VelocityToDerivative = ClientTimeBetweenLastUpdates * 100;
+	FVector StartDerivative = ClientStartVelocity * VelocityToDerivative;
+	FVector TargetDerivative = ServerState.Velocity * VelocityToDerivative;
+	
+	FVector NewLocation = FMath::CubicInterp(
+		StartLocation, 
+		StartDerivative, 
+		TargetLocation, 
+		TargetDerivative, 
+		LerpRatio
+	);
+	GetOwner()->SetActorLocation(NewLocation);
+
+	FVector NewDerivative = FMath::CubicInterpDerivative(
+		StartLocation,
+		StartDerivative,
+		TargetLocation,
+		TargetDerivative,
+		LerpRatio
+	);
+	FVector NewVelocity = NewDerivative / VelocityToDerivative;
+	MovementComponent->SetVelocity(NewVelocity);
+
+	FQuat TargetRotation = ServerState.Transform.GetRotation();
+	FQuat StartRotation = ClientStartTransform.GetRotation();
+	FQuat NewRotation = FQuat::Slerp(StartRotation, TargetRotation, LerpRatio);
+	GetOwner()->SetActorRotation(NewRotation);
+}
+
+void UBaseVehicleMovementReplicator::OnRep_ServerState() {
+	if (GetOwnerRole() == ROLE_AutonomousProxy) {
+		AutonomousProxy_OnRep_ServerState();
+	}
+	else if (GetOwnerRole() == ROLE_SimulatedProxy) {
+		SimulatedProxy_OnRep_ServerState();
+	}
+
+}
+
+void UBaseVehicleMovementReplicator::SimulatedProxy_OnRep_ServerState() {
+	if (MovementComponent == nullptr) return;
+	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
+	ClientTimeSinceUpdate = 0;
+	ClientStartTransform = GetOwner()->GetActorTransform();
+	ClientStartVelocity = MovementComponent->GetVelocity();
+}
+
+void UBaseVehicleMovementReplicator::AutonomousProxy_OnRep_ServerState() {
+	if (MovementComponent == nullptr) return;
+	GetOwner()->SetActorTransform(ServerState.Transform);
+	MovementComponent->SetVelocity(ServerState.Velocity);
+
+	ClearAcknowledgedMoves(ServerState.LastMove);
+	for (const FVehicleMove& Move : UnacknowledgedMoves) {
+		MovementComponent->SimulateMove(Move);
+	}
 }
 
 void UBaseVehicleMovementReplicator::Server_SendMove_Implementation(const FVehicleMove& Move) {

@@ -63,7 +63,6 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void SimulateMove(const FVehicleMove& Move);
-	FVehicleMove CreateVehicleMove(float DeltaTime);
 
 	FVector GetVelocity() const { return Velocity; };
 	void SetVelocity(FVector Value) { Velocity = Value; };
@@ -79,5 +78,7 @@ protected:
 
 	void ApplyRotation(float DeltaTime, float SteeringThrow);
 	void UpdateLocationFromVelocity(float DeltaTime);
+
+	FVehicleMove CreateVehicleMove(float DeltaTime);
 	
 };
