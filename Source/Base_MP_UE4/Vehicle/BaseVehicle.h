@@ -42,6 +42,9 @@ protected:
 	virtual void MoveForward(float Throw);
 	virtual void MoveRight(float Throw);
 
+	virtual void RotateAzimuthGimbal(float Delta);
+	virtual void ElevateSpringArm(float Delta);
+
 private:
 	void CreateCameraComponent();
 };

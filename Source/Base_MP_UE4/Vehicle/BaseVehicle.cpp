@@ -28,6 +28,8 @@ void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseVehicle::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseVehicle::MoveRight);
+	PlayerInputComponent->BindAxis("Turn", this, &ABaseVehicle::RotateAzimuthGimbal);
+	PlayerInputComponent->BindAxis("LookUp", this, &ABaseVehicle::ElevateSpringArm);
 }
 
 void ABaseVehicle::BeginPlay() {
@@ -50,6 +52,18 @@ void ABaseVehicle::MoveForward(float Throw) {
 void ABaseVehicle::MoveRight(float Throw) {
 	if (MovementComponent == nullptr) return;
 	MovementComponent->SetSteeringThrow(Throw);
+}
+
+void ABaseVehicle::RotateAzimuthGimbal(float Delta) {
+	FRotator Rotation;
+	Rotation.Yaw = Delta; //z
+	AzimuthGimbal->AddLocalRotation(Rotation);
+}
+
+void ABaseVehicle::ElevateSpringArm(float Delta) {
+	FRotator Rotation;
+	Rotation.Pitch = Delta; //y
+	SpringArm->AddLocalRotation(Rotation);
 }
 
 void ABaseVehicle::CreateCameraComponent() {
