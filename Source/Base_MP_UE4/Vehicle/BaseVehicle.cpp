@@ -61,6 +61,13 @@ void ABaseVehicle::RotateAzimuthGimbal(float Delta) {
 }
 
 void ABaseVehicle::ElevateSpringArm(float Delta) {
+	float Min = -70;
+	float Max = 20;
+	TotalDeltaPitch += Delta;
+	TotalDeltaPitch = FMath::Clamp(TotalDeltaPitch, Min, Max);
+
+	if (TotalDeltaPitch >= Max || TotalDeltaPitch <= Min) Delta = 0;
+
 	FRotator Rotation;
 	Rotation.Pitch = Delta; //y
 	SpringArm->AddLocalRotation(Rotation);

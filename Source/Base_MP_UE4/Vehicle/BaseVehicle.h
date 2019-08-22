@@ -27,6 +27,8 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		UBaseVehicleMovementReplicator* MovementReplicator;
 
+private:
+	float TotalDeltaPitch;
 
 //Functions 
 public:	
