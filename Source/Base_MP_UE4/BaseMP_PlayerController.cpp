@@ -4,22 +4,33 @@
 #include "BaseMP_PlayerController.h"
 #include "Engine/World.h"
 #include "Vehicle/Tank/TankAimingComponent.h"
+#include "BaseMP_PlayerState.h"
 
 void ABaseMP_PlayerController::BeginPlay() {
 	Super::BeginPlay();
 
 	if (!GetPawn()) return;
+	ABaseMP_PlayerState* State = Cast<ABaseMP_PlayerState>(PlayerState);
 	//TODO: remove
 	AimComponent = GetPawn()->FindComponentByClass<UTankAimingComponent>();
 	//if (!ensure(TankAimingComponent)) return;
 	//FoundAimingComponent(TankAimingComponent);
+	//GetPlayerState();
+	if (State != nullptr) {
+		//State
+		UE_LOG(LogTemp, Warning, TEXT("before setting state: %s"), *State->GetTestVal());
+		State->Test();
+	}
 }
 
 void ABaseMP_PlayerController::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+	if (State != nullptr) {
+
+	}
 	//AimTowardsCrosshair();
-	if (AimComponent == nullptr) return;
-	AimComponent->AimAt();
+	//if (AimComponent == nullptr) return;
+	//AimComponent->AimAt();
 }
 
 //void ABaseMP_PlayerController::AimTowardsCrosshair() {

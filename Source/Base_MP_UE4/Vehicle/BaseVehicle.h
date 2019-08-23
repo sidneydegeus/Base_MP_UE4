@@ -49,4 +49,5 @@ protected:
 
 private:
 	void CreateCameraComponent();
+	void ChangeVehicle();
 };

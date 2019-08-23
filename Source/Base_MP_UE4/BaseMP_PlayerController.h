@@ -18,6 +18,7 @@ class BASE_MP_UE4_API ABaseMP_PlayerController : public APlayerController
 //Variables
 private:
 	IAimComponentInterface* AimComponent;
+	class ABaseMP_PlayerState* State;
 
 //Functions
 public:

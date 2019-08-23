@@ -29,7 +29,10 @@ void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseVehicle::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseVehicle::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &ABaseVehicle::RotateAzimuthGimbal);
-	PlayerInputComponent->BindAxis("LookUp", this, &ABaseVehicle::ElevateSpringArm);
+	PlayerInputComponent->BindAxis("LookUpVehicle", this, &ABaseVehicle::ElevateSpringArm);
+
+	//TODO: remove
+	//PlayerInputComponent->BindAction("Interact", this, 
 }
 
 void ABaseVehicle::BeginPlay() {
@@ -85,5 +88,9 @@ void ABaseVehicle::CreateCameraComponent() {
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
 	Camera->SetupAttachment(SpringArm);
+}
+
+void ABaseVehicle::ChangeVehicle() {
+
 }
 
