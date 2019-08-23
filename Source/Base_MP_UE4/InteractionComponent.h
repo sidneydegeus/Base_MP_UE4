@@ -14,7 +14,8 @@ class BASE_MP_UE4_API UInteractionComponent : public UActorComponent
 
 private:
 	// How far ahead of the player can we reach in cm
-	float Reach = 150.f;
+	UPROPERTY(EditAnywhere)
+		float Reach = 150.f;
 	// Returns current start of reach line
 	FVector GetReachLineStart();
 	// Returns current end of reach line
@@ -26,11 +27,11 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void Interact();
-protected:
 
-
-public:	
-
-
+private:
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_Interact(APlayerController* Controller, AActor* ActorHit);
+		void Server_Interact_Implementation(APlayerController* Controller, AActor* ActorHit);
+		bool Server_Interact_Validate(APlayerController* Controller, AActor* ActorHit);
 		
 };

@@ -47,6 +47,8 @@ protected:
 	virtual void RotateAzimuthGimbal(float Delta);
 	virtual void ElevateSpringArm(float Delta);
 
+	virtual void PossessedBy(AController* NewController) override;
+
 private:
 	void CreateCameraComponent();
 	void ChangeVehicle();

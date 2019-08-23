@@ -9,6 +9,8 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "InteractionComponent.h"
+
 //////////////////////////////////////////////////////////////////////////
 // ABase_MP_UE4Character
 
@@ -43,6 +45,8 @@ ABase_MP_UE4Character::ABase_MP_UE4Character()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -68,46 +72,21 @@ void ABase_MP_UE4Character::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ABase_MP_UE4Character::LookUpAtRate);
 
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &ABase_MP_UE4Character::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &ABase_MP_UE4Character::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ABase_MP_UE4Character::OnResetVR);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABase_MP_UE4Character::Interact);
 }
 
-
-void ABase_MP_UE4Character::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void ABase_MP_UE4Character::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		Jump();
-}
-
-void ABase_MP_UE4Character::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		StopJumping();
-}
-
-void ABase_MP_UE4Character::TurnAtRate(float Rate)
-{
+void ABase_MP_UE4Character::TurnAtRate(float Rate) {
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
-void ABase_MP_UE4Character::LookUpAtRate(float Rate)
-{
+void ABase_MP_UE4Character::LookUpAtRate(float Rate) {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-void ABase_MP_UE4Character::MoveForward(float Value)
-{
-	if ((Controller != NULL) && (Value != 0.0f))
-	{
+void ABase_MP_UE4Character::MoveForward(float Value) {
+	if ((Controller != NULL) && (Value != 0.0f)) {
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -118,10 +97,8 @@ void ABase_MP_UE4Character::MoveForward(float Value)
 	}
 }
 
-void ABase_MP_UE4Character::MoveRight(float Value)
-{
-	if ( (Controller != NULL) && (Value != 0.0f) )
-	{
+void ABase_MP_UE4Character::MoveRight(float Value) {
+	if ( (Controller != NULL) && (Value != 0.0f) ) {
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -130,5 +107,11 @@ void ABase_MP_UE4Character::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void ABase_MP_UE4Character::Interact() {
+	if (InteractionComponent != nullptr) {
+		InteractionComponent->Interact();
 	}
 }

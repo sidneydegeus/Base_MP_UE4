@@ -94,3 +94,7 @@ void ABaseVehicle::ChangeVehicle() {
 
 }
 
+void ABaseVehicle::PossessedBy(AController* NewController) {
+	Super::PossessedBy(NewController);
+	UE_LOG(LogTemp, Warning, TEXT("tank is possessed"));
+}

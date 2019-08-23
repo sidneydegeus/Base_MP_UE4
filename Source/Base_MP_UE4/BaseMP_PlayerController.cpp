@@ -8,19 +8,17 @@
 
 void ABaseMP_PlayerController::BeginPlay() {
 	Super::BeginPlay();
-
+	State = Cast<ABaseMP_PlayerState>(PlayerState);
+	if (State == nullptr) return;
 	if (!GetPawn()) return;
-	ABaseMP_PlayerState* State = Cast<ABaseMP_PlayerState>(PlayerState);
-	//TODO: remove
-	AimComponent = GetPawn()->FindComponentByClass<UTankAimingComponent>();
+
+	//TODO: remove and cleanup class
+	//AimComponent = GetPawn()->FindComponentByClass<UTankAimingComponent>();
 	//if (!ensure(TankAimingComponent)) return;
 	//FoundAimingComponent(TankAimingComponent);
-	//GetPlayerState();
-	if (State != nullptr) {
-		//State
-		UE_LOG(LogTemp, Warning, TEXT("before setting state: %s"), *State->GetTestVal());
-		State->Test();
-	}
+
+	State->SetMainCharacter(GetPawn());
+
 }
 
 void ABaseMP_PlayerController::Tick(float DeltaTime) {

@@ -15,8 +15,8 @@ class BASE_MP_UE4_API ABaseMP_PlayerState : public APlayerState
 	GENERATED_BODY()
 	
 private:
-	//UPROPERTY(Replicated)
-	//	class APawn* ControlledPawn;
+	UPROPERTY(Replicated)
+		class APawn* MainCharacter;
 
 	UPROPERTY(ReplicatedUsing = OnRep_TestVal)
 		FString TestVal;
@@ -24,6 +24,7 @@ private:
 public:
 	void Test();
 	FString GetTestVal() { return TestVal; };
+	void SetMainCharacter(APawn* Character);
 
 protected:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -31,6 +32,11 @@ protected:
 private:
 	UFUNCTION()
 		void OnRep_TestVal();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_SetMainCharacter(APawn* Character);
+		void Server_SetMainCharacter_Implementation(APawn* Character);
+		bool Server_SetMainCharacter_Validate(APawn* Character);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_Test();
