@@ -1,6 +1,7 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "Base_MP_UE4GameMode.h"
+#include "Base_MP_UE4Character.h"
 #include "UObject/ConstructorHelpers.h"
 
 ABase_MP_UE4GameMode::ABase_MP_UE4GameMode()
