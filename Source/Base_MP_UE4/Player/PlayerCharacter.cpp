@@ -1,6 +1,7 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Base_MP_UE4Character.h"
+
+#include "PlayerCharacter.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -9,18 +10,15 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
-#include "InteractionComponent.h"
+#include "Player/InteractionComponent.h"
 #include "BaseMP_PlayerState.h"
 
 //TODO: remove
 #include "StaticLibrary.h"
 #include "DrawDebugHelpers.h"
 
-//////////////////////////////////////////////////////////////////////////
-// ABase_MP_UE4Character
-
-ABase_MP_UE4Character::ABase_MP_UE4Character()
-{
+APlayerCharacter::APlayerCharacter(){
+	PrimaryActorTick.bCanEverTick = true;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
@@ -56,31 +54,11 @@ ABase_MP_UE4Character::ABase_MP_UE4Character()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
-void ABase_MP_UE4Character::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
-{
-	// Set up gameplay key bindings
-	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-
-	PlayerInputComponent->BindAxis("MoveForward", this, &ABase_MP_UE4Character::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ABase_MP_UE4Character::MoveRight);
-
-	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	// "turn" handles devices that provide an absolute delta, such as a mouse.
-	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &ABase_MP_UE4Character::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &ABase_MP_UE4Character::LookUpAtRate);
-
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABase_MP_UE4Character::Interact);
+void APlayerCharacter::BeginPlay(){
+	Super::BeginPlay();
 }
 
-void ABase_MP_UE4Character::Tick(float DeltaTime) {
+void APlayerCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
 	FString t1 = "OwnerRole " + UStaticLibrary::GetNetRoleEnumAsString(Role);
@@ -88,19 +66,30 @@ void ABase_MP_UE4Character::Tick(float DeltaTime) {
 
 	DrawDebugString(GetWorld(), FVector(0, 0, 125), t1, this, FColor::White, DeltaTime);
 	DrawDebugString(GetWorld(), FVector(0, 0, 100), t2, this, FColor::White, DeltaTime);
+
 }
 
-void ABase_MP_UE4Character::TurnAtRate(float Rate) {
-	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
+	// Set up gameplay key bindings
+	check(PlayerInputComponent);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerCharacter::MoveRight);
+
+	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
+	// "turn" handles devices that provide an absolute delta, such as a mouse.
+	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
+	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerCharacter::TurnAtRate);
+	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 }
 
-void ABase_MP_UE4Character::LookUpAtRate(float Rate) {
-	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
-}
-
-void ABase_MP_UE4Character::MoveForward(float Value) {
+void APlayerCharacter::MoveForward(float Value) {
 	if ((Controller != NULL) && (Value != 0.0f)) {
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -112,12 +101,12 @@ void ABase_MP_UE4Character::MoveForward(float Value) {
 	}
 }
 
-void ABase_MP_UE4Character::MoveRight(float Value) {
-	if ( (Controller != NULL) && (Value != 0.0f) ) {
+void APlayerCharacter::MoveRight(float Value) {
+	if ((Controller != NULL) && (Value != 0.0f)) {
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
+
 		// get right vector 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
@@ -125,22 +114,27 @@ void ABase_MP_UE4Character::MoveRight(float Value) {
 	}
 }
 
-void ABase_MP_UE4Character::Interact() {
-	if (InteractionComponent != nullptr) {
-		InteractionComponent->Interact();
-	}
+void APlayerCharacter::TurnAtRate(float Rate) {
+	// calculate delta for this frame from the rate information
+	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
-void ABase_MP_UE4Character::PossessedBy(AController* NewController) {
+void APlayerCharacter::LookUpAtRate(float Rate) {
+	// calculate delta for this frame from the rate information
+	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void APlayerCharacter::Interact() {
+	if (InteractionComponent != nullptr) 
+		InteractionComponent->Interact();
+}
+
+void APlayerCharacter::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	//SetActorEnableCollision(true);
-	//SetActorHiddenInGame(false);
-	//SetActorTickEnabled(true);
 	UE_LOG(LogTemp, Warning, TEXT("character is POSSESSED"));
 }
 
-void ABase_MP_UE4Character::UnPossessed() {
+void APlayerCharacter::UnPossessed() {
 	Super::UnPossessed();
 	SetAutonomousProxy(false);
-	UE_LOG(LogTemp, Warning, TEXT("character is UNpossessed"));
 }
