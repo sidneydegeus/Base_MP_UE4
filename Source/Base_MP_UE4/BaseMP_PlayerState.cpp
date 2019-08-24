@@ -21,10 +21,8 @@ void ABaseMP_PlayerState::Test() {
 
 //TODO: Find a better way?
 void ABaseMP_PlayerState::SetMainCharacter(APawn* Character) {
-	if (Role == ROLE_AutonomousProxy) {
-		MainCharacter = Character;
-		Server_SetMainCharacter(Character);
-	}
+	//MainCharacter = Character;
+	Server_SetMainCharacter(Character);
 }
 
 void ABaseMP_PlayerState::OnRep_TestVal() {

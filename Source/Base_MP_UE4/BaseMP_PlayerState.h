@@ -25,6 +25,7 @@ public:
 	void Test();
 	FString GetTestVal() { return TestVal; };
 	void SetMainCharacter(APawn* Character);
+	APawn* GetMainCharacter() { return MainCharacter; };
 
 protected:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;

@@ -4,7 +4,9 @@
 #include "InteractionComponent.h"
 #include "Engine/Engine.h"
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
+
 #include "BaseMP_PlayerController.h"
+#include "BaseMP_PlayerState.h"
 
 UInteractionComponent::UInteractionComponent() {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -26,19 +28,18 @@ void UInteractionComponent::Interact() {
 
 	/// Setup query parameters
 	FCollisionQueryParams TraceParameters(FName(TEXT("")), false, GetOwner());
-
+	FCollisionObjectQueryParams ObjQueryParams;
+	ObjQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Vehicle);
+	ObjQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
 	/// Line-trace (AKA ray-cast) out to reach distance
 	FHitResult Hit;
 	GetWorld()->LineTraceSingleByObjectType(
 		OUT Hit,
 		PawnViewPointLocation,
 		LineTraceEnd,
-		FCollisionObjectQueryParams(ECollisionChannel::ECC_Vehicle),
+		ObjQueryParams,
 		TraceParameters
 	);
-
-	//TODO:
-	// switch / if statement what gets hit???
 
 	// for now swap actors
 	AActor* ActorHit = Hit.GetActor();
@@ -50,14 +51,15 @@ void UInteractionComponent::Interact() {
 
 //TODO: Get player controller of the client and make that unposses
 void UInteractionComponent::Server_Interact_Implementation(APlayerController* Controller, AActor* ActorHit) {
+	if (Controller == nullptr) return;
+	APawn* OldPawn = Controller->GetPawn();
+	if (OldPawn == nullptr) return;
+	ABaseMP_PlayerState* State = Controller->GetPlayerState<ABaseMP_PlayerState>();
+	State->SetMainCharacter(OldPawn);
+	APawn* Pawn = Cast<APawn>(ActorHit);
+	if (Pawn == nullptr) return;
 	Controller->UnPossess();
-	APawn* pawn = Cast<APawn>(ActorHit);
-	if (pawn != nullptr) {
-		Controller->Possess(pawn);
-	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("Line trace hit on actor is not a pawn"));
-	}
+	Controller->Possess(Pawn);
 }
 
 bool UInteractionComponent::Server_Interact_Validate(APlayerController* Controller, AActor* ActorHit) {

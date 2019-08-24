@@ -48,8 +48,13 @@ protected:
 	virtual void ElevateSpringArm(float Delta);
 
 	virtual void PossessedBy(AController* NewController) override;
-
+	virtual void UnPossessed() override;
 private:
 	void CreateCameraComponent();
-	void ChangeVehicle();
+	void ExitVehicle();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_ExitVehicle(APlayerController* PlayerController);
+		void Server_ExitVehicle_Implementation(APlayerController* PlayerController);
+		bool Server_ExitVehicle_Validate(APlayerController* PlayerController);
 };

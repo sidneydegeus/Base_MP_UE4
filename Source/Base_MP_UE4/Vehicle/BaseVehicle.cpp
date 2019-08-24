@@ -9,6 +9,13 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "BaseMP_PlayerController.h"
+#include "BaseMP_PlayerState.h"
+
+//TODO: remove
+#include "DrawDebugHelpers.h"
+#include "StaticLibrary.h"
+
 ABaseVehicle::ABaseVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
@@ -22,6 +29,12 @@ ABaseVehicle::ABaseVehicle() {
 
 void ABaseVehicle::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+
+	FString t1 = "OwnerRole " + UStaticLibrary::GetNetRoleEnumAsString(Role);
+	FString t2 = "RemoteRole " + UStaticLibrary::GetNetRoleEnumAsString(GetRemoteRole());
+
+	DrawDebugString(GetWorld(), FVector(0, 0, 125), t1, this, FColor::White, DeltaTime);
+	DrawDebugString(GetWorld(), FVector(0, 0, 100), t2, this, FColor::White, DeltaTime);
 }
 
 void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
@@ -31,8 +44,7 @@ void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis("Turn", this, &ABaseVehicle::RotateAzimuthGimbal);
 	PlayerInputComponent->BindAxis("LookUpVehicle", this, &ABaseVehicle::ElevateSpringArm);
 
-	//TODO: remove
-	//PlayerInputComponent->BindAction("Interact", this, 
+	PlayerInputComponent->BindAction("ExitVehicle", IE_Pressed, this, &ABaseVehicle::ExitVehicle);
 }
 
 void ABaseVehicle::BeginPlay() {
@@ -59,6 +71,8 @@ void ABaseVehicle::MoveRight(float Throw) {
 
 void ABaseVehicle::RotateAzimuthGimbal(float Delta) {
 	FRotator Rotation;
+	Rotation.Roll = 0; //x
+	Rotation.Pitch = 0; //y
 	Rotation.Yaw = Delta; //z
 	AzimuthGimbal->AddLocalRotation(Rotation);
 }
@@ -68,13 +82,26 @@ void ABaseVehicle::ElevateSpringArm(float Delta) {
 	float Max = 20;
 	TotalDeltaPitch += Delta;
 	TotalDeltaPitch = FMath::Clamp(TotalDeltaPitch, Min, Max);
-
 	if (TotalDeltaPitch >= Max || TotalDeltaPitch <= Min) Delta = 0;
 
 	FRotator Rotation;
+	Rotation.Roll = 0; //x
 	Rotation.Pitch = Delta; //y
+	Rotation.Yaw = 0; // z
 	SpringArm->AddLocalRotation(Rotation);
 }
+
+void ABaseVehicle::PossessedBy(AController* NewController) {
+	Super::PossessedBy(NewController);
+	if (Role == ROLE_Authority) 
+		SetAutonomousProxy(false);
+}
+
+void ABaseVehicle::UnPossessed() {
+	Super::UnPossessed();
+	SetAutonomousProxy(false);
+}
+
 
 void ABaseVehicle::CreateCameraComponent() {
 	USceneComponent* Base = CreateDefaultSubobject<USceneComponent>(FName("Base"));
@@ -90,11 +117,24 @@ void ABaseVehicle::CreateCameraComponent() {
 	Camera->SetupAttachment(SpringArm);
 }
 
-void ABaseVehicle::ChangeVehicle() {
+void ABaseVehicle::ExitVehicle() {
 
+	/*APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	Server_ExitVehicle_Implementation(PlayerController);*/
 }
 
-void ABaseVehicle::PossessedBy(AController* NewController) {
-	Super::PossessedBy(NewController);
-	UE_LOG(LogTemp, Warning, TEXT("tank is possessed"));
+void ABaseVehicle::Server_ExitVehicle_Implementation(APlayerController* PlayerController) {
+	if (Controller == nullptr) return;
+	ABaseMP_PlayerState* State = Controller->GetPlayerState<ABaseMP_PlayerState>();
+	if (State == nullptr) return;
+	APawn* MainCharacter = State->GetMainCharacter();
+	if (MainCharacter == nullptr) return; 
+	Controller->UnPossess();
+	UE_LOG(LogTemp, Warning, TEXT("main character %s"), *MainCharacter->GetName());
+	Controller->Possess(MainCharacter);
 }
+
+bool ABaseVehicle::Server_ExitVehicle_Validate(APlayerController* PlayerController) {
+	return true;
+}
+

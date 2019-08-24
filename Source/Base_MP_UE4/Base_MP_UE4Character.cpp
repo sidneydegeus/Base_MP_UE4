@@ -10,6 +10,11 @@
 #include "GameFramework/SpringArmComponent.h"
 
 #include "InteractionComponent.h"
+#include "BaseMP_PlayerState.h"
+
+//TODO: remove
+#include "StaticLibrary.h"
+#include "DrawDebugHelpers.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ABase_MP_UE4Character
@@ -75,6 +80,16 @@ void ABase_MP_UE4Character::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABase_MP_UE4Character::Interact);
 }
 
+void ABase_MP_UE4Character::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+
+	FString t1 = "OwnerRole " + UStaticLibrary::GetNetRoleEnumAsString(Role);
+	FString t2 = "RemoteRole " + UStaticLibrary::GetNetRoleEnumAsString(GetRemoteRole());
+
+	DrawDebugString(GetWorld(), FVector(0, 0, 125), t1, this, FColor::White, DeltaTime);
+	DrawDebugString(GetWorld(), FVector(0, 0, 100), t2, this, FColor::White, DeltaTime);
+}
+
 void ABase_MP_UE4Character::TurnAtRate(float Rate) {
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
@@ -114,4 +129,18 @@ void ABase_MP_UE4Character::Interact() {
 	if (InteractionComponent != nullptr) {
 		InteractionComponent->Interact();
 	}
+}
+
+void ABase_MP_UE4Character::PossessedBy(AController* NewController) {
+	Super::PossessedBy(NewController);
+	//SetActorEnableCollision(true);
+	//SetActorHiddenInGame(false);
+	//SetActorTickEnabled(true);
+	UE_LOG(LogTemp, Warning, TEXT("character is POSSESSED"));
+}
+
+void ABase_MP_UE4Character::UnPossessed() {
+	Super::UnPossessed();
+	SetAutonomousProxy(false);
+	UE_LOG(LogTemp, Warning, TEXT("character is UNpossessed"));
 }
