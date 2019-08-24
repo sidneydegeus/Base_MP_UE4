@@ -93,8 +93,6 @@ void ABaseVehicle::ElevateSpringArm(float Delta) {
 
 void ABaseVehicle::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	if (Role == ROLE_Authority) 
-		SetAutonomousProxy(false);
 }
 
 void ABaseVehicle::UnPossessed() {

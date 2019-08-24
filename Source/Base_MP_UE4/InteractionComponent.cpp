@@ -45,24 +45,30 @@ void UInteractionComponent::Interact() {
 	AActor* ActorHit = Hit.GetActor();
 	if (ActorHit) {
 		APlayerController* Controller = GetWorld()->GetFirstPlayerController();
-		Server_Interact(Controller, ActorHit);
+		if (Controller == nullptr) return;
+		APawn* Pawn = Cast<APawn>(ActorHit);
+		if (Pawn == nullptr) return;
+		Server_Interact(Controller, Pawn);
+		if (GetOwnerRole() == ROLE_Authority) {
+			Pawn->SetAutonomousProxy(false);
+		}
 	}
 }
 
 //TODO: Get player controller of the client and make that unposses
-void UInteractionComponent::Server_Interact_Implementation(APlayerController* Controller, AActor* ActorHit) {
-	if (Controller == nullptr) return;
-	APawn* OldPawn = Controller->GetPawn();
-	if (OldPawn == nullptr) return;
-	ABaseMP_PlayerState* State = Controller->GetPlayerState<ABaseMP_PlayerState>();
-	State->SetMainCharacter(OldPawn);
-	APawn* Pawn = Cast<APawn>(ActorHit);
-	if (Pawn == nullptr) return;
+void UInteractionComponent::Server_Interact_Implementation(APlayerController* Controller, APawn* Pawn) {
+
+	//APawn* OldPawn = Controller->GetPawn();
+	//if (OldPawn == nullptr) return;
+	//ABaseMP_PlayerState* State = Controller->GetPlayerState<ABaseMP_PlayerState>();
+	//State->SetMainCharacter(OldPawn);
+
+
 	Controller->UnPossess();
 	Controller->Possess(Pawn);
 }
 
-bool UInteractionComponent::Server_Interact_Validate(APlayerController* Controller, AActor* ActorHit) {
+bool UInteractionComponent::Server_Interact_Validate(APlayerController* Controller, APawn* Pawn) {
 	return true;
 }
 

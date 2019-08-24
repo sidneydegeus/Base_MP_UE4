@@ -30,8 +30,8 @@ public:
 
 private:
 	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_Interact(APlayerController* Controller, AActor* ActorHit);
-		void Server_Interact_Implementation(APlayerController* Controller, AActor* ActorHit);
-		bool Server_Interact_Validate(APlayerController* Controller, AActor* ActorHit);
+		void Server_Interact(APlayerController* Controller, APawn* Pawn);
+		void Server_Interact_Implementation(APlayerController* Controller, APawn* Pawn);
+		bool Server_Interact_Validate(APlayerController* Controller, APawn* Pawn);
 		
 };
