@@ -133,14 +133,10 @@ void ABase_MP_UE4Character::Interact() {
 
 void ABase_MP_UE4Character::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	//SetActorEnableCollision(true);
-	//SetActorHiddenInGame(false);
-	//SetActorTickEnabled(true);
-	UE_LOG(LogTemp, Warning, TEXT("character is POSSESSED"));
 }
 
 void ABase_MP_UE4Character::UnPossessed() {
 	Super::UnPossessed();
 	SetAutonomousProxy(false);
-	UE_LOG(LogTemp, Warning, TEXT("character is UNpossessed"));
+	Destroy();
 }

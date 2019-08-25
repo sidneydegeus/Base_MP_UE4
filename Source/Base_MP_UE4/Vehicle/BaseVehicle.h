@@ -54,7 +54,8 @@ private:
 	void ExitVehicle();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_ExitVehicle(APlayerController* PlayerController);
-		void Server_ExitVehicle_Implementation(APlayerController* PlayerController);
-		bool Server_ExitVehicle_Validate(APlayerController* PlayerController);
+		void Server_ExitVehicle();
+		void Server_ExitVehicle_Implementation();
+		bool Server_ExitVehicle_Validate();
+
 };

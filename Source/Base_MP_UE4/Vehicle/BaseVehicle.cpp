@@ -15,6 +15,7 @@
 //TODO: remove
 #include "DrawDebugHelpers.h"
 #include "StaticLibrary.h"
+#include "GameFramework/GameModeBase.h"
 
 ABaseVehicle::ABaseVehicle() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -116,23 +117,23 @@ void ABaseVehicle::CreateCameraComponent() {
 }
 
 void ABaseVehicle::ExitVehicle() {
-
-	/*APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	Server_ExitVehicle_Implementation(PlayerController);*/
+	Server_ExitVehicle();
 }
 
-void ABaseVehicle::Server_ExitVehicle_Implementation(APlayerController* PlayerController) {
+
+void ABaseVehicle::Server_ExitVehicle_Implementation() {
 	if (Controller == nullptr) return;
-	ABaseMP_PlayerState* State = Controller->GetPlayerState<ABaseMP_PlayerState>();
-	if (State == nullptr) return;
-	APawn* MainCharacter = State->GetMainCharacter();
-	if (MainCharacter == nullptr) return; 
-	Controller->UnPossess();
-	UE_LOG(LogTemp, Warning, TEXT("main character %s"), *MainCharacter->GetName());
-	Controller->Possess(MainCharacter);
+	AGameModeBase* Mode = GetWorld()->GetAuthGameMode();
+	UClass* DefaultPawn = Mode->GetDefaultPawnClassForController(Controller);
+	APawn* Pawn = Cast<APawn>(DefaultPawn);
+	Controller->SetPawn(Pawn);
+	SetAutonomousProxy(false);
+	//TODO: RestartPlayerAtTransform... Use a socket or component for the transform location?
+	Mode->RestartPlayer(Controller);
+
 }
 
-bool ABaseVehicle::Server_ExitVehicle_Validate(APlayerController* PlayerController) {
+bool ABaseVehicle::Server_ExitVehicle_Validate() {
 	return true;
 }
 
