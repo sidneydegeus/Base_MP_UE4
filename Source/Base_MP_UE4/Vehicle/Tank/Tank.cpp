@@ -4,6 +4,8 @@
 #include "Tank.h"
 
 #include "Net/UnrealNetwork.h"
+#include "BaseMP_PlayerController.h"
+#include "TankAimingComponent.h"
 
 //void ATank::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 //	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -27,6 +29,15 @@ void ATank::Tick(float DeltaTime) {
 	//if (HasAuthority()) {
 	//	ReplicatedTransform = GetActorTransform();
 	//}
+}
+
+void ATank::PossessedBy(AController* NewController) {
+	Super::PossessedBy(NewController);
+	ABaseMP_PlayerController* Con = Cast<ABaseMP_PlayerController>(NewController);
+	if (Con == nullptr) return;
+	UTankAimingComponent* aim = FindComponentByClass<UTankAimingComponent>();
+	if (aim == nullptr) return;
+	Con->SetAimingComponent(aim);
 }
 
 //void ATank::OnRep_ReplicatedTransform() {

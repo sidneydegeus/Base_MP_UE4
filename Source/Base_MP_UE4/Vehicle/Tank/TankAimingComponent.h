@@ -23,7 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Setup")
 		void Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet);
 
-	virtual void AimAt() override;
+	virtual void AimAt(FVector HitLocation) override;
 
 private:	
 	// Called every frame

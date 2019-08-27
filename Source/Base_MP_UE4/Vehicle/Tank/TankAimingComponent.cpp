@@ -12,7 +12,7 @@ void UTankAimingComponent::Initialize(UTankBarrel* TankBarrelToSet, UTankTurret*
 	Turret = TankTurretToSet;
 }
 
-void UTankAimingComponent::AimAt() {
+void UTankAimingComponent::AimAt(FVector HitLocation) {
 	if (!ensure(Barrel)) return;
 
 	FVector OutLaunchVelocity;
@@ -36,7 +36,7 @@ void UTankAimingComponent::AimAt() {
 
 	//if (bHaveAimSolution) {
 		AimDirection = OutLaunchVelocity.GetSafeNormal();
-		MoveBarrelTowards(AimDirection);
+		MoveBarrelTowards(HitLocation);
 	//}
 }
 

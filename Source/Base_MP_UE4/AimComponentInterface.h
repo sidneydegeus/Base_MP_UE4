@@ -22,5 +22,5 @@ class BASE_MP_UE4_API IAimComponentInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void AimAt() = 0;
+	virtual void AimAt(FVector HitLocation) PURE_VIRTUAL(,);
 };
