@@ -3,7 +3,7 @@
 
 #include "BaseMP_PlayerController.h"
 
-//#include "DrawDebugHelpers.h"
+#include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
 
@@ -23,10 +23,7 @@ void ABaseMP_PlayerController::Tick(float DeltaTime) {
 }
 
 void ABaseMP_PlayerController::AimTowardsCrosshair() {
-	if (AimingComponent == nullptr) {
-		UE_LOG(LogTemp, Warning, TEXT("no aim component"));
-		return;
-	}
+	if (!AimingComponent) return;
 
 	FVector HitLocation;
 	if (GetSightRayHitLocation(HitLocation)) {
@@ -71,10 +68,10 @@ bool ABaseMP_PlayerController::GetLookVectorHitLocation(FVector LookDirection, F
 
 	if (bLineTraceHit) {
 		HitLocation = HitResult.Location;
-		//DrawDebugLine(GetWorld(), StartLocation, HitLocation, FColor::Green, false, 1, 0, 1); //
+		DrawDebugLine(GetWorld(), StartLocation, HitLocation, FColor::Green, false, 1, 0, 1); //
 		return true;
 	}
 	HitLocation = EndLocation;
-	//DrawDebugLine(GetWorld(), StartLocation, HitLocation, FColor::Red, false, 1, 0, 1); //
+	DrawDebugLine(GetWorld(), StartLocation, HitLocation, FColor::Red, false, 1, 0, 1); //
 	return false;
 }

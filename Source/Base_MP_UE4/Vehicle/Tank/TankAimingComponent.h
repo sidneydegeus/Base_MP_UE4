@@ -4,17 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "AimComponentInterface.h"
+#include "BaseAimingComponent.h"
 #include "TankAimingComponent.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class BASE_MP_UE4_API UTankAimingComponent : public UActorComponent, public IAimComponentInterface
+class BASE_MP_UE4_API UTankAimingComponent : public UBaseAimingComponent
 {
 	GENERATED_BODY()
 
 private:
+	UPROPERTY()
 	class UTankBarrel* Barrel = nullptr;
+	UPROPERTY()
 	class UTankTurret* Turret = nullptr;
 
 	FVector AimDirection;

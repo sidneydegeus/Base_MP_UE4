@@ -38,6 +38,7 @@ void ATank::PossessedBy(AController* NewController) {
 	UTankAimingComponent* aim = FindComponentByClass<UTankAimingComponent>();
 	if (aim == nullptr) return;
 	Con->SetAimingComponent(aim);
+	UE_LOG(LogTemp, Warning, TEXT("equiped aim component"));
 }
 
 //void ATank::OnRep_ReplicatedTransform() {

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "AimComponentInterface.h"
+#include "BaseAimingComponent.h"
 #include "BaseMP_PlayerController.generated.h"
 
 /**
@@ -27,12 +27,12 @@ private:
 		float LineTraceRange = 1000000;
 
 	UPROPERTY(Replicated)
-		IAimComponentInterface* AimingComponent;
+		UBaseAimingComponent* AimingComponent;
 
 //Functions
 public:
 	virtual void Tick(float DeltaTime) override;
-	void SetAimingComponent(IAimComponentInterface* Component) { AimingComponent = Component; };
+	void SetAimingComponent(UBaseAimingComponent* Component) { AimingComponent = Component; };
 
 protected:
 	virtual void BeginPlay() override;
