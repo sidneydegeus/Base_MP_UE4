@@ -34,5 +34,11 @@ private:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void MoveBarrelTowards(FVector AimDirection);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_MoveBarrelTowards(FVector AimDirection);
+		void Server_MoveBarrelTowards_Implementation(FVector AimDirection);
+		bool Server_MoveBarrelTowards_Validate(FVector AimDirection);
+
 	bool IsBarrelMoving();
 };
