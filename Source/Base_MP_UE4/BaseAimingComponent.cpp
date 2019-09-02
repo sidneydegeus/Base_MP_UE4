@@ -2,9 +2,16 @@
 
 
 #include "BaseAimingComponent.h"
+#include "Net/UnrealNetwork.h"
+
+void UBaseAimingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UBaseAimingComponent, Ammo);
+}
 
 UBaseAimingComponent::UBaseAimingComponent() {
 	PrimaryComponentTick.bCanEverTick = true;
+	SetIsReplicated(true);
 }
 
 void UBaseAimingComponent::BeginPlay() {

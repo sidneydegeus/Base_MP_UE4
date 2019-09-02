@@ -14,6 +14,9 @@ class BASE_MP_UE4_API UTankAimingComponent : public UBaseAimingComponent
 	GENERATED_BODY()
 
 private:
+	//UPROPERTY(EditDefaultsOnly, Category = "Firing")
+	//	float ReloadTimeInSeconds = 3;
+
 	UPROPERTY()
 	class UTankBarrel* Barrel = nullptr;
 	UPROPERTY()
