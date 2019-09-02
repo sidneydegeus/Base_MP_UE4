@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Projectile/BaseProjectile.h"
 #include "BaseAimingComponent.generated.h"
 
 
@@ -17,8 +18,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Firing")
 		int32 Ammo = 3;
 
-	//UPROPERTY(EditDefaultsOnly, Category = "Setup")
-	//	TSubclassOf<AProjectile> ProjectileBlueprint;
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+		TSubclassOf<ABaseProjectile> ProjectileBlueprint;
 
 // Functions
 public:	
