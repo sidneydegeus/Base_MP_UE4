@@ -26,3 +26,22 @@ void UBaseAimingComponent::AimAt(FVector HitLocation) {
 
 }
 
+void UBaseAimingComponent::Fire() {
+	Server_Fire();
+}
+
+ABaseProjectile* UBaseAimingComponent::SpawnProjectile() {
+	return nullptr;
+}
+
+void UBaseAimingComponent::Server_Fire_Implementation() {
+	if (!ensure(ProjectileBlueprint)) return;
+	ABaseProjectile* Projectile = SpawnProjectile();
+	if (Projectile == nullptr) return;
+	Projectile->LaunchProjectile(LaunchSpeed);
+}
+
+bool UBaseAimingComponent::Server_Fire_Validate() {
+	return true;
+}
+

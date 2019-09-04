@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(abstract)
 class BASE_MP_UE4_API ATankShell : public ABaseProjectile
 {
 	GENERATED_BODY()

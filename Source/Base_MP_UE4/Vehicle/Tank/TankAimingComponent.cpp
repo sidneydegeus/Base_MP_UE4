@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Vehicle/Tank/TankBarrel.h"
 #include "Vehicle/Tank/TankTurret.h"
+#include "Projectile/TankShell.h"
 
 void UTankAimingComponent::Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet) {
 	Barrel = TankBarrelToSet;
@@ -23,7 +24,7 @@ void UTankAimingComponent::AimAt(FVector HitLocation) {
 		OutLaunchVelocity,
 		StartLocation,
 		HitLocation,
-		4000, //LaunchSpeed,
+		LaunchSpeed,
 		false,
 		0,
 		0,
@@ -36,8 +37,17 @@ void UTankAimingComponent::AimAt(FVector HitLocation) {
 
 	if (bHaveAimSolution) {
 		AimDirection = OutLaunchVelocity.GetSafeNormal();
-		MoveBarrelTowards(HitLocation);
+		MoveBarrelTowards(AimDirection);
 	}
+}
+
+ABaseProjectile* UTankAimingComponent::SpawnProjectile() {
+	auto Projectile = GetWorld()->SpawnActor<ATankShell>(
+		ProjectileBlueprint,
+		Barrel->GetSocketLocation(FName("Projectile")),
+		Barrel->GetSocketRotation(FName("Projectile"))
+		);
+	return Cast<ABaseProjectile>(Projectile);
 }
 
 UTankAimingComponent::UTankAimingComponent() {
@@ -85,4 +95,6 @@ bool UTankAimingComponent::IsBarrelMoving() {
 	auto BarrelForward = Barrel->GetForwardVector();
 	return !BarrelForward.Equals(AimDirection, 0.01);
 }
+
+
 

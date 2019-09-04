@@ -21,17 +21,28 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 		TSubclassOf<ABaseProjectile> ProjectileBlueprint;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Firing")
+		float LaunchSpeed = 4000;
+
 // Functions
 public:	
 	UBaseAimingComponent();
 	virtual void AimAt(FVector HitLocation);
+
+	UFUNCTION(BlueprintCallable, Category = "Firing")
+		void Fire();
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-	
+	virtual ABaseProjectile* SpawnProjectile();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_Fire();
+		void Server_Fire_Implementation();
+		bool Server_Fire_Validate();
 
 		
 };

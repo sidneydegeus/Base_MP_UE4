@@ -30,6 +30,9 @@ public:
 
 	virtual void AimAt(FVector HitLocation) override;
 
+protected:
+	virtual ABaseProjectile* SpawnProjectile() override;
+
 private:	
 	// Called every frame
 	UTankAimingComponent();
