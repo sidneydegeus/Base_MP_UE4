@@ -4,10 +4,11 @@
 #include "BaseVehicle.h"
 
 #include "Components/InputComponent.h"
-#include "Vehicle/BaseVehicleMovementComponent.h"
 #include "Components/SceneComponent.h"
+#include "Vehicle/BaseVehicleMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Blueprint/UserWidget.h"
 
 #include "BaseMP_PlayerController.h"
 #include "BaseMP_PlayerState.h"
@@ -26,6 +27,7 @@ ABaseVehicle::ABaseVehicle() {
 	CreateCameraComponent();
 	CreateMovementComponent();
 	CreateMovementReplicator();
+	CreateExitComponent();
 }
 
 void ABaseVehicle::Tick(float DeltaTime) {
@@ -58,6 +60,10 @@ void ABaseVehicle::CreateMovementComponent() {
 
 void ABaseVehicle::CreateMovementReplicator() {
 	MovementReplicator = CreateDefaultSubobject<UBaseVehicleMovementReplicator>(TEXT("MovementReplicator"));
+}
+
+void ABaseVehicle::CreateExitComponent() {
+	ExitComponent = CreateDefaultSubobject<UExitPawnComponent>(TEXT("ExitableComponent"));
 }
 
 void ABaseVehicle::MoveForward(float Throw) {
@@ -94,11 +100,13 @@ void ABaseVehicle::ElevateSpringArm(float Delta) {
 
 void ABaseVehicle::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
+	UE_LOG(LogTemp, Warning, TEXT("possess base vehicle"));
 }
 
 void ABaseVehicle::UnPossessed() {
 	Super::UnPossessed();
 	SetAutonomousProxy(false);
+	UE_LOG(LogTemp, Warning, TEXT("unposses base vehicle"));
 }
 
 
@@ -117,9 +125,13 @@ void ABaseVehicle::CreateCameraComponent() {
 }
 
 void ABaseVehicle::ExitVehicle() {
-	Server_ExitVehicle();
+	if (ExitComponent == nullptr) return;
+	ExitComponent->ExitPawn();
 }
 
+void ABaseVehicle::OnExitVehicle() {
+
+}
 
 void ABaseVehicle::Server_ExitVehicle_Implementation() {
 	if (Controller == nullptr) return;
@@ -127,9 +139,14 @@ void ABaseVehicle::Server_ExitVehicle_Implementation() {
 	UClass* DefaultPawn = Mode->GetDefaultPawnClassForController(Controller);
 	APawn* Pawn = Cast<APawn>(DefaultPawn);
 	Controller->SetPawn(Pawn);
+	UE_LOG(LogTemp, Warning, TEXT("exit vehicle"));
 	SetAutonomousProxy(false);
+
 	//TODO: RestartPlayerAtTransform... Use a socket or component for the transform location?
 	Mode->RestartPlayer(Controller);
+
+	//TODO: Tank is not being unpossessed?
+	//Controller->Possess(Pawn);
 
 }
 

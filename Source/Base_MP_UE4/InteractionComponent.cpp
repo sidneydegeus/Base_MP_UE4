@@ -44,6 +44,11 @@ void UInteractionComponent::Interact() {
 	// for now swap actors
 	AActor* ActorHit = Hit.GetActor();
 	if (ActorHit) {
+		//APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+		//if (PlayerController == nullptr) return;
+		//ABaseVehicle* Vehicle = Cast<ABaseVehicle>(ActorHit);
+		//if (Vehicle == nullptr) return;
+		//Vehicle->EnterVehicle(PlayerController);
 		APlayerController* Controller = GetWorld()->GetFirstPlayerController();
 		if (Controller == nullptr) return;
 		APawn* Pawn = Cast<APawn>(ActorHit);
@@ -63,8 +68,6 @@ void UInteractionComponent::Server_Interact_Implementation(APlayerController* Co
 	//ABaseMP_PlayerState* State = Controller->GetPlayerState<ABaseMP_PlayerState>();
 	//State->SetMainCharacter(OldPawn);
 
-
-	Controller->UnPossess();
 	Controller->Possess(Pawn);
 }
 

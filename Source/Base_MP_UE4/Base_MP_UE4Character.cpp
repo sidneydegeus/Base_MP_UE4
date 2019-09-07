@@ -133,10 +133,12 @@ void ABase_MP_UE4Character::Interact() {
 
 void ABase_MP_UE4Character::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
+	UE_LOG(LogTemp, Warning, TEXT("possess character"));
 }
 
 void ABase_MP_UE4Character::UnPossessed() {
 	Super::UnPossessed();
 	SetAutonomousProxy(false);
 	Destroy();
+	UE_LOG(LogTemp, Warning, TEXT("UNpossess character"));
 }

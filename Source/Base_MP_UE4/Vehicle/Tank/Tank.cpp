@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "BaseMP_PlayerController.h"
 #include "TankAimingComponent.h"
+#include "UObject/ConstructorHelpers.h"
 
 //void ATank::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 //	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -16,6 +17,12 @@
 ATank::ATank() {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+
+	//ConstructorHelpers::FClassFinder<UUserWidget> GameMenuBPClass(TEXT(
+	//	"/Game/Ingame-UI/Vehicle/Tank_WBP"
+	//));
+	//if (!ensure(GameMenuBPClass.Class != nullptr)) return;
+	//VehicleUI = GameMenuBPClass.Class;
 }
 
 void ATank::BeginPlay() {
@@ -33,12 +40,25 @@ void ATank::Tick(float DeltaTime) {
 
 void ATank::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	ABaseMP_PlayerController* Con = Cast<ABaseMP_PlayerController>(NewController);
-	if (Con == nullptr) return;
-	UTankAimingComponent* aim = FindComponentByClass<UTankAimingComponent>();
-	if (aim == nullptr) return;
-	Con->SetAimingComponent(aim);
-	UE_LOG(LogTemp, Warning, TEXT("equiped aim component"));
+	UTankAimingComponent* TankAimingComponent = FindComponentByClass<UTankAimingComponent>();
+	if (TankAimingComponent == nullptr) return;
+	TankAimingComponent->Activate(true);
+
+	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(NewController);
+	if (ABase_PlayerController == nullptr) return;
+	ABase_PlayerController->SetAimingComponent(TankAimingComponent);
+}
+
+void ATank::UnPossessed() {
+	UTankAimingComponent* TankAimingComponent = FindComponentByClass<UTankAimingComponent>();
+	if (TankAimingComponent == nullptr) return;
+	TankAimingComponent->Deactivate();
+	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(Controller);
+	if (ABase_PlayerController == nullptr) return;
+	ABase_PlayerController->SetAimingComponent(nullptr);
+	//above needs to be executed first, so that the controller can be cleaned up.
+	//TODO: maybe change the aiming component setting to the controller itself by overwriting UnPosses()
+	Super::UnPossessed();
 }
 
 //void ATank::OnRep_ReplicatedTransform() {

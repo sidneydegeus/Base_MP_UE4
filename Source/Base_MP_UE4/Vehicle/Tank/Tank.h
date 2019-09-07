@@ -38,6 +38,7 @@ public:
 protected:
 	//void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
 
 private:
 	ATank();

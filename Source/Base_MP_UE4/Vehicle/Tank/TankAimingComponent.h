@@ -8,38 +8,53 @@
 #include "TankAimingComponent.generated.h"
 
 
+UENUM()
+enum class ETankFiringState : uint8
+{
+	Reloading,
+	Aiming,
+	Locked,
+	NoAmmo
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BASE_MP_UE4_API UTankAimingComponent : public UBaseAimingComponent
 {
 	GENERATED_BODY()
 
-private:
-	//UPROPERTY(EditDefaultsOnly, Category = "Firing")
-	//	float ReloadTimeInSeconds = 3;
+//Variables
+protected:
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "State")
+		ETankFiringState TankFiringState = ETankFiringState::Reloading;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Firing")
+		float ReloadTimeInSeconds = 3;
 
 	UPROPERTY()
 	class UTankBarrel* Barrel = nullptr;
 	UPROPERTY()
 	class UTankTurret* Turret = nullptr;
 
-	FVector AimDirection;
+	FVector CurrentAimDirection;
 
+//Functions
 public:	
 	UFUNCTION(BlueprintCallable, Category = "Setup")
 		void Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet);
 
 	virtual void AimAt(FVector HitLocation) override;
+	virtual void Fire() override;
 
 protected:
 	virtual ABaseProjectile* SpawnProjectile() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 private:	
-	// Called every frame
 	UTankAimingComponent();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void MoveBarrelTowards(FVector AimDirection);
+	void MoveBarrelTowards(FVector CurrentAimDirection);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_MoveBarrelTowards(FVector AimDirection);

@@ -33,7 +33,7 @@ class BASE_MP_UE4_API UBaseVehicleMovementComponent : public UNavMovementCompone
 // Variables
 protected:
 	float Throttle;
-	float SteeringThrow;
+	float CurrentSteeringThrow;
 	FVector Velocity;
 
 	FVehicleMove LastMove;
@@ -68,7 +68,7 @@ public:
 	void SetVelocity(FVector Value) { Velocity = Value; };
 
 	void SetThrottle(float Value) { Throttle = Value; };
-	void SetSteeringThrow(float Value) { SteeringThrow = Value; };
+	void SetSteeringThrow(float Value) { CurrentSteeringThrow = Value; };
 
 	FVehicleMove GetLastMove() { return LastMove; };
 

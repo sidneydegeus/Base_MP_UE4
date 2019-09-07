@@ -8,7 +8,7 @@
 #include "BaseAimingComponent.generated.h"
 
 
-UCLASS()
+UCLASS(abstract)
 class BASE_MP_UE4_API UBaseAimingComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -16,7 +16,7 @@ class BASE_MP_UE4_API UBaseAimingComponent : public UActorComponent
 // Variables
 protected:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Firing")
-		int32 Ammo = 3;
+		uint32 Ammo = 3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 		TSubclassOf<ABaseProjectile> ProjectileBlueprint;
@@ -24,13 +24,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Firing")
 		float LaunchSpeed = 4000;
 
+	double LastFireTime = 0;
+
 // Functions
 public:	
 	UBaseAimingComponent();
+	virtual void Activate(bool bReset) override;
+	virtual void Deactivate() override;
 	virtual void AimAt(FVector HitLocation);
 
 	UFUNCTION(BlueprintCallable, Category = "Firing")
-		void Fire();
+		virtual void Fire();
 
 protected:
 	virtual void BeginPlay() override;
@@ -44,5 +48,9 @@ protected:
 		void Server_Fire_Implementation();
 		bool Server_Fire_Validate();
 
-		
+	UFUNCTION(Server, Reliable, WithValidation)
+		void Server_SetAmmo(uint32 Amount);
+		void Server_SetAmmo_Implementation(uint32 Amount);
+		bool Server_SetAmmo_Validate(uint32 Amount);
+
 };

@@ -7,6 +7,12 @@
 #include "Vehicle/Tank/TankBarrel.h"
 #include "Vehicle/Tank/TankTurret.h"
 #include "Projectile/TankShell.h"
+#include "Net/UnrealNetwork.h"
+
+void UTankAimingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UTankAimingComponent, TankFiringState);
+}
 
 void UTankAimingComponent::Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet) {
 	Barrel = TankBarrelToSet;
@@ -36,8 +42,15 @@ void UTankAimingComponent::AimAt(FVector HitLocation) {
 
 
 	if (bHaveAimSolution) {
-		AimDirection = OutLaunchVelocity.GetSafeNormal();
-		MoveBarrelTowards(AimDirection);
+		CurrentAimDirection = OutLaunchVelocity.GetSafeNormal();
+		MoveBarrelTowards(CurrentAimDirection);
+	}
+}
+
+void UTankAimingComponent::Fire() {
+	if (TankFiringState == ETankFiringState::Locked || TankFiringState == ETankFiringState::Aiming) {
+		Server_Fire();
+		TankFiringState = ETankFiringState::Reloading;
 	}
 }
 
@@ -52,13 +65,32 @@ ABaseProjectile* UTankAimingComponent::SpawnProjectile() {
 
 UTankAimingComponent::UTankAimingComponent() {
 	PrimaryComponentTick.bCanEverTick = true;
+	bAutoActivate = false;
+	SetIsReplicated(true);
 }
+
 void UTankAimingComponent::BeginPlay() {
 	Super::BeginPlay();
+	SetComponentTickEnabled(false);
 }
 
 void UTankAimingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	//UE_LOG(LogTemp, Warning, TEXT("do i tick alrdy"));
+	//if (GetOwner()->Role == ROLE_Authority) {
+	//	if (Ammo <= 0) {
+	//		TankFiringState = ETankFiringState::NoAmmo;
+	//	}
+	//	else if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeInSeconds) {
+	//		TankFiringState = ETankFiringState::Reloading;
+	//	}
+	//	else if (IsBarrelMoving()) {
+	//		TankFiringState = ETankFiringState::Aiming;
+	//	}
+	//	else {
+	//		TankFiringState = ETankFiringState::Locked;
+	//	}
+	//}
 }
 
 void UTankAimingComponent::MoveBarrelTowards(FVector AimDirection) {
@@ -93,7 +125,7 @@ bool UTankAimingComponent::Server_MoveBarrelTowards_Validate(FVector AimDirectio
 bool UTankAimingComponent::IsBarrelMoving() {
 	if (!ensure(Barrel)) return false;
 	auto BarrelForward = Barrel->GetForwardVector();
-	return !BarrelForward.Equals(AimDirection, 0.01);
+	return !BarrelForward.Equals(CurrentAimDirection, 0.01);
 }
 
 

@@ -10,8 +10,14 @@ void UBaseAimingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 }
 
 UBaseAimingComponent::UBaseAimingComponent() {
-	PrimaryComponentTick.bCanEverTick = true;
-	SetIsReplicated(true);
+	// Child needs to put tick specifically itself
+	//PrimaryComponentTick.bCanEverTick = true;
+	//PrimaryComponentTick.bStartWithTickEnabled = false;
+	//PrimaryComponentTick.
+	//SetComponentTickEnabled(true);
+	//bAutoActivate = false;
+	//SetIsReplicated(true);
+
 }
 
 void UBaseAimingComponent::BeginPlay() {
@@ -22,8 +28,20 @@ void UBaseAimingComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void UBaseAimingComponent::AimAt(FVector HitLocation) {
+void UBaseAimingComponent::Activate(bool bReset) {
+	Super::Activate(bReset);
+	//PrimaryComponentTick.bCanEverTick = true;
+	SetComponentTickEnabled(true);
+}
 
+void UBaseAimingComponent::Deactivate() {
+	Super::Deactivate();
+	SetComponentTickEnabled(false);
+	//PrimaryComponentTick.bCanEverTick = false;
+}
+
+void UBaseAimingComponent::AimAt(FVector HitLocation) {
+	// Child classes need to implement this
 }
 
 void UBaseAimingComponent::Fire() {
@@ -39,9 +57,19 @@ void UBaseAimingComponent::Server_Fire_Implementation() {
 	ABaseProjectile* Projectile = SpawnProjectile();
 	if (Projectile == nullptr) return;
 	Projectile->LaunchProjectile(LaunchSpeed);
+	Server_SetAmmo(Ammo - 1);
+	LastFireTime = FPlatformTime::Seconds();
 }
 
 bool UBaseAimingComponent::Server_Fire_Validate() {
+	return true;
+}
+
+void UBaseAimingComponent::Server_SetAmmo_Implementation(uint32 Amount) {
+	Ammo = Amount;
+}
+
+bool UBaseAimingComponent::Server_SetAmmo_Validate(uint32 Amount) {
 	return true;
 }
 

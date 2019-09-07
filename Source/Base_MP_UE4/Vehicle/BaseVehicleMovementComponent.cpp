@@ -32,7 +32,7 @@ void UBaseVehicleMovementComponent::SimulateMove(const FVehicleMove& Move) {
 FVehicleMove UBaseVehicleMovementComponent::CreateVehicleMove(float DeltaTime) {
 	FVehicleMove Move;
 	Move.DeltaTime = DeltaTime;
-	Move.SteeringThrow = SteeringThrow;
+	Move.SteeringThrow = CurrentSteeringThrow;
 	Move.Throttle = Throttle;
 	Move.Time = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
 	return Move;
