@@ -54,6 +54,14 @@ void ABaseVehicle::BeginPlay() {
 	Super::BeginPlay();
 }
 
+void ABaseVehicle::ExitVehicle() {
+	if (ExitComponent == nullptr) return;
+	ExitComponent->ExitPawn();
+}
+
+
+
+
 void ABaseVehicle::CreateMovementComponent() {
 	MovementComponent = CreateDefaultSubobject<UBaseVehicleMovementComponent>(TEXT("MovementComponent"));
 }
@@ -65,6 +73,9 @@ void ABaseVehicle::CreateMovementReplicator() {
 void ABaseVehicle::CreateExitComponent() {
 	ExitComponent = CreateDefaultSubobject<UExitPawnComponent>(TEXT("ExitableComponent"));
 }
+
+
+
 
 void ABaseVehicle::MoveForward(float Throw) {
 	if (MovementComponent == nullptr) return;
@@ -98,16 +109,35 @@ void ABaseVehicle::ElevateSpringArm(float Delta) {
 	SpringArm->AddLocalRotation(Rotation);
 }
 
+
+
+
 void ABaseVehicle::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	UE_LOG(LogTemp, Warning, TEXT("possess base vehicle"));
+	Client_PossessedBy();
+}
+
+void ABaseVehicle::Client_PossessedBy_Implementation() {
+	ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
+	if (PlayerController == nullptr) return;
+	if (VehicleUIClass == nullptr) return;
+	VehicleUI = CreateWidget<UUserWidget>(PlayerController, VehicleUIClass);
+	VehicleUI->AddToViewport();
 }
 
 void ABaseVehicle::UnPossessed() {
+	Client_UnPossessed();
 	Super::UnPossessed();
 	SetAutonomousProxy(false);
-	UE_LOG(LogTemp, Warning, TEXT("unposses base vehicle"));
 }
+
+void ABaseVehicle::Client_UnPossessed_Implementation() {
+	ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
+	if (PlayerController == nullptr) return;
+	if (VehicleUI == nullptr) return;
+	VehicleUI->RemoveFromViewport();
+}
+
 
 
 void ABaseVehicle::CreateCameraComponent() {
@@ -124,33 +154,5 @@ void ABaseVehicle::CreateCameraComponent() {
 	Camera->SetupAttachment(SpringArm);
 }
 
-void ABaseVehicle::ExitVehicle() {
-	if (ExitComponent == nullptr) return;
-	ExitComponent->ExitPawn();
-}
 
-void ABaseVehicle::OnExitVehicle() {
-
-}
-
-void ABaseVehicle::Server_ExitVehicle_Implementation() {
-	if (Controller == nullptr) return;
-	AGameModeBase* Mode = GetWorld()->GetAuthGameMode();
-	UClass* DefaultPawn = Mode->GetDefaultPawnClassForController(Controller);
-	APawn* Pawn = Cast<APawn>(DefaultPawn);
-	Controller->SetPawn(Pawn);
-	UE_LOG(LogTemp, Warning, TEXT("exit vehicle"));
-	SetAutonomousProxy(false);
-
-	//TODO: RestartPlayerAtTransform... Use a socket or component for the transform location?
-	Mode->RestartPlayer(Controller);
-
-	//TODO: Tank is not being unpossessed?
-	//Controller->Possess(Pawn);
-
-}
-
-bool ABaseVehicle::Server_ExitVehicle_Validate() {
-	return true;
-}
 

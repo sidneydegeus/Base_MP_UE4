@@ -32,7 +32,10 @@ protected:
 
 
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<class UUserWidget> VehicleUI;
+		TSubclassOf<class UUserWidget> VehicleUIClass;
+
+	UPROPERTY()
+		UUserWidget* VehicleUI;
 
 
 
@@ -60,14 +63,15 @@ protected:
 	virtual void ElevateSpringArm(float Delta);
 
 	virtual void PossessedBy(AController* NewController) override;
+	UFUNCTION(Client, Reliable)
+		void Client_PossessedBy();
+		void Client_PossessedBy_Implementation();
+
 	virtual void UnPossessed() override;
+	UFUNCTION(Client, Reliable)
+		void Client_UnPossessed();
+		void Client_UnPossessed_Implementation();
+
 private:
 	void CreateCameraComponent();
-	void OnExitVehicle();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_ExitVehicle();
-		void Server_ExitVehicle_Implementation();
-		bool Server_ExitVehicle_Validate();
-
 };

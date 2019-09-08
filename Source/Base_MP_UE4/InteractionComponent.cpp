@@ -21,6 +21,7 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
+// TODO: Cleanup class and make it tidy
 void UInteractionComponent::Interact() {
 	FTransform PawnTransform = GetOwner()->ActorToWorld();
 	FVector PawnViewPointLocation = PawnTransform.GetLocation();
@@ -30,7 +31,7 @@ void UInteractionComponent::Interact() {
 	FCollisionQueryParams TraceParameters(FName(TEXT("")), false, GetOwner());
 	FCollisionObjectQueryParams ObjQueryParams;
 	ObjQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Vehicle);
-	ObjQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
+	//ObjQueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_Pawn);
 	/// Line-trace (AKA ray-cast) out to reach distance
 	FHitResult Hit;
 	GetWorld()->LineTraceSingleByObjectType(

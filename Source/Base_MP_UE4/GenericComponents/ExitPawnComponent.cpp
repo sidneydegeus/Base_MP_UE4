@@ -34,6 +34,7 @@ void UExitPawnComponent::Server_ExitPawn_Implementation() {
 
 	Controller->UnPossess();
 	Controller->SetPawn(DefaultCharacter);
+	//TODO: maybe make simulated proxy
 
 	//TODO: RestartPlayerAtTransform... Use a socket or component for the transform location?
 	//TODO: make use of something else in regards of AI? Not sure if restartplayer works on AI too.
