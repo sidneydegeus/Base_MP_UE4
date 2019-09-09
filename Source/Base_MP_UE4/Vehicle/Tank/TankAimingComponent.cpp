@@ -14,10 +14,42 @@ void UTankAimingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(UTankAimingComponent, TankFiringState);
 }
 
+UTankAimingComponent::UTankAimingComponent() {
+	PrimaryComponentTick.bCanEverTick = true;
+	bAutoActivate = false;
+	SetIsReplicated(true);
+}
+
+void UTankAimingComponent::BeginPlay() {
+	Super::BeginPlay();
+	SetComponentTickEnabled(false);
+}
+
+void UTankAimingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (GetOwner()->Role == ROLE_Authority) {
+		if (Ammo <= 0) {
+			TankFiringState = ETankFiringState::NoAmmo;
+		}
+		else if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeInSeconds) {
+			TankFiringState = ETankFiringState::Reloading;
+		}
+		else if (IsBarrelMoving()) {
+			TankFiringState = ETankFiringState::Aiming;
+		}
+		else {
+			TankFiringState = ETankFiringState::Locked;
+		}
+	}
+}
+
 void UTankAimingComponent::Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet) {
 	Barrel = TankBarrelToSet;
 	Turret = TankTurretToSet;
 }
+
+
+
 
 void UTankAimingComponent::AimAt(FVector HitLocation) {
 	if (!ensure(Barrel)) return;
@@ -63,36 +95,9 @@ ABaseProjectile* UTankAimingComponent::SpawnProjectile() {
 	return Cast<ABaseProjectile>(Projectile);
 }
 
-UTankAimingComponent::UTankAimingComponent() {
-	PrimaryComponentTick.bCanEverTick = true;
-	bAutoActivate = false;
-	SetIsReplicated(true);
-}
 
-void UTankAimingComponent::BeginPlay() {
-	Super::BeginPlay();
-	SetComponentTickEnabled(false);
-}
 
-void UTankAimingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	//UE_LOG(LogTemp, Warning, TEXT("do i tick alrdy"));
-	//if (GetOwner()->Role == ROLE_Authority) {
-	//	if (Ammo <= 0) {
-	//		TankFiringState = ETankFiringState::NoAmmo;
-	//	}
-	//	else if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeInSeconds) {
-	//		TankFiringState = ETankFiringState::Reloading;
-	//	}
-	//	else if (IsBarrelMoving()) {
-	//		TankFiringState = ETankFiringState::Aiming;
-	//	}
-	//	else {
-	//		TankFiringState = ETankFiringState::Locked;
-	//	}
-	//}
-}
-
+/// Barrel functionality
 void UTankAimingComponent::MoveBarrelTowards(FVector AimDirection) {
 	if (GetOwner()->Role < ROLE_Authority) {
 		Server_MoveBarrelTowards(AimDirection);

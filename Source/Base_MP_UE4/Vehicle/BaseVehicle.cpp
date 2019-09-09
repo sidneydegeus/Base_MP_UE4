@@ -109,6 +109,9 @@ void ABaseVehicle::ElevateSpringArm(float Delta) {
 	SpringArm->AddLocalRotation(Rotation);
 }
 
+void ABaseVehicle::SetupUIEvent_Implementation() {
+	// for blueprint to implement
+}
 
 
 /// Possess and UnPossess
@@ -123,6 +126,7 @@ void ABaseVehicle::Client_PossessedBy_Implementation(APlayerController* PlayerCo
 	if (VehicleUIClass == nullptr) return;
 	VehicleUI = CreateWidget<UUserWidget>(PlayerController, VehicleUIClass);
 	VehicleUI->AddToViewport();
+	SetupUIEvent();
 }
 
 void ABaseVehicle::UnPossessed() {

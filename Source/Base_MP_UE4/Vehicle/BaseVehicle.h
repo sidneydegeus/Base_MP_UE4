@@ -17,25 +17,25 @@ class BASE_MP_UE4_API ABaseVehicle : public APawn
 //Variables
 protected:
 	UPROPERTY(VisibleAnywhere)
-		class USceneComponent* AzimuthGimbal;
+	class USceneComponent* AzimuthGimbal;
 	UPROPERTY(VisibleAnywhere)
-		class USpringArmComponent* SpringArm;
+	class USpringArmComponent* SpringArm;
 	UPROPERTY(VisibleAnywhere)
-		class UCameraComponent* Camera;
+	class UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere)
-		UBaseVehicleMovementComponent* MovementComponent;
+	UBaseVehicleMovementComponent* MovementComponent;
 	UPROPERTY(VisibleAnywhere)
-		UBaseVehicleMovementReplicator* MovementReplicator;
+	UBaseVehicleMovementReplicator* MovementReplicator;
 	UPROPERTY(VisibleAnywhere)
-		UExitPawnComponent* ExitComponent;
+	UExitPawnComponent* ExitComponent;
 
 
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<class UUserWidget> VehicleUIClass;
+	TSubclassOf<class UUserWidget> VehicleUIClass;
 
 	UPROPERTY()
-		UUserWidget* VehicleUI;
+	UUserWidget* VehicleUI;
 
 
 
@@ -62,15 +62,22 @@ protected:
 	virtual void RotateAzimuthGimbal(float Delta);
 	virtual void ElevateSpringArm(float Delta);
 
+	UFUNCTION(BlueprintNativeEvent, Category = "UI Setup")
+	void SetupUIEvent();
+	virtual void SetupUIEvent_Implementation();
+
+	UFUNCTION(BlueprintCallable)
+	UUserWidget* GetVehicleUI() { return VehicleUI; };
+
 	virtual void PossessedBy(AController* NewController) override;
 	UFUNCTION(Client, Reliable)
-		void Client_PossessedBy(APlayerController* PlayerController);
-		void Client_PossessedBy_Implementation(APlayerController* PlayerController);
+	void Client_PossessedBy(APlayerController* PlayerController);
+	void Client_PossessedBy_Implementation(APlayerController* PlayerController);
 
 	virtual void UnPossessed() override;
 	UFUNCTION(Client, Reliable)
-		void Client_UnPossessed();
-		void Client_UnPossessed_Implementation();
+	void Client_UnPossessed();
+	void Client_UnPossessed_Implementation();
 
 private:
 	void CreateCameraComponent();
