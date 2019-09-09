@@ -76,7 +76,7 @@ void ABaseVehicle::CreateExitComponent() {
 
 
 
-
+/// INPUT
 void ABaseVehicle::MoveForward(float Throw) {
 	if (MovementComponent == nullptr) return;
 	MovementComponent->SetThrottle(Throw);
@@ -111,14 +111,14 @@ void ABaseVehicle::ElevateSpringArm(float Delta) {
 
 
 
-
+/// Possess and UnPossess
 void ABaseVehicle::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	Client_PossessedBy();
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	Client_PossessedBy(PlayerController);
 }
 
-void ABaseVehicle::Client_PossessedBy_Implementation() {
-	ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
+void ABaseVehicle::Client_PossessedBy_Implementation(APlayerController* PlayerController) {
 	if (PlayerController == nullptr) return;
 	if (VehicleUIClass == nullptr) return;
 	VehicleUI = CreateWidget<UUserWidget>(PlayerController, VehicleUIClass);
@@ -127,8 +127,8 @@ void ABaseVehicle::Client_PossessedBy_Implementation() {
 
 void ABaseVehicle::UnPossessed() {
 	Client_UnPossessed();
-	Super::UnPossessed();
 	SetAutonomousProxy(false);
+	Super::UnPossessed();
 }
 
 void ABaseVehicle::Client_UnPossessed_Implementation() {
@@ -137,6 +137,7 @@ void ABaseVehicle::Client_UnPossessed_Implementation() {
 	if (VehicleUI == nullptr) return;
 	VehicleUI->RemoveFromViewport();
 }
+
 
 
 

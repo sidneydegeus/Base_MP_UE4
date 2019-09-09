@@ -55,9 +55,9 @@ void ATank::UnPossessed() {
 	TankAimingComponent->Deactivate();
 	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(Controller);
 	if (ABase_PlayerController == nullptr) return;
+	//TODO: maybe change the aiming component setting to the controller itself by overwriting UnPosses()
 	ABase_PlayerController->SetAimingComponent(nullptr);
 	//above needs to be executed first, so that the controller can be cleaned up.
-	//TODO: maybe change the aiming component setting to the controller itself by overwriting UnPosses()
 	Super::UnPossessed();
 }
 

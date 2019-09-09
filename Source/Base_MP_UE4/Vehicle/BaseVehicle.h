@@ -64,8 +64,8 @@ protected:
 
 	virtual void PossessedBy(AController* NewController) override;
 	UFUNCTION(Client, Reliable)
-		void Client_PossessedBy();
-		void Client_PossessedBy_Implementation();
+		void Client_PossessedBy(APlayerController* PlayerController);
+		void Client_PossessedBy_Implementation(APlayerController* PlayerController);
 
 	virtual void UnPossessed() override;
 	UFUNCTION(Client, Reliable)
