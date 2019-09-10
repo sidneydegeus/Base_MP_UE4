@@ -12,14 +12,16 @@ class BASE_MP_UE4_API UInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+public:
+	UPROPERTY(BlueprintReadOnly)
+	bool bInteract;
+		 
 private:
 	// How far ahead of the player can we reach in cm
 	UPROPERTY(EditAnywhere)
-		float Reach = 150.f;
-	// Returns current start of reach line
-	FVector GetReachLineStart();
-	// Returns current end of reach line
-	FVector GetReachLineEnd();
+	float Reach = 150.f;
+
+	AActor* ActorHit;
 
 public:	
 	UInteractionComponent();
@@ -29,9 +31,13 @@ public:
 	void Interact();
 
 private:
+	void LineTrace();
+	void IsInteractable();
+	void SetActorHit(AActor* NewActorHit);
+
 	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_Interact(APlayerController* Controller, APawn* Pawn);
-		void Server_Interact_Implementation(APlayerController* Controller, APawn* Pawn);
-		bool Server_Interact_Validate(APlayerController* Controller, APawn* Pawn);
+	void Server_Interact(APlayerController* Controller, APawn* Pawn);
+	void Server_Interact_Implementation(APlayerController* Controller, APawn* Pawn);
+	bool Server_Interact_Validate(APlayerController* Controller, APawn* Pawn);
 		
 };

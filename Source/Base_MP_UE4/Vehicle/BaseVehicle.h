@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Pawn.h"
+#include "ExtendedPawn.h"
 #include "Vehicle/BaseVehicleMovementComponent.h"
 #include "Vehicle/BaseVehicleMovementReplicator.h"
 #include "GenericComponents/ExitPawnComponent.h"
 #include "BaseVehicle.generated.h"
 
 UCLASS()
-class BASE_MP_UE4_API ABaseVehicle : public APawn
+class BASE_MP_UE4_API ABaseVehicle : public AExtendedPawn
 {
 	GENERATED_BODY()
 
@@ -29,15 +29,6 @@ protected:
 	UBaseVehicleMovementReplicator* MovementReplicator;
 	UPROPERTY(VisibleAnywhere)
 	UExitPawnComponent* ExitComponent;
-
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class UUserWidget> VehicleUIClass;
-
-	UPROPERTY()
-	UUserWidget* VehicleUI;
-
-
 
 private:
 	float TotalDeltaPitch;
@@ -62,22 +53,9 @@ protected:
 	virtual void RotateAzimuthGimbal(float Delta);
 	virtual void ElevateSpringArm(float Delta);
 
-	UFUNCTION(BlueprintNativeEvent, Category = "UI Setup")
-	void SetupUIEvent();
-	virtual void SetupUIEvent_Implementation();
-
-	UFUNCTION(BlueprintCallable)
-	UUserWidget* GetVehicleUI() { return VehicleUI; };
-
 	virtual void PossessedBy(AController* NewController) override;
-	UFUNCTION(Client, Reliable)
-	void Client_PossessedBy(APlayerController* PlayerController);
-	void Client_PossessedBy_Implementation(APlayerController* PlayerController);
-
 	virtual void UnPossessed() override;
-	UFUNCTION(Client, Reliable)
-	void Client_UnPossessed();
-	void Client_UnPossessed_Implementation();
+
 
 private:
 	void CreateCameraComponent();

@@ -19,9 +19,32 @@ void UInteractionComponent::BeginPlay() {
 // Called every frame
 void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	// scan
+	//LineTrace();
+	//IsInteractable();
 }
 
-// TODO: Cleanup class and make it tidy
+void UInteractionComponent::LineTrace() {
+
+}
+
+void UInteractionComponent::IsInteractable() {
+	if (ActorHit) {
+		bInteract = true;
+	}
+	else {
+		bInteract = false;
+	}
+}
+
+void UInteractionComponent::SetActorHit(AActor* NewActorHit) {
+	if (ActorHit != NewActorHit) {
+		ActorHit = NewActorHit;
+		//call blueprintevent?
+	}
+}
+
+// TODO: Identify the actorhit and what object it really is. e.g. vehicle, item etc
 void UInteractionComponent::Interact() {
 	FTransform PawnTransform = GetOwner()->ActorToWorld();
 	FVector PawnViewPointLocation = PawnTransform.GetLocation();
@@ -41,15 +64,10 @@ void UInteractionComponent::Interact() {
 		ObjQueryParams,
 		TraceParameters
 	);
-
-	// for now swap actors
+	DrawDebugLine(GetWorld(), PawnViewPointLocation, LineTraceEnd, FColor::Green, false, 1, 0, 1); //
 	AActor* ActorHit = Hit.GetActor();
+
 	if (ActorHit) {
-		//APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-		//if (PlayerController == nullptr) return;
-		//ABaseVehicle* Vehicle = Cast<ABaseVehicle>(ActorHit);
-		//if (Vehicle == nullptr) return;
-		//Vehicle->EnterVehicle(PlayerController);
 		APlayerController* Controller = GetWorld()->GetFirstPlayerController();
 		if (Controller == nullptr) return;
 		APawn* Pawn = Cast<APawn>(ActorHit);
@@ -61,14 +79,7 @@ void UInteractionComponent::Interact() {
 	}
 }
 
-//TODO: Get player controller of the client and make that unposses
 void UInteractionComponent::Server_Interact_Implementation(APlayerController* Controller, APawn* Pawn) {
-
-	//APawn* OldPawn = Controller->GetPawn();
-	//if (OldPawn == nullptr) return;
-	//ABaseMP_PlayerState* State = Controller->GetPlayerState<ABaseMP_PlayerState>();
-	//State->SetMainCharacter(OldPawn);
-
 	Controller->Possess(Pawn);
 }
 

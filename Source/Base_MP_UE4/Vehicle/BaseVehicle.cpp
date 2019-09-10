@@ -8,7 +8,6 @@
 #include "Vehicle/BaseVehicleMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Blueprint/UserWidget.h"
 
 #include "BaseMP_PlayerController.h"
 #include "BaseMP_PlayerState.h"
@@ -61,7 +60,7 @@ void ABaseVehicle::ExitVehicle() {
 
 
 
-
+/// Component Creation
 void ABaseVehicle::CreateMovementComponent() {
 	MovementComponent = CreateDefaultSubobject<UBaseVehicleMovementComponent>(TEXT("MovementComponent"));
 }
@@ -73,6 +72,21 @@ void ABaseVehicle::CreateMovementReplicator() {
 void ABaseVehicle::CreateExitComponent() {
 	ExitComponent = CreateDefaultSubobject<UExitPawnComponent>(TEXT("ExitableComponent"));
 }
+
+void ABaseVehicle::CreateCameraComponent() {
+	USceneComponent* Base = CreateDefaultSubobject<USceneComponent>(FName("Base"));
+	SetRootComponent(Base);
+
+	AzimuthGimbal = CreateDefaultSubobject<USceneComponent>(FName("AzimuthGimbal"));
+	AzimuthGimbal->SetupAttachment(Base);
+
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArm"));
+	SpringArm->SetupAttachment(AzimuthGimbal);
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
+	Camera->SetupAttachment(SpringArm);
+}
+
 
 
 
@@ -109,24 +123,11 @@ void ABaseVehicle::ElevateSpringArm(float Delta) {
 	SpringArm->AddLocalRotation(Rotation);
 }
 
-void ABaseVehicle::SetupUIEvent_Implementation() {
-	// for blueprint to implement
-}
-
-
 /// Possess and UnPossess
 void ABaseVehicle::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	Client_PossessedBy(PlayerController);
-}
-
-void ABaseVehicle::Client_PossessedBy_Implementation(APlayerController* PlayerController) {
-	if (PlayerController == nullptr) return;
-	if (VehicleUIClass == nullptr) return;
-	VehicleUI = CreateWidget<UUserWidget>(PlayerController, VehicleUIClass);
-	VehicleUI->AddToViewport();
-	SetupUIEvent();
 }
 
 void ABaseVehicle::UnPossessed() {
@@ -135,29 +136,6 @@ void ABaseVehicle::UnPossessed() {
 	Super::UnPossessed();
 }
 
-void ABaseVehicle::Client_UnPossessed_Implementation() {
-	ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
-	if (PlayerController == nullptr) return;
-	if (VehicleUI == nullptr) return;
-	VehicleUI->RemoveFromViewport();
-}
-
-
-
-
-void ABaseVehicle::CreateCameraComponent() {
-	USceneComponent* Base = CreateDefaultSubobject<USceneComponent>(FName("Base"));
-	SetRootComponent(Base);
-
-	AzimuthGimbal = CreateDefaultSubobject<USceneComponent>(FName("AzimuthGimbal"));
-	AzimuthGimbal->SetupAttachment(Base);
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArm"));
-	SpringArm->SetupAttachment(AzimuthGimbal);
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
-	Camera->SetupAttachment(SpringArm);
-}
 
 
 
