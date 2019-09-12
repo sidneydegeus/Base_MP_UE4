@@ -11,13 +11,13 @@
 
 UMainMenu::UMainMenu(const FObjectInitializer & ObjectInitializer) : Super(ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> HostMenuBPClass(TEXT(
-		"/Game/MenuSystem/Menus/GameMenu/HostMenu/WBP_HostMenu"
+		"/Game/UI/MenuSystem/Menus/GameMenu/HostMenu/WBP_HostMenu"
 	));
 	if (!ensure(HostMenuBPClass.Class != nullptr)) return;
 	HostMenuClass = HostMenuBPClass.Class;
 
 	ConstructorHelpers::FClassFinder<UUserWidget> ServersMenuBPClass(TEXT(
-		"/Game/MenuSystem/Menus/GameMenu/ServersMenu/WBP_ServersMenu"		
+		"/Game/UI/MenuSystem/Menus/GameMenu/ServersMenu/WBP_ServersMenu"		
 	));
 	if (!ensure(ServersMenuBPClass.Class != nullptr)) return;
 	ServersMenuClass = ServersMenuBPClass.Class;

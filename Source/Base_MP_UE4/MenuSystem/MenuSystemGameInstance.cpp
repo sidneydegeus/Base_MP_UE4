@@ -23,13 +23,13 @@ const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UMenuSystemGameInstance::UMenuSystemGameInstance(const FObjectInitializer & ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> GameMenuBPClass(TEXT(
-		"/Game/MenuSystem/Menus/GameMenu/WBP_GameMenu"
+		"/Game/UI/MenuSystem/Menus/GameMenu/WBP_GameMenu"
 	));
 	if (!ensure(GameMenuBPClass.Class != nullptr)) return;
 	GameMenuClass = GameMenuBPClass.Class;
 
 	ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuBPClass(TEXT(
-		"/Game/MenuSystem/Menus/In-GameMenu/WBP_InGameMenu"
+		"/Game/UI/MenuSystem/Menus/In-GameMenu/WBP_InGameMenu"
 	));
 	if (!ensure(InGameMenuBPClass.Class != nullptr)) return;
 	InGameMenuClass = InGameMenuBPClass.Class;

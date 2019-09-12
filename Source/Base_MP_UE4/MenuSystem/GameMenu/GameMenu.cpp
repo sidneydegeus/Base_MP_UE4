@@ -7,7 +7,7 @@
 
 UGameMenu::UGameMenu(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT(
-		"/Game/MenuSystem/Menus/GameMenu/MainMenu/WBP_MainMenu"
+		"/Game/UI/MenuSystem/Menus/GameMenu/MainMenu/WBP_MainMenu"
 	));
 	if (!ensure(MainMenuBPClass.Class != nullptr)) return;
 	MainMenuClass = MainMenuBPClass.Class;
