@@ -9,8 +9,14 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
 #include "InteractionComponent.h"
+
+void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ABaseCharacter, bWeaponEquipped);
+}
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -71,11 +77,16 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ABaseCharacter::LookUpAtRate);
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABaseCharacter::Interact);
+	PlayerInputComponent->BindAction("HolsterWeapon", IE_Pressed, this, &ABaseCharacter::EquipWeapon);
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 }
+
+
+
+/// Movement
 
 void ABaseCharacter::TurnAtRate(float Rate) {
 	// calculate delta for this frame from the rate information
@@ -118,6 +129,30 @@ void ABaseCharacter::Interact() {
 	}
 }
 
+
+
+/// Equip Weapon logic
+//TODO: Make server stuff
+//TODO: Use enums or something for different weapon types?
+void ABaseCharacter::EquipWeapon() {
+	Server_EquipWeapon();
+}
+
+void ABaseCharacter::Server_EquipWeapon_Implementation() {
+	bWeaponEquipped = !bWeaponEquipped;
+	WeaponEquippedEvent();
+}
+
+bool ABaseCharacter::Server_EquipWeapon_Validate() {
+	return true;
+}
+
+void ABaseCharacter::WeaponEquippedEvent_Implementation() {}
+
+
+
+
+/// Possession
 void ABaseCharacter::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
 	UE_LOG(LogTemp, Warning, TEXT("possess character"));

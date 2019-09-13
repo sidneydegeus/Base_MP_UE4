@@ -11,6 +11,10 @@ class BASE_MP_UE4_API ABaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+///Variables
+public:
+	ABaseCharacter();
+
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
@@ -18,9 +22,6 @@ class BASE_MP_UE4_API ABaseCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-
-public:
-	ABaseCharacter();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -36,6 +37,16 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 protected:
+	UPROPERTY(ReplicatedUsing = WeaponEquippedEvent, BlueprintReadOnly)
+	bool bWeaponEquipped;
+
+private:
+	UPROPERTY(VisibleAnywhere)
+	class UInteractionComponent* InteractionComponent;
+
+///Functions 
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Tick(float DeltaTime) override;
 
@@ -59,12 +70,19 @@ protected:
 
 	void Interact();
 
+	void EquipWeapon();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_EquipWeapon();
+	void Server_EquipWeapon_Implementation();
+	bool Server_EquipWeapon_Validate();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
+	void WeaponEquippedEvent();
+	virtual void WeaponEquippedEvent_Implementation();
+
 protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
-
-private:
-	UPROPERTY(VisibleAnywhere)
-	class UInteractionComponent* InteractionComponent;
 
 };

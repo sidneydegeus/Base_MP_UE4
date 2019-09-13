@@ -25,10 +25,10 @@ class BASE_MP_UE4_API UTankAimingComponent : public UBaseAimingComponent
 //Variables
 protected:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "State")
-		ETankFiringState TankFiringState = ETankFiringState::Reloading;
+	ETankFiringState TankFiringState = ETankFiringState::Reloading;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Firing")
-		float ReloadTimeInSeconds = 3;
+	float ReloadTimeInSeconds = 3;
 
 	UPROPERTY()
 	class UTankBarrel* Barrel = nullptr;
@@ -40,7 +40,7 @@ protected:
 //Functions
 public:	
 	UFUNCTION(BlueprintCallable, Category = "Setup")
-		void Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet);
+	void Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet);
 
 	virtual void AimAt(FVector HitLocation) override;
 	virtual void Fire() override;
@@ -57,9 +57,9 @@ private:
 	void MoveBarrelTowards(FVector CurrentAimDirection);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-		void Server_MoveBarrelTowards(FVector AimDirection);
-		void Server_MoveBarrelTowards_Implementation(FVector AimDirection);
-		bool Server_MoveBarrelTowards_Validate(FVector AimDirection);
+	void Server_MoveBarrelTowards(FVector AimDirection);
+	void Server_MoveBarrelTowards_Implementation(FVector AimDirection);
+	bool Server_MoveBarrelTowards_Validate(FVector AimDirection);
 
 	bool IsBarrelMoving();
 };
