@@ -41,7 +41,9 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-	virtual ABaseProjectile* SpawnProjectile();
+	ABaseProjectile* SpawnProjectile();
+	virtual FVector SpawnProjectileLocation();
+	virtual FRotator SpawnProjectileRotation();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void Server_Fire();

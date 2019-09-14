@@ -46,8 +46,10 @@ public:
 	virtual void Fire() override;
 
 protected:
-	virtual ABaseProjectile* SpawnProjectile() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	virtual FVector SpawnProjectileLocation() override;
+	virtual FRotator SpawnProjectileRotation() override;
 
 private:	
 	UTankAimingComponent();

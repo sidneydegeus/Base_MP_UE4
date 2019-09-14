@@ -6,7 +6,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Vehicle/Tank/TankBarrel.h"
 #include "Vehicle/Tank/TankTurret.h"
-#include "Projectile/TankShell.h"
 #include "Net/UnrealNetwork.h"
 
 void UTankAimingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -86,13 +85,13 @@ void UTankAimingComponent::Fire() {
 	}
 }
 
-ABaseProjectile* UTankAimingComponent::SpawnProjectile() {
-	auto Projectile = GetWorld()->SpawnActor<ATankShell>(
-		ProjectileBlueprint,
-		Barrel->GetSocketLocation(FName("Projectile")),
-		Barrel->GetSocketRotation(FName("Projectile"))
-		);
-	return Cast<ABaseProjectile>(Projectile);
+
+FVector UTankAimingComponent::SpawnProjectileLocation() {
+	return Barrel->GetSocketLocation(FName("Projectile"));
+}
+
+FRotator UTankAimingComponent::SpawnProjectileRotation() {
+	return Barrel->GetSocketRotation(FName("Projectile"));
 }
 
 

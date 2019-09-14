@@ -3,6 +3,7 @@
 
 #include "BaseAimingComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Projectile/BaseProjectile.h"
 
 void UBaseAimingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -49,8 +50,22 @@ void UBaseAimingComponent::Fire() {
 }
 
 ABaseProjectile* UBaseAimingComponent::SpawnProjectile() {
-	return nullptr;
+	auto Projectile = GetWorld()->SpawnActor<ABaseProjectile>(
+		ProjectileBlueprint,
+		SpawnProjectileLocation(),
+		SpawnProjectileRotation()
+		);
+	return Projectile;
 }
+
+FVector UBaseAimingComponent::SpawnProjectileLocation() {
+	return FVector();
+}
+
+FRotator UBaseAimingComponent::SpawnProjectileRotation() {
+	return FRotator();
+}
+
 
 void UBaseAimingComponent::Server_Fire_Implementation() {
 	if (!ensure(ProjectileBlueprint)) return;
