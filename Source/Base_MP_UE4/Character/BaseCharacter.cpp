@@ -99,6 +99,7 @@ void ABaseCharacter::LookUpAtRate(float Rate) {
 }
 
 void ABaseCharacter::MoveForward(float Value) {
+	if (MovementLocked) return;
 	if ((Controller != NULL) && (Value != 0.0f)) {
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -111,6 +112,7 @@ void ABaseCharacter::MoveForward(float Value) {
 }
 
 void ABaseCharacter::MoveRight(float Value) {
+	if (MovementLocked) return;
 	if ((Controller != NULL) && (Value != 0.0f)) {
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
