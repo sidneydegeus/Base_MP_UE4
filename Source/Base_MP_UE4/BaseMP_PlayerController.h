@@ -18,16 +18,16 @@ class BASE_MP_UE4_API ABaseMP_PlayerController : public APlayerController
 //Variables
 private:
 	UPROPERTY(EditDefaultsOnly)
-		float CrosshairXLocation = 0.5;
+	float CrosshairXLocation = 0.5;
 
 	UPROPERTY(EditDefaultsOnly)
-		float CrosshairYLocation = 0.33333;
+	float CrosshairYLocation = 0.33333;
 
 	UPROPERTY(EditDefaultsOnly)
-		float LineTraceRange = 1000000;
+	float LineTraceRange = 1000000;
 
 	UPROPERTY(Replicated)
-		UBaseAimingComponent* AimingComponent;
+	UBaseAimingComponent* AimingComponent;
 
 //Functions
 public:

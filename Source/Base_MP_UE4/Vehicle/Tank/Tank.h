@@ -31,7 +31,7 @@ public:
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
 	UFUNCTION(BlueprintPure, Category = "Health")
-		float GetHealthPercentage() const;
+	float GetHealthPercentage() const;
 
 	FTankDelegate OnDeath;
 
@@ -44,6 +44,7 @@ private:
 	ATank();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	class ABaseWeapon* GetWeapon() const;
 
 	//UFUNCTION()
 	//	void OnRep_ReplicatedTransform();

@@ -6,6 +6,8 @@
 #include "Net/UnrealNetwork.h"
 #include "BaseMP_PlayerController.h"
 #include "TankAimingComponent.h"
+#include "GenericComponents/SpawnPoint.h"
+#include "Weapon/BaseWeapon.h"
 #include "UObject/ConstructorHelpers.h"
 
 //void ATank::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -40,13 +42,17 @@ void ATank::Tick(float DeltaTime) {
 
 void ATank::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	UTankAimingComponent* TankAimingComponent = FindComponentByClass<UTankAimingComponent>();
-	if (TankAimingComponent == nullptr) return;
-	TankAimingComponent->Activate(true);
 
 	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(NewController);
 	if (ABase_PlayerController == nullptr) return;
-	ABase_PlayerController->SetAimingComponent(TankAimingComponent);
+
+	auto Weapon = GetWeapon();
+	if (Weapon == nullptr) return;
+	auto AimComponent = Weapon->GetAimingComponent();
+	if (AimComponent == nullptr) return;
+
+	AimComponent->Activate(true);
+	ABase_PlayerController->SetAimingComponent(AimComponent);
 }
 
 void ATank::UnPossessed() {
@@ -79,4 +85,17 @@ float ATank::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, cl
 
 float ATank::GetHealthPercentage() const {
 	return (float)CurrentHealth / (float)MaxHealth;
+}
+
+ABaseWeapon* ATank::GetWeapon() const {
+	auto test = GetComponents();
+	for (UActorComponent* Child : test) {
+		auto SpawnPointChild = Cast<USpawnPoint>(Child);
+		if (!SpawnPointChild) continue;
+
+		AActor* SpawnedChild = SpawnPointChild->GetSpawnedActor();
+		auto Weapon = Cast<ABaseWeapon>(SpawnedChild);
+		if (Weapon) return Weapon;
+	}
+	return nullptr;
 }
