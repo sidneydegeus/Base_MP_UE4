@@ -29,16 +29,6 @@ ABaseVehicle::ABaseVehicle() {
 	CreateExitComponent();
 }
 
-void ABaseVehicle::Tick(float DeltaTime) {
-	Super::Tick(DeltaTime);
-
-	FString t1 = "OwnerRole " + UStaticLibrary::GetNetRoleEnumAsString(Role);
-	FString t2 = "RemoteRole " + UStaticLibrary::GetNetRoleEnumAsString(GetRemoteRole());
-
-	DrawDebugString(GetWorld(), FVector(0, 0, 125), t1, this, FColor::White, DeltaTime);
-	DrawDebugString(GetWorld(), FVector(0, 0, 100), t2, this, FColor::White, DeltaTime);
-}
-
 void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseVehicle::MoveForward);
@@ -51,6 +41,16 @@ void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void ABaseVehicle::BeginPlay() {
 	Super::BeginPlay();
+}
+
+void ABaseVehicle::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+
+	FString t1 = "OwnerRole " + UStaticLibrary::GetNetRoleEnumAsString(Role);
+	FString t2 = "RemoteRole " + UStaticLibrary::GetNetRoleEnumAsString(GetRemoteRole());
+
+	DrawDebugString(GetWorld(), FVector(0, 0, 125), t1, this, FColor::White, DeltaTime);
+	DrawDebugString(GetWorld(), FVector(0, 0, 100), t2, this, FColor::White, DeltaTime);
 }
 
 void ABaseVehicle::ExitVehicle() {

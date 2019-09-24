@@ -8,6 +8,14 @@
 #include "BaseAimingComponent.h"
 #include "BaseWeapon.generated.h"
 
+UENUM()
+enum class EWeaponFiringState : uint8
+{
+	Reloading,
+	Aiming,
+	NoAmmo
+};
+
 UCLASS(abstract)
 class BASE_MP_UE4_API ABaseWeapon : public AActor
 {
@@ -20,15 +28,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	TSubclassOf<ABaseProjectile> ProjectileBlueprint;
 
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "State")
+	EWeaponFiringState WeaponFiringState = EWeaponFiringState::Reloading;
+
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Firing")
-	uint32 Ammo = 3;
+	uint32 Ammo = 30;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Firing")
 	float LaunchSpeed = 4000;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Firing")
+	float ReloadTimeInSeconds = 3;
+
+	double LastFireTime = 0;
+
 public:	
 	ABaseWeapon();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	virtual void Tick(float DeltaTime) override;
 
 	UBaseAimingComponent* GetAimingComponent() { return AimingComponent; };
 

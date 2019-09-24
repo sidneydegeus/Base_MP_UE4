@@ -13,7 +13,6 @@ enum class ETankFiringState : uint8
 {
 	Reloading,
 	Aiming,
-	Locked,
 	NoAmmo
 };
 

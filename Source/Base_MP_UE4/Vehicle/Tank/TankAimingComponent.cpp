@@ -26,20 +26,20 @@ void UTankAimingComponent::BeginPlay() {
 
 void UTankAimingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (GetOwner()->Role == ROLE_Authority) {
-		if (Ammo <= 0) {
-			TankFiringState = ETankFiringState::NoAmmo;
-		}
-		else if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeInSeconds) {
-			TankFiringState = ETankFiringState::Reloading;
-		}
-		else if (IsBarrelMoving()) {
-			TankFiringState = ETankFiringState::Aiming;
-		}
-		else {
-			TankFiringState = ETankFiringState::Locked;
-		}
-	}
+	//if (GetOwner()->Role == ROLE_Authority) {
+	//	if (Ammo <= 0) {
+	//		TankFiringState = ETankFiringState::NoAmmo;
+	//	}
+	//	else if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeInSeconds) {
+	//		TankFiringState = ETankFiringState::Reloading;
+	//	}
+	//	else if (IsBarrelMoving()) {
+	//		TankFiringState = ETankFiringState::Aiming;
+	//	}
+	//	else {
+	//		TankFiringState = ETankFiringState::Locked;
+	//	}
+	//}
 }
 
 void UTankAimingComponent::Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet) {
@@ -79,10 +79,10 @@ void UTankAimingComponent::AimAt(FVector HitLocation) {
 }
 
 void UTankAimingComponent::Fire() {
-	if (TankFiringState == ETankFiringState::Locked || TankFiringState == ETankFiringState::Aiming) {
-		Server_Fire();
-		TankFiringState = ETankFiringState::Reloading;
-	}
+	//if (TankFiringState == ETankFiringState::Locked || TankFiringState == ETankFiringState::Aiming) {
+	//	Server_Fire();
+	//	TankFiringState = ETankFiringState::Reloading;
+	//}
 }
 
 

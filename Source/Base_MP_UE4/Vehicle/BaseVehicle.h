@@ -37,12 +37,13 @@ private:
 public:	
 	ABaseVehicle();
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void ExitVehicle();
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	virtual void CreateMovementComponent();
 	virtual void CreateMovementReplicator();
 	virtual void CreateExitComponent();

@@ -14,11 +14,26 @@ ABaseWeapon::ABaseWeapon() {
 	//CreateAimingComponent();
 }
 
+void ABaseWeapon::Tick(float DeltaTime) {
+	if (GetOwner()->Role == ROLE_Authority) {
+		if (Ammo <= 0) {
+			WeaponFiringState = EWeaponFiringState::NoAmmo;
+		}
+		else if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeInSeconds) {
+			WeaponFiringState = EWeaponFiringState::Reloading;
+		}
+		else {
+			WeaponFiringState = EWeaponFiringState::Aiming;
+		}
+	}
+}
+
 void ABaseWeapon::Fire() {
 	Server_Fire();
 }
 
 void ABaseWeapon::Server_Fire_Implementation() {
+	UE_LOG(LogTemp, Warning, TEXT("im firing"));
 	//if (!ensure(ProjectileBlueprint)) return;
 	//ABaseProjectile* Projectile = SpawnProjectile();
 	//if (Projectile == nullptr) return;

@@ -28,6 +28,8 @@ private:
 
 	//Functions
 public:
+	ATank();
+	virtual void Tick(float DeltaTime) override;
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
 	UFUNCTION(BlueprintPure, Category = "Health")
@@ -36,16 +38,17 @@ public:
 	FTankDelegate OnDeath;
 
 protected:
+	virtual void BeginPlay() override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	//void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 
 private:
-	ATank();
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(BlueprintCallable)
 	class ABaseWeapon* GetWeapon() const;
 
+	void Fire();
 	//UFUNCTION()
 	//	void OnRep_ReplicatedTransform();
 };

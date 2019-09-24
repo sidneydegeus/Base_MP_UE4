@@ -32,6 +32,11 @@ void ATank::BeginPlay() {
 	//CurrentHealth = MaxHealth;
 }
 
+void ATank::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) {
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATank::Fire);
+}
+
 void ATank::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
@@ -98,4 +103,10 @@ ABaseWeapon* ATank::GetWeapon() const {
 		if (Weapon) return Weapon;
 	}
 	return nullptr;
+}
+
+void ATank::Fire() {
+	auto Weapon = GetWeapon();
+	if (Weapon == nullptr) return;
+	Weapon->Fire();
 }
