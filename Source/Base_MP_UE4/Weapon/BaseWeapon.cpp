@@ -3,6 +3,7 @@
 
 #include "BaseWeapon.h"
 #include "Net/UnrealNetwork.h"
+#include "Projectile/BaseProjectile.h"
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -35,24 +36,52 @@ void ABaseWeapon::AimAt(FVector HitLocation) {
 	//INTENDED: override to add functionality
 }
 
+
+
+/// Fire 
 void ABaseWeapon::Fire() {
 	Server_Fire();
 }
 
 void ABaseWeapon::Server_Fire_Implementation() {
-	UE_LOG(LogTemp, Warning, TEXT("im firing"));
-	//if (!ensure(ProjectileBlueprint)) return;
-	//ABaseProjectile* Projectile = SpawnProjectile();
-	//if (Projectile == nullptr) return;
-	//Projectile->LaunchProjectile(LaunchSpeed);
-	//Server_SetAmmo(Ammo - 1);
-	//LastFireTime = FPlatformTime::Seconds();
+	if (!ensure(ProjectileBlueprint)) return;
+	ABaseProjectile* Projectile = SpawnProjectile();
+	if (Projectile == nullptr) return;
+	Projectile->LaunchProjectile(LaunchSpeed);
+	Server_SetAmmo(Ammo - 1);
+	//TODO: not sure but this should probably be changed for other weapons
+	LastFireTime = FPlatformTime::Seconds();
 }
 
 bool ABaseWeapon::Server_Fire_Validate() {
 	return true;
 }
 
+
+
+/// Projectile
+ABaseProjectile* ABaseWeapon::SpawnProjectile() {
+	auto Projectile = GetWorld()->SpawnActor<ABaseProjectile>(
+		ProjectileBlueprint,
+		SpawnProjectileLocation(),
+		SpawnProjectileRotation()
+		);
+	return Projectile;
+}
+
+FVector ABaseWeapon::SpawnProjectileLocation() {
+	//INTENDED: Override in child for functionality
+	return FVector();
+}
+
+FRotator ABaseWeapon::SpawnProjectileRotation() {
+	//INTENDED: Override in child for functionality
+	return FRotator();
+}
+
+
+
+/// Ammo 
 void ABaseWeapon::Server_SetAmmo_Implementation(uint32 Amount) {
 	Ammo = Amount;
 }

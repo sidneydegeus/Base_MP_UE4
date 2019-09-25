@@ -52,10 +52,9 @@ public:
 	virtual void AimAt(FVector HitLocation);
 
 protected:
-	//ABaseProjectile* SpawnProjectile();
-	//UFUNCTION()
-	//virtual FVector SpawnProjectileLocation();
-	//virtual FRotator SpawnProjectileRotation();
+	ABaseProjectile* SpawnProjectile();
+	virtual FVector SpawnProjectileLocation();
+	virtual FRotator SpawnProjectileRotation();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Fire();

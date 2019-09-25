@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "BaseProjectile.generated.h"
 
-UCLASS(abstract)
+UCLASS()
 class BASE_MP_UE4_API ABaseProjectile : public AActor
 {
 	GENERATED_BODY()

@@ -6,16 +6,26 @@
 #include "Vehicle/Tank/TankTurret.h"
 #include "Kismet/GameplayStatics.h"
 
-//TODO: rename tank barrel/turret to just barrel/turret
+//TODO: rename tank barrel/turret classes to BarrelComponent / TurretComponent
 
 void ATurret::BeginPlay() {
 	Super::BeginPlay();
-	ActivateTick(false);
+	//ActivateTick(false);
 }
 
 void ATurret::Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet) {
 	Barrel = TankBarrelToSet;
 	Turret = TankTurretToSet;
+}
+
+FVector ATurret::SpawnProjectileLocation() {
+	if (Barrel == nullptr) return FVector();
+	return Barrel->GetSocketLocation(FName("Projectile"));
+}
+
+FRotator ATurret::SpawnProjectileRotation() {
+	if (Barrel == nullptr) return FRotator();
+	return Barrel->GetSocketRotation(FName("Projectile"));
 }
 
 void ATurret::AimAt(FVector HitLocation) {
