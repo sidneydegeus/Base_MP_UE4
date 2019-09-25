@@ -5,7 +5,6 @@
 
 #include "Net/UnrealNetwork.h"
 #include "BaseMP_PlayerController.h"
-#include "TankAimingComponent.h"
 #include "GenericComponents/SpawnPoint.h"
 #include "Weapon/BaseWeapon.h"
 #include "UObject/ConstructorHelpers.h"

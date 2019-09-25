@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Projectile/BaseProjectile.h"
-#include "BaseAimingComponent.h"
 #include "BaseWeapon.generated.h"
 
 UENUM()
