@@ -4,7 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "BaseAimingComponent.h"
+//#include "BaseAimingComponent.h"
+#include "Weapon/BaseWeapon.h"
 #include "BaseMP_PlayerController.generated.h"
 
 /**
@@ -27,12 +28,14 @@ private:
 	float LineTraceRange = 1000000;
 
 	UPROPERTY(Replicated)
-	UBaseAimingComponent* AimingComponent;
+		//UBaseAimingComponent* AimingComponent;
+	ABaseWeapon* Weapon;
 
 //Functions
 public:
 	virtual void Tick(float DeltaTime) override;
-	void SetAimingComponent(UBaseAimingComponent* Component) { AimingComponent = Component; };
+	//void SetAimingComponent(UBaseAimingComponent* Component) { AimingComponent = Component; };
+	void SetWeapon(ABaseWeapon* WeaponToSet) { Weapon = WeaponToSet; };
 
 protected:
 	virtual void BeginPlay() override;

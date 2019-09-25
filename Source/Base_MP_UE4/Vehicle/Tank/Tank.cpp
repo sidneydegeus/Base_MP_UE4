@@ -51,23 +51,28 @@ void ATank::PossessedBy(AController* NewController) {
 	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(NewController);
 	if (ABase_PlayerController == nullptr) return;
 
+
+	//TODO: set weapon instead
+
 	auto Weapon = GetWeapon();
 	if (Weapon == nullptr) return;
-	auto AimComponent = Weapon->GetAimingComponent();
-	if (AimComponent == nullptr) return;
+	ABase_PlayerController->SetWeapon(Weapon);
+	//auto AimComponent = Weapon->GetAimingComponent();
+	//if (AimComponent == nullptr) return;
 
-	AimComponent->Activate(true);
-	ABase_PlayerController->SetAimingComponent(AimComponent);
+	//AimComponent->Activate(true);
+	//ABase_PlayerController->SetAimingComponent(AimComponent);
 }
 
 void ATank::UnPossessed() {
-	UTankAimingComponent* TankAimingComponent = FindComponentByClass<UTankAimingComponent>();
-	if (TankAimingComponent == nullptr) return;
-	TankAimingComponent->Deactivate();
+	//UTankAimingComponent* TankAimingComponent = FindComponentByClass<UTankAimingComponent>();
+	//if (TankAimingComponent == nullptr) return;
+	//TankAimingComponent->Deactivate();
 	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(Controller);
 	if (ABase_PlayerController == nullptr) return;
+	ABase_PlayerController->SetWeapon(nullptr);
 	//TODO: maybe change the aiming component setting to the controller itself by overwriting UnPosses()
-	ABase_PlayerController->SetAimingComponent(nullptr);
+	//ABase_PlayerController->SetAimingComponent(nullptr);
 	//above needs to be executed first, so that the controller can be cleaned up.
 	Super::UnPossessed();
 }

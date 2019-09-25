@@ -10,8 +10,7 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 }
 
 ABaseWeapon::ABaseWeapon() {
-	PrimaryActorTick.bCanEverTick = false;
-	//CreateAimingComponent();
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ABaseWeapon::Tick(float DeltaTime) {
@@ -26,6 +25,14 @@ void ABaseWeapon::Tick(float DeltaTime) {
 			WeaponFiringState = EWeaponFiringState::Aiming;
 		}
 	}
+}
+
+void ABaseWeapon::ActivateTick(bool bReset) {
+	SetActorTickEnabled(bReset);
+}
+
+void ABaseWeapon::AimAt(FVector HitLocation) {
+	//INTENDED: override to add functionality
 }
 
 void ABaseWeapon::Fire() {

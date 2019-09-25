@@ -9,7 +9,7 @@
 
 void ABaseMP_PlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ABaseMP_PlayerController, AimingComponent);
+	DOREPLIFETIME(ABaseMP_PlayerController, Weapon);
 }
 
 void ABaseMP_PlayerController::BeginPlay() {
@@ -23,11 +23,11 @@ void ABaseMP_PlayerController::Tick(float DeltaTime) {
 }
 
 void ABaseMP_PlayerController::AimTowardsCrosshair() {
-	if (!AimingComponent) return;
+	if (!Weapon) return;
 
 	FVector HitLocation;
 	if (GetSightRayHitLocation(HitLocation)) {
-		AimingComponent->AimAt(HitLocation);
+		Weapon->AimAt(HitLocation);
 	}
 }
 

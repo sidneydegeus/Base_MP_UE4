@@ -11,9 +11,7 @@ void AExtendedPawn::UpdateUIEvent_Implementation() {}
 
 void AExtendedPawn::Client_PossessedBy_Implementation(APlayerController* PlayerController) {
 	if (PlayerController == nullptr) return;
-	UE_LOG(LogTemp, Warning, TEXT("1"));
 	if (UIClass == nullptr) return;
-	UE_LOG(LogTemp, Warning, TEXT("2"));
 	UI = CreateWidget<UUserWidget>(PlayerController, UIClass);
 	UI->AddToViewport();
 	SetupUIEvent();

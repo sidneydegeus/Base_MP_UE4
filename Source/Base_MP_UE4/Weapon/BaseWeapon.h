@@ -22,9 +22,6 @@ class BASE_MP_UE4_API ABaseWeapon : public AActor
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(BlueprintReadWrite)
-	UBaseAimingComponent* AimingComponent = nullptr;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	TSubclassOf<ABaseProjectile> ProjectileBlueprint;
 
@@ -47,10 +44,12 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void Tick(float DeltaTime) override;
 
-	UBaseAimingComponent* GetAimingComponent() { return AimingComponent; };
+	void ActivateTick(bool bReset);
 
 	UFUNCTION(BlueprintCallable, Category = "Firing")
 	virtual void Fire();
+
+	virtual void AimAt(FVector HitLocation);
 
 protected:
 	//ABaseProjectile* SpawnProjectile();
@@ -67,6 +66,4 @@ protected:
 	void Server_SetAmmo(uint32 Amount);
 	void Server_SetAmmo_Implementation(uint32 Amount);
 	bool Server_SetAmmo_Validate(uint32 Amount);
-
-
 };
