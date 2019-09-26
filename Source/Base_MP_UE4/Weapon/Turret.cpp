@@ -2,8 +2,8 @@
 
 
 #include "Turret.h"
-#include "Vehicle/Tank/TankBarrel.h"
-#include "Vehicle/Tank/TankTurret.h"
+#include "Weapon/Turret/BarrelComponent.h"
+#include "Weapon/Turret/TurretComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 //TODO: rename tank barrel/turret classes to BarrelComponent / TurretComponent
@@ -13,7 +13,7 @@ void ATurret::BeginPlay() {
 	//ActivateTick(false);
 }
 
-void ATurret::Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet) {
+void ATurret::Initialize(UBarrelComponent* TankBarrelToSet, UTurretComponent* TankTurretToSet) {
 	Barrel = TankBarrelToSet;
 	Turret = TankTurretToSet;
 }

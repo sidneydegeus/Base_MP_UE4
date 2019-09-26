@@ -16,9 +16,9 @@ class BASE_MP_UE4_API ATurret : public ABaseWeapon
 	
 protected:
 	UPROPERTY()
-	class UTankTurret* Turret = nullptr;
+	class UTurretComponent* Turret = nullptr;
 	UPROPERTY()
-	class UTankBarrel* Barrel = nullptr;
+	class UBarrelComponent* Barrel = nullptr;
 
 	FVector CurrentAimDirection;
 
@@ -28,7 +28,7 @@ public:
 protected:
 	void BeginPlay() override;
 	UFUNCTION(BlueprintCallable, Category = "Setup")
-	void Initialize(UTankBarrel* TankBarrelToSet, UTankTurret* TankTurretToSet);
+	void Initialize(UBarrelComponent* TankBarrelToSet, UTurretComponent* TankTurretToSet);
 
 	virtual FVector SpawnProjectileLocation() override;
 	virtual FRotator SpawnProjectileRotation() override;
