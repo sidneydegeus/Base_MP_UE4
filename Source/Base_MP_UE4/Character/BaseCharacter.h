@@ -43,7 +43,8 @@ protected:
 	UPROPERTY(ReplicatedUsing = WeaponEquippedEvent, BlueprintReadOnly)
 	bool bWeaponEquipped;
 
-
+	UPROPERTY(BlueprintReadWrite)
+	class ABaseWeapon* Weapon;
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -89,5 +90,8 @@ protected:
 protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
+
+private:
+	void Fire();
 
 };

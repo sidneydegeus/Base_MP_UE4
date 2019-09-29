@@ -38,6 +38,9 @@ protected:
 
 	double LastFireTime = 0;
 
+	UPROPERTY()
+	class UMeshComponent* Mesh;
+
 public:	
 	ABaseWeapon();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -51,6 +54,7 @@ public:
 	virtual void AimAt(FVector HitLocation);
 
 protected:
+	void FindMesh();
 	ABaseProjectile* SpawnProjectile();
 	virtual FVector SpawnProjectileLocation();
 	virtual FRotator SpawnProjectileRotation();

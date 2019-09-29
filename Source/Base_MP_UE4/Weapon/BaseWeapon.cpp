@@ -4,6 +4,7 @@
 #include "BaseWeapon.h"
 #include "Net/UnrealNetwork.h"
 #include "Projectile/BaseProjectile.h"
+#include "Components/MeshComponent.h"
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -15,17 +16,17 @@ ABaseWeapon::ABaseWeapon() {
 }
 
 void ABaseWeapon::Tick(float DeltaTime) {
-	if (GetOwner()->Role == ROLE_Authority) {
-		if (Ammo <= 0) {
-			WeaponFiringState = EWeaponFiringState::NoAmmo;
-		}
-		else if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeInSeconds) {
-			WeaponFiringState = EWeaponFiringState::Reloading;
-		}
-		else {
-			WeaponFiringState = EWeaponFiringState::Aiming;
-		}
-	}
+	//if (GetOwner()->Role == ROLE_Authority) {
+	//	if (Ammo <= 0) {
+	//		WeaponFiringState = EWeaponFiringState::NoAmmo;
+	//	}
+	//	else if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeInSeconds) {
+	//		WeaponFiringState = EWeaponFiringState::Reloading;
+	//	}
+	//	else {
+	//		WeaponFiringState = EWeaponFiringState::Aiming;
+	//	}
+	//}
 }
 
 void ABaseWeapon::ActivateTick(bool bReset) {
@@ -58,6 +59,11 @@ bool ABaseWeapon::Server_Fire_Validate() {
 }
 
 
+void ABaseWeapon::FindMesh() {
+	if (Mesh == nullptr) {
+		Mesh = FindComponentByClass<UMeshComponent>();
+	}
+}
 
 /// Projectile
 ABaseProjectile* ABaseWeapon::SpawnProjectile() {
@@ -66,17 +72,24 @@ ABaseProjectile* ABaseWeapon::SpawnProjectile() {
 		SpawnProjectileLocation(),
 		SpawnProjectileRotation()
 		);
+	Projectile->SetOwner(this);
 	return Projectile;
 }
 
 FVector ABaseWeapon::SpawnProjectileLocation() {
-	//INTENDED: Override in child for functionality
-	return FVector();
+	////INTENDED: Override in child for functionality
+	//return FVector();
+	FindMesh();
+	if (Mesh == nullptr) return FVector();
+	return Mesh->GetSocketLocation(FName("Muzzle"));
 }
 
 FRotator ABaseWeapon::SpawnProjectileRotation() {
-	//INTENDED: Override in child for functionality
-	return FRotator();
+	////INTENDED: Override in child for functionality
+	//return FRotator();
+	FindMesh();
+	if (Mesh == nullptr) return FRotator();
+	return Mesh->GetSocketRotation(FName("Muzzle"));
 }
 
 

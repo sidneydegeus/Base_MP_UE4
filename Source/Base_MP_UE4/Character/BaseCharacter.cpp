@@ -11,6 +11,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 
+#include "Weapon/BaseWeapon.h"
 #include "InteractionComponent.h"
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -78,6 +79,7 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABaseCharacter::Interact);
 	PlayerInputComponent->BindAction("HolsterWeapon", IE_Pressed, this, &ABaseCharacter::EquipWeapon);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABaseCharacter::Fire);
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
@@ -167,3 +169,10 @@ void ABaseCharacter::UnPossessed() {
 	UE_LOG(LogTemp, Warning, TEXT("UNpossess character"));
 }
 
+
+
+/// Fire
+void ABaseCharacter::Fire() {
+	if (Weapon == nullptr) return;
+	Weapon->Fire();
+}

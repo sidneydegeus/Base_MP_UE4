@@ -56,6 +56,7 @@ void ABaseProjectile::ResolveHit_Implementation() {
 }
 
 void ABaseProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit) {
+	if (OtherActor == GetOwner()) return;
 	ResolveHit();
 
 	if (HasAuthority()) {

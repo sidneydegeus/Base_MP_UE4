@@ -6,8 +6,6 @@
 #include "Weapon/Turret/TurretComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-//TODO: rename tank barrel/turret classes to BarrelComponent / TurretComponent
-
 void ATurret::BeginPlay() {
 	Super::BeginPlay();
 	//ActivateTick(false);
