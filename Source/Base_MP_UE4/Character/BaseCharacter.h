@@ -36,16 +36,28 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+
+
 protected:
-	UPROPERTY(ReplicatedUsing = WeaponEquippedEvent, BlueprintReadOnly)
-	bool bWeaponEquipped;
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	class ABaseWeapon* EquippedWeapon;
 
 	UPROPERTY(BlueprintReadWrite)
-	class ABaseWeapon* Weapon;
+	bool bSwappingWeapon;
+
+	//TODO: add this to a dictionary later
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	class ABaseWeapon* WeaponSlot1;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	class ABaseWeapon* WeaponSlot2;
 
 private:
 	UPROPERTY(VisibleAnywhere)
 	class UInteractionComponent* InteractionComponent;
+
+	UPROPERTY()
+	class ABaseWeapon* WeaponToEquip;
 
 ///Functions 
 protected:
@@ -73,16 +85,23 @@ protected:
 
 	void Interact();
 
-	void EquipWeapon();
+	void EquipWeapon(ABaseWeapon* Weapon);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_EquipWeapon();
-	void Server_EquipWeapon_Implementation();
-	bool Server_EquipWeapon_Validate();
+	void Server_EquipWeapon(ABaseWeapon* Weapon);
+	void Server_EquipWeapon_Implementation(ABaseWeapon* Weapon);
+	bool Server_EquipWeapon_Validate(ABaseWeapon* Weapon);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_WeaponEquip();
+	void Multicast_WeaponEquip_Implementation();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
-	void WeaponEquippedEvent();
-	virtual void WeaponEquippedEvent_Implementation();
+	void WeaponEquipEvent();
+	virtual void WeaponEquipEvent_Implementation();
+
+	UFUNCTION(BlueprintCallable)
+	void HandleEquip();
 
 protected:
 	virtual void PossessedBy(AController* NewController) override;
@@ -91,4 +110,6 @@ protected:
 private:
 	void Fire();
 
+	void ActionBar1();
+	void ActionBar2();
 };

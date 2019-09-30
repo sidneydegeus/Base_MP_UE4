@@ -16,7 +16,9 @@
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ABaseCharacter, bWeaponEquipped);
+	DOREPLIFETIME(ABaseCharacter, EquippedWeapon);
+	DOREPLIFETIME(ABaseCharacter, WeaponSlot1);
+	DOREPLIFETIME(ABaseCharacter, WeaponSlot2);
 }
 
 ABaseCharacter::ABaseCharacter()
@@ -78,8 +80,10 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ABaseCharacter::LookUpAtRate);
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABaseCharacter::Interact);
-	PlayerInputComponent->BindAction("HolsterWeapon", IE_Pressed, this, &ABaseCharacter::EquipWeapon);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABaseCharacter::Fire);
+
+	PlayerInputComponent->BindAction("ActionBar 1", IE_Pressed, this, &ABaseCharacter::ActionBar1);
+	PlayerInputComponent->BindAction("ActionBar 2", IE_Pressed, this, &ABaseCharacter::ActionBar2);
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
@@ -136,22 +140,80 @@ void ABaseCharacter::Interact() {
 /// Equip Weapon logic
 //TODO: Make server stuff
 //TODO: Use enums or something for different weapon types?
-void ABaseCharacter::EquipWeapon() {
-	Server_EquipWeapon();
+
+void ABaseCharacter::ActionBar1() {
+	EquipWeapon(WeaponSlot1);
 }
 
-void ABaseCharacter::Server_EquipWeapon_Implementation() {
-	bWeaponEquipped = !bWeaponEquipped;
-	WeaponEquippedEvent();
+void ABaseCharacter::ActionBar2() {
+	EquipWeapon(WeaponSlot2);
 }
 
-bool ABaseCharacter::Server_EquipWeapon_Validate() {
+void ABaseCharacter::EquipWeapon(ABaseWeapon* Weapon) {
+	if (Weapon == nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("yaya"));
+	}
+	if (EquippedWeapon == nullptr) {
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		bUseControllerRotationYaw = true;
+	}
+	else if (EquippedWeapon == Weapon || Weapon == nullptr) {
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		bUseControllerRotationYaw = false;
+	}
+
+	if (Role < ROLE_Authority) {
+		Server_EquipWeapon(Weapon);
+	}
+	if (Role == ROLE_Authority) {
+		Multicast_WeaponEquip();
+	}
+	WeaponToEquip = Weapon;
+	bSwappingWeapon = true;
+}
+
+void ABaseCharacter::Server_EquipWeapon_Implementation(ABaseWeapon* Weapon) {
+	EquipWeapon(Weapon);
+}
+
+bool ABaseCharacter::Server_EquipWeapon_Validate(ABaseWeapon* Weapon) {
 	return true;
 }
 
-void ABaseCharacter::WeaponEquippedEvent_Implementation() {}
+void ABaseCharacter::Multicast_WeaponEquip_Implementation() {
+	WeaponEquipEvent();
+}
 
+void ABaseCharacter::WeaponEquipEvent_Implementation() {}
 
+void ABaseCharacter::HandleEquip() {
+	if (!HasAuthority()) return;
+	USceneComponent* CharacterMesh = Cast<USceneComponent>(GetMesh());
+	if (CharacterMesh == nullptr) return;
+
+	// Safety check. Stop function if both are nullptr
+	if (EquippedWeapon == nullptr && WeaponToEquip == nullptr) return;
+	// when no weapon equiped, equip weapon to equip
+	if (EquippedWeapon == nullptr && WeaponToEquip != nullptr) {
+		WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
+		EquippedWeapon = WeaponToEquip;
+		return;
+	}
+
+	// When trying to swap to  the same weapon, holster weapon instead
+	if (WeaponToEquip == EquippedWeapon) {
+		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, EquippedWeapon->HolsterSocket);
+		EquippedWeapon = nullptr;
+		return;
+	}
+
+	// When trying to swap to another weapon while having one equipped
+	if (EquippedWeapon && WeaponToEquip != nullptr) {
+		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, EquippedWeapon->HolsterSocket);
+		WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
+		EquippedWeapon = WeaponToEquip;
+	}
+}
 
 
 /// Possession
@@ -171,6 +233,8 @@ void ABaseCharacter::UnPossessed() {
 
 /// Fire
 void ABaseCharacter::Fire() {
-	if (Weapon == nullptr) return;
-	Weapon->Fire();
+	if (EquippedWeapon == nullptr) return;
+	if (!bSwappingWeapon) {
+		EquippedWeapon->Fire();
+	}
 }

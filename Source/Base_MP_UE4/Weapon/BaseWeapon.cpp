@@ -13,6 +13,7 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 ABaseWeapon::ABaseWeapon() {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 }
 
 void ABaseWeapon::Tick(float DeltaTime) {

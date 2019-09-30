@@ -19,7 +19,11 @@ UCLASS(abstract)
 class BASE_MP_UE4_API ABaseWeapon : public AActor
 {
 	GENERATED_BODY()
-	
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	FName HolsterSocket;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	TSubclassOf<ABaseProjectile> ProjectileBlueprint;
