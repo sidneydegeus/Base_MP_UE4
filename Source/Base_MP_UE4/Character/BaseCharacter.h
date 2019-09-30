@@ -36,9 +36,6 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	UPROPERTY(BlueprintReadWrite)
-	bool MovementLocked;
-
 protected:
 	UPROPERTY(ReplicatedUsing = WeaponEquippedEvent, BlueprintReadOnly)
 	bool bWeaponEquipped;

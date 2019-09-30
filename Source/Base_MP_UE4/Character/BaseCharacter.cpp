@@ -101,20 +101,18 @@ void ABaseCharacter::LookUpAtRate(float Rate) {
 }
 
 void ABaseCharacter::MoveForward(float Value) {
-	if (MovementLocked) return;
 	if ((Controller != NULL) && (Value != 0.0f)) {
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector Direction  = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
 	}
 }
 
 void ABaseCharacter::MoveRight(float Value) {
-	if (MovementLocked) return;
 	if ((Controller != NULL) && (Value != 0.0f)) {
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
