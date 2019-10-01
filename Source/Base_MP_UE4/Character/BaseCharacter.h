@@ -39,6 +39,9 @@ public:
 
 
 protected:
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FName, ABaseWeapon*> WeaponSlots;
+
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	class ABaseWeapon* EquippedWeapon;
 
