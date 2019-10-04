@@ -39,7 +39,7 @@ public:
 
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TMap<FName, ABaseWeapon*> WeaponSlots;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
@@ -48,12 +48,7 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	bool bSwappingWeapon;
 
-	//TODO: add this to a dictionary later
-	UPROPERTY(BlueprintReadWrite, Replicated)
-	class ABaseWeapon* WeaponSlot1;
 
-	UPROPERTY(BlueprintReadWrite, Replicated)
-	class ABaseWeapon* WeaponSlot2;
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -61,6 +56,9 @@ private:
 
 	UPROPERTY()
 	class ABaseWeapon* WeaponToEquip;
+
+
+
 
 ///Functions 
 protected:
@@ -88,6 +86,8 @@ protected:
 
 	void Interact();
 
+	UFUNCTION(BlueprintCallable)
+	void PickUp(ABaseWeapon* PickedUpWeapon);
 	void EquipWeapon(ABaseWeapon* Weapon);
 
 	UFUNCTION(Server, Reliable, WithValidation)

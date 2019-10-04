@@ -17,8 +17,8 @@
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABaseCharacter, EquippedWeapon);
-	DOREPLIFETIME(ABaseCharacter, WeaponSlot1);
-	DOREPLIFETIME(ABaseCharacter, WeaponSlot2);
+	//DOREPLIFETIME(ABaseCharacter, WeaponSlot1);
+	//DOREPLIFETIME(ABaseCharacter, WeaponSlot2);
 }
 
 ABaseCharacter::ABaseCharacter()
@@ -142,17 +142,43 @@ void ABaseCharacter::Interact() {
 //TODO: Use enums or something for different weapon types?
 
 void ABaseCharacter::ActionBar1() {
-	EquipWeapon(WeaponSlot1);
+	TArray<ABaseWeapon*> WeaponArray;
+	WeaponSlots.GenerateValueArray(WeaponArray);
+
+	EquipWeapon(WeaponArray[0]);
 }
 
 void ABaseCharacter::ActionBar2() {
-	EquipWeapon(WeaponSlot2);
+	TArray<ABaseWeapon*> WeaponArray;
+	WeaponSlots.GenerateValueArray(WeaponArray);
+
+	EquipWeapon(WeaponArray[1]);
+}
+
+// TODO: eventually change to item and make more generic?
+void ABaseCharacter::PickUp(ABaseWeapon* WeaponToPickup) {
+	if (!WeaponToPickup->bCanPickup) return;
+	USceneComponent* Mesh = Cast<USceneComponent>(FindComponentByClass<USkeletalMeshComponent>());
+	if (Mesh == nullptr) return;
+	FWeaponData Data = WeaponToPickup->GetWeaponData();
+	ABaseWeapon* Weapon = GetWorld()->SpawnActor<ABaseWeapon>(Data.WeaponBlueprint, Mesh->GetComponentTransform());
+	Weapon->SetOwner(this);
+	for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
+		if (pair.Value == nullptr) {
+			pair.Value = Weapon;
+			Data.HolsterSocket = pair.Key;
+			Weapon->SetWeaponData(Data);
+			Weapon->AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, Data.HolsterSocket);
+			break;
+		}
+	}
+	WeaponToPickup->Destroy();
 }
 
 void ABaseCharacter::EquipWeapon(ABaseWeapon* Weapon) {
-	if (Weapon == nullptr) {
-		UE_LOG(LogTemp, Warning, TEXT("yaya"));
-	}
+	// If no weapon, don't perform any animation etc either
+	if (Weapon == nullptr) return;
+
 	if (EquippedWeapon == nullptr) {
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		bUseControllerRotationYaw = true;
@@ -202,14 +228,14 @@ void ABaseCharacter::HandleEquip() {
 
 	// When trying to swap to  the same weapon, holster weapon instead
 	if (WeaponToEquip == EquippedWeapon) {
-		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, EquippedWeapon->HolsterSocket);
+		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, EquippedWeapon->GetWeaponData().HolsterSocket);
 		EquippedWeapon = nullptr;
 		return;
 	}
 
 	// When trying to swap to another weapon while having one equipped
 	if (EquippedWeapon && WeaponToEquip != nullptr) {
-		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, EquippedWeapon->HolsterSocket);
+		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, EquippedWeapon->GetWeaponData().HolsterSocket);
 		WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
 		EquippedWeapon = WeaponToEquip;
 	}

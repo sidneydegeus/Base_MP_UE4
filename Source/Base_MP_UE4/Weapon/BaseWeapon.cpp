@@ -8,7 +8,7 @@
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ABaseWeapon, Ammo);
+	DOREPLIFETIME(ABaseWeapon, WeaponData);
 }
 
 ABaseWeapon::ABaseWeapon() {
@@ -97,7 +97,8 @@ FRotator ABaseWeapon::SpawnProjectileRotation() {
 
 /// Ammo 
 void ABaseWeapon::Server_SetAmmo_Implementation(uint32 Amount) {
-	Ammo = Amount;
+	WeaponData.Ammo = Amount;
+	//Ammo = Amount;
 }
 
 bool ABaseWeapon::Server_SetAmmo_Validate(uint32 Amount) {

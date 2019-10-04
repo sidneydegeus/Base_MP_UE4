@@ -15,6 +15,21 @@ enum class EWeaponFiringState : uint8
 	NoAmmo
 };
 
+USTRUCT(BlueprintType)
+struct FWeaponData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<class ABaseWeapon> WeaponBlueprint;
+
+	UPROPERTY(EditDefaultsOnly)
+	FName HolsterSocket;
+
+	UPROPERTY(EditDefaultsOnly)
+	uint32 Ammo = 30;
+};
+
 UCLASS(abstract)
 class BASE_MP_UE4_API ABaseWeapon : public AActor
 {
@@ -23,6 +38,7 @@ class BASE_MP_UE4_API ABaseWeapon : public AActor
 public:
 	UPROPERTY(BlueprintReadWrite)
 	FName HolsterSocket;
+	bool bCanPickup = true;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
@@ -45,6 +61,9 @@ protected:
 	UPROPERTY()
 	class UMeshComponent* Mesh;
 
+	UPROPERTY(Replicated, BlueprintReadWrite, EditDefaultsOnly)
+	FWeaponData WeaponData;
+
 public:	
 	ABaseWeapon();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -56,6 +75,9 @@ public:
 	virtual void Fire();
 
 	virtual void AimAt(FVector HitLocation);
+
+	FWeaponData GetWeaponData() { return WeaponData; };
+	void SetWeaponData(FWeaponData NewWeaponData) { WeaponData = NewWeaponData; };
 
 protected:
 	void FindMesh();
