@@ -136,6 +136,37 @@ void ABaseCharacter::Interact() {
 }
 
 
+/// PickUp Logic
+// TODO: eventually change to item and make more generic?
+void ABaseCharacter::PickUp(ABaseWeapon* WeaponToPickup) {
+	if (WeaponToPickup == nullptr) return;
+	if (!WeaponToPickup->bCanPickup) return;
+	Server_PickUp(WeaponToPickup, this);
+}
+
+void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
+	USceneComponent* WeaponMesh = Cast<USceneComponent>(FindComponentByClass<USkeletalMeshComponent>());
+	if (WeaponMesh == nullptr) return;
+	FWeaponData Data = WeaponToPickup->GetWeaponData();
+	ABaseWeapon* Weapon = GetWorld()->SpawnActor<ABaseWeapon>(Data.WeaponBlueprint, WeaponMesh->GetComponentTransform());
+	Weapon->SetOwner(WeaponOwner);
+	for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
+		if (pair.Value == nullptr) {
+			pair.Value = Weapon;
+			Data.HolsterSocket = pair.Key;
+			Weapon->SetWeaponData(Data);
+			Weapon->AttachToComponent(WeaponMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, Data.HolsterSocket);
+			break;
+		}
+	}
+	WeaponToPickup->Destroy();
+}
+
+bool ABaseCharacter::Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
+	return true;
+}
+
+
 
 /// Equip Weapon logic
 //TODO: Make server stuff
@@ -153,26 +184,6 @@ void ABaseCharacter::ActionBar2() {
 	WeaponSlots.GenerateValueArray(WeaponArray);
 
 	EquipWeapon(WeaponArray[1]);
-}
-
-// TODO: eventually change to item and make more generic?
-void ABaseCharacter::PickUp(ABaseWeapon* WeaponToPickup) {
-	if (!WeaponToPickup->bCanPickup) return;
-	USceneComponent* Mesh = Cast<USceneComponent>(FindComponentByClass<USkeletalMeshComponent>());
-	if (Mesh == nullptr) return;
-	FWeaponData Data = WeaponToPickup->GetWeaponData();
-	ABaseWeapon* Weapon = GetWorld()->SpawnActor<ABaseWeapon>(Data.WeaponBlueprint, Mesh->GetComponentTransform());
-	Weapon->SetOwner(this);
-	for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
-		if (pair.Value == nullptr) {
-			pair.Value = Weapon;
-			Data.HolsterSocket = pair.Key;
-			Weapon->SetWeaponData(Data);
-			Weapon->AttachToComponent(Mesh, FAttachmentTransformRules::SnapToTargetIncludingScale, Data.HolsterSocket);
-			break;
-		}
-	}
-	WeaponToPickup->Destroy();
 }
 
 void ABaseCharacter::EquipWeapon(ABaseWeapon* Weapon) {

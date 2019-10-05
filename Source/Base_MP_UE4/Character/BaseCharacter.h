@@ -88,8 +88,12 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void PickUp(ABaseWeapon* PickedUpWeapon);
-	void EquipWeapon(ABaseWeapon* Weapon);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_PickUp(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
+	void Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
+	bool Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
 
+	void EquipWeapon(ABaseWeapon* Weapon);
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipWeapon(ABaseWeapon* Weapon);
 	void Server_EquipWeapon_Implementation(ABaseWeapon* Weapon);
