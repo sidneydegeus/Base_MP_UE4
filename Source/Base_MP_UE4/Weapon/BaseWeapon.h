@@ -37,10 +37,6 @@ class BASE_MP_UE4_API ABaseWeapon : public AActor
 {
 	GENERATED_BODY()
 
-public:
-	UPROPERTY(ReplicatedUsing = SetOverlapEvents)
-	bool bCanPickup = true;
-
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	TSubclassOf<ABaseProjectile> ProjectileBlueprint;
@@ -95,7 +91,4 @@ protected:
 	void Server_SetAmmo(uint32 Amount);
 	void Server_SetAmmo_Implementation(uint32 Amount);
 	bool Server_SetAmmo_Validate(uint32 Amount);
-
-	UFUNCTION()
-	void SetOverlapEvents();
 };

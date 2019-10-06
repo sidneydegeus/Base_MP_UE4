@@ -10,7 +10,6 @@
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABaseWeapon, WeaponData);
-	DOREPLIFETIME(ABaseWeapon, bCanPickup)
 }
 
 ABaseWeapon::ABaseWeapon() {
@@ -105,14 +104,5 @@ void ABaseWeapon::Server_SetAmmo_Implementation(uint32 Amount) {
 
 bool ABaseWeapon::Server_SetAmmo_Validate(uint32 Amount) {
 	return true;
-}
-
-
-
-void ABaseWeapon::SetOverlapEvents() {
-	USkeletalMeshComponent* WeaponMesh = FindComponentByClass<USkeletalMeshComponent>();
-	if (WeaponMesh == nullptr) return;
-	WeaponMesh->SetGenerateOverlapEvents(bCanPickup);
-	UE_LOG(LogTemp, Warning, TEXT("aaa"));
 }
 
