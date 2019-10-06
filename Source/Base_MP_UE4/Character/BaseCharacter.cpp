@@ -10,13 +10,16 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Kismet/GameplayStatics.h"
 
-#include "Weapon/BaseWeapon.h"
+#include "Weapon/BaseWeaponCharacter.h"
 #include "InteractionComponent.h"
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABaseCharacter, EquippedWeapon);
+	//DOREPLIFETIME(ABaseCharacter, WeaponSlots);
 	//DOREPLIFETIME(ABaseCharacter, WeaponSlot1);
 	//DOREPLIFETIME(ABaseCharacter, WeaponSlot2);
 }
@@ -91,7 +94,6 @@ void ABaseCharacter::Tick(float DeltaTime) {
 }
 
 
-
 /// Movement
 
 void ABaseCharacter::TurnAtRate(float Rate) {
@@ -136,34 +138,88 @@ void ABaseCharacter::Interact() {
 }
 
 
+
+
 /// PickUp Logic
 // TODO: eventually change to item and make more generic?
-void ABaseCharacter::PickUp(ABaseWeapon* WeaponToPickup) {
-	if (WeaponToPickup == nullptr) return;
-	if (!WeaponToPickup->bCanPickup) return;
-	Server_PickUp(WeaponToPickup, this);
+void ABaseCharacter::PickUp() {
+	if (OverlappedWeapon == nullptr) {
+		UE_LOG(LogTemp, Warning, TEXT("no overlapping weapon"));
+		return;
+	}
+	Server_PickUp(OverlappedWeapon, this);
+	OverlappedWeapon = nullptr;
 }
 
-void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
-	USceneComponent* WeaponMesh = Cast<USceneComponent>(FindComponentByClass<USkeletalMeshComponent>());
-	if (WeaponMesh == nullptr) return;
+// TODO: Cleanup code. For loop used over and over again. Code redundancy
+void ABaseCharacter::Server_PickUp_Implementation(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner) {
+	if (WeaponToPickup == nullptr) return;
 	FWeaponData Data = WeaponToPickup->GetWeaponData();
-	ABaseWeapon* Weapon = GetWorld()->SpawnActor<ABaseWeapon>(Data.WeaponBlueprint, WeaponMesh->GetComponentTransform());
-	Weapon->SetOwner(WeaponOwner);
-	for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
-		if (pair.Value == nullptr) {
-			pair.Value = Weapon;
-			Data.HolsterSocket = pair.Key;
-			Weapon->SetWeaponData(Data);
-			Weapon->AttachToComponent(WeaponMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, Data.HolsterSocket);
-			break;
+
+	if (EquippedWeapon == nullptr) {
+		if (!FillEmptyWeaponSlot(Data)) {
+			// swap first slot weapon with picked up weapon
+			for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
+				ABaseWeapon* OldHolsteredWeapon = pair.Value;
+				pair.Value = SpawnPickedUpWeapon(Data, pair.Key, this);
+				OldHolsteredWeapon->Destroy();
+				// TODO: spawn this old holstered weapon on the floor with old data
+				break;		
+			}
 		}
 	}
+	else {
+		if (!FillEmptyWeaponSlot(Data)) {
+			// swap equipped weapon with picked up weapon
+			for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
+				if (pair.Key == EquippedWeapon->GetWeaponData().HolsterSocket) {
+					ABaseWeapon* OldHolsteredWeapon = pair.Value;
+					pair.Value = SpawnPickedUpWeapon(Data, pair.Key, this);
+					OldHolsteredWeapon->Destroy();
+					EquipWeapon(pair.Value);
+					// TODO: spawn this old holstered weapon on the floor with old data
+					break;
+				}
+			}
+		}
+	}
+	OverlappedWeapon = nullptr;
 	WeaponToPickup->Destroy();
 }
 
-bool ABaseCharacter::Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
+bool ABaseCharacter::Server_PickUp_Validate(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner) {
 	return true;
+}
+
+ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, FName HolsterSocket, AActor* WeaponOwner) {
+	USceneComponent* CharacterMesh = Cast<USceneComponent>(FindComponentByClass<USkeletalMeshComponent>());
+	if (CharacterMesh == nullptr) return nullptr;
+	//ABaseWeaponCharacter* Weapon = GetWorld()->SpawnActor<ABaseWeaponCharacter>(Data.WeaponBlueprint, CharacterMesh->GetComponentTransform());
+	ABaseWeaponCharacter* Weapon = GetWorld()->SpawnActorDeferred<ABaseWeaponCharacter>(Data.WeaponBlueprint, CharacterMesh->GetComponentTransform());
+	if (Weapon == nullptr) return nullptr;
+
+	//Weapon->bCanPickup = false;
+	Weapon->SetOwner(WeaponOwner);
+	Data.HolsterSocket = HolsterSocket;
+	Weapon->SetWeaponData(Data);
+	Weapon->DisablePickUpRadius();
+	UGameplayStatics::FinishSpawningActor(Weapon, CharacterMesh->GetComponentTransform());
+
+	Weapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, Data.HolsterSocket);
+
+	return Weapon;
+}
+
+bool ABaseCharacter::FillEmptyWeaponSlot(struct FWeaponData Data) {
+	bool FilledSlot = false;
+	for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
+		if (pair.Value == nullptr) {
+			pair.Value = SpawnPickedUpWeapon(Data, pair.Key, this);
+			FilledSlot = true;
+			break;
+		}
+	}
+	return FilledSlot;
 }
 
 
@@ -251,6 +307,8 @@ void ABaseCharacter::HandleEquip() {
 		EquippedWeapon = WeaponToEquip;
 	}
 }
+
+
 
 
 /// Possession

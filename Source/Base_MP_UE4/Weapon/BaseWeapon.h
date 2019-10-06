@@ -20,9 +20,11 @@ struct FWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
+		//remove
 	UPROPERTY(BlueprintReadWrite)
 	TSubclassOf<class ABaseWeapon> WeaponBlueprint;
 
+	//remove
 	UPROPERTY(EditDefaultsOnly)
 	FName HolsterSocket;
 
@@ -36,8 +38,7 @@ class BASE_MP_UE4_API ABaseWeapon : public AActor
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite)
-	FName HolsterSocket;
+	UPROPERTY(ReplicatedUsing = SetOverlapEvents)
 	bool bCanPickup = true;
 
 protected:
@@ -94,4 +95,7 @@ protected:
 	void Server_SetAmmo(uint32 Amount);
 	void Server_SetAmmo_Implementation(uint32 Amount);
 	bool Server_SetAmmo_Validate(uint32 Amount);
+
+	UFUNCTION()
+	void SetOverlapEvents();
 };

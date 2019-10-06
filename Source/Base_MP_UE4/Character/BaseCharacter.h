@@ -48,6 +48,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	bool bSwappingWeapon;
 
+	UPROPERTY(BlueprintReadWrite)
+	class ABaseWeaponCharacter* OverlappedWeapon;
 
 
 private:
@@ -87,11 +89,11 @@ protected:
 	void Interact();
 
 	UFUNCTION(BlueprintCallable)
-	void PickUp(ABaseWeapon* PickedUpWeapon);
+	void PickUp();
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_PickUp(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
-	void Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
-	bool Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
+	void Server_PickUp(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner);
+	void Server_PickUp_Implementation(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner);
+	bool Server_PickUp_Validate(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner);
 
 	void EquipWeapon(ABaseWeapon* Weapon);
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -119,4 +121,7 @@ private:
 
 	void ActionBar1();
 	void ActionBar2();
+
+	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, FName HolsterSocket, AActor* WeaponOwner);
+	bool FillEmptyWeaponSlot(struct FWeaponData Data);
 };
