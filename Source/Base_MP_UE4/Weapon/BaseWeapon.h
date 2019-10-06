@@ -20,11 +20,9 @@ struct FWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
-		//remove
 	UPROPERTY(BlueprintReadWrite)
 	TSubclassOf<class ABaseWeapon> WeaponBlueprint;
 
-	//remove
 	UPROPERTY(EditDefaultsOnly)
 	FName HolsterSocket;
 

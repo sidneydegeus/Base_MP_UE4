@@ -19,9 +19,7 @@
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABaseCharacter, EquippedWeapon);
-	//DOREPLIFETIME(ABaseCharacter, WeaponSlots);
-	//DOREPLIFETIME(ABaseCharacter, WeaponSlot1);
-	//DOREPLIFETIME(ABaseCharacter, WeaponSlot2);
+	DOREPLIFETIME(ABaseCharacter, WeaponSlots);
 }
 
 ABaseCharacter::ABaseCharacter()
@@ -159,9 +157,9 @@ void ABaseCharacter::Server_PickUp_Implementation(ABaseWeaponCharacter* WeaponTo
 	if (EquippedWeapon == nullptr) {
 		if (!FillEmptyWeaponSlot(Data)) {
 			// swap first slot weapon with picked up weapon
-			for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
-				ABaseWeapon* OldHolsteredWeapon = pair.Value;
-				pair.Value = SpawnPickedUpWeapon(Data, pair.Key, this);
+			for (FWeaponSlot& Slot : WeaponSlots) {
+				ABaseWeapon* OldHolsteredWeapon = Slot.Weapon;
+				Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
 				OldHolsteredWeapon->Destroy();
 				// TODO: spawn this old holstered weapon on the floor with old data
 				break;		
@@ -171,12 +169,12 @@ void ABaseCharacter::Server_PickUp_Implementation(ABaseWeaponCharacter* WeaponTo
 	else {
 		if (!FillEmptyWeaponSlot(Data)) {
 			// swap equipped weapon with picked up weapon
-			for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
-				if (pair.Key == EquippedWeapon->GetWeaponData().HolsterSocket) {
-					ABaseWeapon* OldHolsteredWeapon = pair.Value;
-					pair.Value = SpawnPickedUpWeapon(Data, pair.Key, this);
+			for (FWeaponSlot& Slot : WeaponSlots) {
+				if (Slot.HolsterSocket == EquippedWeapon->GetWeaponData().HolsterSocket) {
+					ABaseWeapon* OldHolsteredWeapon = Slot.Weapon;
+					Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
 					OldHolsteredWeapon->Destroy();
-					EquipWeapon(pair.Value);
+					EquipWeapon(Slot.Weapon);
 					// TODO: spawn this old holstered weapon on the floor with old data
 					break;
 				}
@@ -212,9 +210,9 @@ ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, FName Holster
 
 bool ABaseCharacter::FillEmptyWeaponSlot(struct FWeaponData Data) {
 	bool FilledSlot = false;
-	for (TPair<FName, ABaseWeapon*>& pair : WeaponSlots) {
-		if (pair.Value == nullptr) {
-			pair.Value = SpawnPickedUpWeapon(Data, pair.Key, this);
+	for (FWeaponSlot& Slot : WeaponSlots) {
+		if (Slot.Weapon == nullptr) {
+			Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
 			FilledSlot = true;
 			break;
 		}
@@ -229,17 +227,11 @@ bool ABaseCharacter::FillEmptyWeaponSlot(struct FWeaponData Data) {
 //TODO: Use enums or something for different weapon types?
 
 void ABaseCharacter::ActionBar1() {
-	TArray<ABaseWeapon*> WeaponArray;
-	WeaponSlots.GenerateValueArray(WeaponArray);
-
-	EquipWeapon(WeaponArray[0]);
+	EquipWeapon(WeaponSlots[0].Weapon);
 }
 
 void ABaseCharacter::ActionBar2() {
-	TArray<ABaseWeapon*> WeaponArray;
-	WeaponSlots.GenerateValueArray(WeaponArray);
-
-	EquipWeapon(WeaponArray[1]);
+	EquipWeapon(WeaponSlots[1].Weapon);
 }
 
 void ABaseCharacter::EquipWeapon(ABaseWeapon* Weapon) {
@@ -269,9 +261,7 @@ void ABaseCharacter::Server_EquipWeapon_Implementation(ABaseWeapon* Weapon) {
 	EquipWeapon(Weapon);
 }
 
-bool ABaseCharacter::Server_EquipWeapon_Validate(ABaseWeapon* Weapon) {
-	return true;
-}
+bool ABaseCharacter::Server_EquipWeapon_Validate(ABaseWeapon* Weapon) { return true; }
 
 void ABaseCharacter::Multicast_WeaponEquip_Implementation() {
 	WeaponEquipEvent();

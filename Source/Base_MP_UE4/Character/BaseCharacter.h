@@ -6,6 +6,19 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
+USTRUCT(BlueprintType)
+struct FWeaponSlot
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly)
+	FName HolsterSocket;
+
+	UPROPERTY()
+	class ABaseWeapon* Weapon;
+};
+
 UCLASS(config = Game, abstract)
 class BASE_MP_UE4_API ABaseCharacter : public ACharacter
 {
@@ -39,8 +52,8 @@ public:
 
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TMap<FName, ABaseWeapon*> WeaponSlots;
+	UPROPERTY(EditDefaultsOnly, Replicated)
+	TArray<struct FWeaponSlot> WeaponSlots;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	class ABaseWeapon* EquippedWeapon;
@@ -58,7 +71,6 @@ private:
 
 	UPROPERTY()
 	class ABaseWeapon* WeaponToEquip;
-
 
 
 

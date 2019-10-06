@@ -47,7 +47,10 @@ void ABaseWeapon::Fire() {
 }
 
 void ABaseWeapon::Server_Fire_Implementation() {
-	if (!ensure(ProjectileBlueprint)) return;
+	if (ProjectileBlueprint) {
+		UE_LOG(LogTemp, Warning, TEXT("No projectile Blueprint!!!!"));
+		return;
+	}
 	ABaseProjectile* Projectile = SpawnProjectile();
 	if (Projectile == nullptr) return;
 	Projectile->LaunchProjectile(LaunchSpeed);
