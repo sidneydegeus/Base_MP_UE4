@@ -13,7 +13,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-#include "Weapon/BaseWeaponCharacter.h"
+#include "Weapon/BaseWeapon.h"
 #include "InteractionComponent.h"
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -150,26 +150,20 @@ void ABaseCharacter::PickUp() {
 }
 
 // TODO: Cleanup code. For loop used over and over again. Code redundancy
-void ABaseCharacter::Server_PickUp_Implementation(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner) {
+void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
 	if (WeaponToPickup == nullptr) return;
 	FWeaponData Data = WeaponToPickup->GetWeaponData();
 
-	if (EquippedWeapon == nullptr) {
-		if (!FillEmptyWeaponSlot(Data)) {
-			// swap first slot weapon with picked up weapon
-			for (FWeaponSlot& Slot : WeaponSlots) {
+	if (!FillEmptyWeaponSlot(Data)) {
+		for (FWeaponSlot& Slot : WeaponSlots) {
+			if (EquippedWeapon == nullptr) {
 				ABaseWeapon* OldHolsteredWeapon = Slot.Weapon;
 				Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
 				OldHolsteredWeapon->Destroy();
 				// TODO: spawn this old holstered weapon on the floor with old data
-				break;		
+				break;
 			}
-		}
-	}
-	else {
-		if (!FillEmptyWeaponSlot(Data)) {
-			// swap equipped weapon with picked up weapon
-			for (FWeaponSlot& Slot : WeaponSlots) {
+			else {
 				if (Slot.HolsterSocket == EquippedWeapon->GetWeaponData().HolsterSocket) {
 					ABaseWeapon* OldHolsteredWeapon = Slot.Weapon;
 					Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
@@ -180,29 +174,75 @@ void ABaseCharacter::Server_PickUp_Implementation(ABaseWeaponCharacter* WeaponTo
 				}
 			}
 		}
+		//if (EquippedWeapon == nullptr) {	
+		//	// swap first slot weapon with picked up weapon
+		//	for (FWeaponSlot& Slot : WeaponSlots) {
+		//		ABaseWeapon* OldHolsteredWeapon = Slot.Weapon;
+		//		Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
+		//		OldHolsteredWeapon->Destroy();
+		//		// TODO: spawn this old holstered weapon on the floor with old data
+		//		break;
+		//	}
+		//}
+		//else {
+		//	for (FWeaponSlot& Slot : WeaponSlots) {
+		//		if (Slot.HolsterSocket == EquippedWeapon->GetWeaponData().HolsterSocket) {
+		//			ABaseWeapon* OldHolsteredWeapon = Slot.Weapon;
+		//			Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
+		//			OldHolsteredWeapon->Destroy();
+		//			EquipWeapon(Slot.Weapon);
+		//			// TODO: spawn this old holstered weapon on the floor with old data
+		//			break;
+		//		}
+		//	}
+		//}
 	}
+
+	//if (EquippedWeapon == nullptr) {
+	//	if (!FillEmptyWeaponSlot(Data)) {
+	//		// swap first slot weapon with picked up weapon
+	//		for (FWeaponSlot& Slot : WeaponSlots) {
+	//			ABaseWeapon* OldHolsteredWeapon = Slot.Weapon;
+	//			Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
+	//			OldHolsteredWeapon->Destroy();
+	//			// TODO: spawn this old holstered weapon on the floor with old data
+	//			break;		
+	//		}
+	//	}
+	//}
+	//else {
+	//	if (!FillEmptyWeaponSlot(Data)) {
+	//		// swap equipped weapon with picked up weapon
+	//		for (FWeaponSlot& Slot : WeaponSlots) {
+	//			if (Slot.HolsterSocket == EquippedWeapon->GetWeaponData().HolsterSocket) {
+	//				ABaseWeapon* OldHolsteredWeapon = Slot.Weapon;
+	//				Slot.Weapon = SpawnPickedUpWeapon(Data, Slot.HolsterSocket, this);
+	//				OldHolsteredWeapon->Destroy();
+	//				EquipWeapon(Slot.Weapon);
+	//				// TODO: spawn this old holstered weapon on the floor with old data
+	//				break;
+	//			}
+	//		}
+	//	}
+	//}
 	OverlappedWeapon = nullptr;
 	WeaponToPickup->Destroy();
 }
 
-bool ABaseCharacter::Server_PickUp_Validate(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner) {
+bool ABaseCharacter::Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
 	return true;
 }
 
 ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, FName HolsterSocket, AActor* WeaponOwner) {
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(FindComponentByClass<USkeletalMeshComponent>());
 	if (CharacterMesh == nullptr) return nullptr;
-	//ABaseWeaponCharacter* Weapon = GetWorld()->SpawnActor<ABaseWeaponCharacter>(Data.WeaponBlueprint, CharacterMesh->GetComponentTransform());
-	ABaseWeaponCharacter* Weapon = GetWorld()->SpawnActorDeferred<ABaseWeaponCharacter>(Data.WeaponBlueprint, CharacterMesh->GetComponentTransform());
-	if (Weapon == nullptr) return nullptr;
 
-	//Weapon->bCanPickup = false;
+	ABaseWeapon* Weapon = GetWorld()->SpawnActor<ABaseWeapon>(Data.WeaponBlueprint, CharacterMesh->GetComponentTransform());	
+	if (Weapon == nullptr) return nullptr;
 	Weapon->SetOwner(WeaponOwner);
 	Data.HolsterSocket = HolsterSocket;
 	Weapon->SetWeaponData(Data);
-	Weapon->DisablePickUpRadius();
-	UGameplayStatics::FinishSpawningActor(Weapon, CharacterMesh->GetComponentTransform());
-
+	Weapon->DisablePickUp();
 	Weapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, Data.HolsterSocket);
 
 	return Weapon;
@@ -223,7 +263,6 @@ bool ABaseCharacter::FillEmptyWeaponSlot(struct FWeaponData Data) {
 
 
 /// Equip Weapon logic
-//TODO: Make server stuff
 //TODO: Use enums or something for different weapon types?
 
 void ABaseCharacter::ActionBar1() {

@@ -62,7 +62,7 @@ protected:
 	bool bSwappingWeapon;
 
 	UPROPERTY(BlueprintReadWrite)
-	class ABaseWeaponCharacter* OverlappedWeapon;
+	class ABaseWeapon* OverlappedWeapon;
 
 
 private:
@@ -103,9 +103,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void PickUp();
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_PickUp(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner);
-	void Server_PickUp_Implementation(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner);
-	bool Server_PickUp_Validate(ABaseWeaponCharacter* WeaponToPickup, AActor* WeaponOwner);
+	void Server_PickUp(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
+	void Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
+	bool Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
 
 	void EquipWeapon(ABaseWeapon* Weapon);
 	UFUNCTION(Server, Reliable, WithValidation)

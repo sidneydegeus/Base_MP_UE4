@@ -3,9 +3,8 @@
 
 #include "BaseWeapon.h"
 #include "Net/UnrealNetwork.h"
-#include "Projectile/BaseProjectile.h"
 #include "Components/MeshComponent.h"
-#include "Components/SkeletalMeshComponent.h"
+#include "GenericComponents/PickUpComponent.h"
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -15,6 +14,11 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 ABaseWeapon::ABaseWeapon() {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+}
+
+void ABaseWeapon::BeginPlay() {
+	Super::BeginPlay();
+	WeaponData.WeaponBlueprint = GetClass();
 }
 
 void ABaseWeapon::Tick(float DeltaTime) {
@@ -35,8 +39,26 @@ void ABaseWeapon::ActivateTick(bool bReset) {
 	SetActorTickEnabled(bReset);
 }
 
+//TODO: maybe move to BaseRangedWeapon instead
 void ABaseWeapon::AimAt(FVector HitLocation) {
 	//INTENDED: override to add functionality
+}
+
+void ABaseWeapon::DisablePickUp() {
+	Multicast_DisablePickUp();
+}
+
+void ABaseWeapon::Multicast_DisablePickUp_Implementation() {
+	UPickUpComponent* PickUpComponent = FindComponentByClass<UPickUpComponent>();
+	if (PickUpComponent == nullptr) return;
+	PickUpComponent->DestroyComponent();
+}
+
+
+void ABaseWeapon::FindMesh() {
+	if (Mesh == nullptr) {
+		Mesh = FindComponentByClass<UMeshComponent>();
+	}
 }
 
 
@@ -47,16 +69,7 @@ void ABaseWeapon::Fire() {
 }
 
 void ABaseWeapon::Server_Fire_Implementation() {
-	if (ProjectileBlueprint) {
-		UE_LOG(LogTemp, Warning, TEXT("No projectile Blueprint!!!!"));
-		return;
-	}
-	ABaseProjectile* Projectile = SpawnProjectile();
-	if (Projectile == nullptr) return;
-	Projectile->LaunchProjectile(LaunchSpeed);
-	Server_SetAmmo(Ammo - 1);
-	//TODO: not sure but this should probably be changed for other weapons
-	LastFireTime = FPlatformTime::Seconds();
+	//INTENDED: override to add functionality
 }
 
 bool ABaseWeapon::Server_Fire_Validate() {
@@ -64,48 +77,11 @@ bool ABaseWeapon::Server_Fire_Validate() {
 }
 
 
-void ABaseWeapon::FindMesh() {
-	if (Mesh == nullptr) {
-		Mesh = FindComponentByClass<UMeshComponent>();
-	}
-}
-
-/// Projectile
-ABaseProjectile* ABaseWeapon::SpawnProjectile() {
-	auto Projectile = GetWorld()->SpawnActor<ABaseProjectile>(
-		ProjectileBlueprint,
-		SpawnProjectileLocation(),
-		SpawnProjectileRotation()
-		);
-	Projectile->SetOwner(this);
-	return Projectile;
-}
-
-FVector ABaseWeapon::SpawnProjectileLocation() {
-	////INTENDED: Override in child for functionality
-	//return FVector();
-	FindMesh();
-	if (Mesh == nullptr) return FVector();
-	return Mesh->GetSocketLocation(FName("Muzzle"));
-}
-
-FRotator ABaseWeapon::SpawnProjectileRotation() {
-	////INTENDED: Override in child for functionality
-	//return FRotator();
-	FindMesh();
-	if (Mesh == nullptr) return FRotator();
-	return Mesh->GetSocketRotation(FName("Muzzle"));
-}
 
 
 
-/// Ammo 
-void ABaseWeapon::Server_SetAmmo_Implementation(uint32 Amount) {
-	WeaponData.Ammo = Amount;
-	//Ammo = Amount;
-}
 
-bool ABaseWeapon::Server_SetAmmo_Validate(uint32 Amount) {
-	return true;
-}
+
+
+
 

@@ -3,14 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapon/BaseWeapon.h"
+#include "Weapon/Ranged/BaseRangedWeapon.h"
 #include "Turret.generated.h"
 
-/**
- * 
- */
+// TODO: 
 UCLASS()
-class BASE_MP_UE4_API ATurret : public ABaseWeapon
+class BASE_MP_UE4_API ATurret : public ABaseRangedWeapon
 {
 	GENERATED_BODY()
 	
