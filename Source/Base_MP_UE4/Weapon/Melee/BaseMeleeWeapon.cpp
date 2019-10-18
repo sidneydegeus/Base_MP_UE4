@@ -3,3 +3,6 @@
 
 #include "BaseMeleeWeapon.h"
 
+ABaseMeleeWeapon::ABaseMeleeWeapon() {
+	WeaponType = EWeaponType::Melee;
+}

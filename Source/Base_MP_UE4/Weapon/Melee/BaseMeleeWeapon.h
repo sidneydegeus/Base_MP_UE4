@@ -14,4 +14,6 @@ class BASE_MP_UE4_API ABaseMeleeWeapon : public ABaseWeapon
 {
 	GENERATED_BODY()
 	
+public:
+	ABaseMeleeWeapon();
 };

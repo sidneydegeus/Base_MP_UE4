@@ -12,6 +12,10 @@ void ABaseRangedWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ABaseRangedWeapon, Ammo);
 }
 
+ABaseRangedWeapon::ABaseRangedWeapon() {
+	WeaponType = EWeaponType::Ranged;
+}
+
 
 /// Projectile
 ABaseProjectile* ABaseRangedWeapon::SpawnProjectile() {

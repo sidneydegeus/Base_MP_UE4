@@ -55,6 +55,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Replicated)
 	TArray<struct FWeaponSlot> WeaponSlots;
 
+	//TODO: Rename to more generic later
+	UPROPERTY(Replicated)
+	class ABaseWeapon* MeleeWeaponSlot;
+
+	UPROPERTY(Replicated)
+	class ABaseWeapon* RangedWeaponSlot;
+
+	//TODO: change to selected weapon??
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	class ABaseWeapon* EquippedWeapon;
 
@@ -134,6 +142,6 @@ private:
 	void ActionBar1();
 	void ActionBar2();
 
-	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, FName HolsterSocket, AActor* WeaponOwner);
-	bool FillEmptyWeaponSlot(struct FWeaponData Data);
+	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, AActor* WeaponOwner, ABaseWeapon* OldWeapon);
+	//bool FillEmptyWeaponSlot(struct FWeaponData Data);
 };

@@ -41,6 +41,7 @@ protected:
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	ABaseRangedWeapon();
 
 protected:
 	ABaseProjectile* SpawnProjectile();

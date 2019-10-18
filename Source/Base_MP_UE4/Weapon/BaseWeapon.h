@@ -7,6 +7,16 @@
 #include "Projectile/BaseProjectile.h"
 #include "BaseWeapon.generated.h"
 
+UENUM()
+enum class EWeaponType : uint8
+{
+	//TODO: change location of this later? or something with sub categories or something
+	Unarmed,
+	Ranged,
+	Melee
+};
+
+
 USTRUCT(BlueprintType)
 struct FWeaponData
 {
@@ -23,6 +33,10 @@ UCLASS(abstract)
 class BASE_MP_UE4_API ABaseWeapon : public AActor
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly)
+	EWeaponType WeaponType;
 
 protected:
 	UPROPERTY()
