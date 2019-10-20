@@ -13,8 +13,12 @@ UCLASS(ClassGroup = (Interaction), meta = (BlueprintSpawnableComponent))
 class BASE_MP_UE4_API UPickUpComponent : public USphereComponent
 {
 	GENERATED_BODY()
-	
 
 public:
-	UPickUpComponent();
+	//UPROPERTY(EditDefaultsOnly)
+	//class UWidgetComponent* PickUpWidgetComponent;
+
+public:
+	UPickUpComponent(const FObjectInitializer& OI);
+	virtual void BeginPlay() override;
 };

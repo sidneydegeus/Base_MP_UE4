@@ -45,6 +45,9 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadWrite, EditDefaultsOnly)
 	FWeaponData WeaponData;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName WeaponName;
+
 public:	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	ABaseWeapon();

@@ -88,8 +88,12 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABaseCharacter::Interact);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABaseCharacter::Fire);
 
-	PlayerInputComponent->BindAction("ActionBar 1", IE_Pressed, this, &ABaseCharacter::ActionBar1);
-	PlayerInputComponent->BindAction("ActionBar 2", IE_Pressed, this, &ABaseCharacter::ActionBar2);
+
+	PlayerInputComponent->BindAction("SwapWeapon", IE_Pressed, this, &ABaseCharacter::SwapWeapon);
+	PlayerInputComponent->BindAction("DrawWeapon", IE_Pressed, this, &ABaseCharacter::DrawWeapon);
+
+	//PlayerInputComponent->BindAction("ActionBar 1", IE_Pressed, this, &ABaseCharacter::ActionBar1);
+	//PlayerInputComponent->BindAction("ActionBar 2", IE_Pressed, this, &ABaseCharacter::ActionBar2);
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
@@ -164,8 +168,6 @@ static FString EnumToString(const FString& enumName, const T value)
 	return *(pEnum ? pEnum->GetNameStringByIndex(static_cast<uint8>(value)) : "null");
 }
 
-
-// TODO: Cleanup code. For loop used over and over again. Code redundancy
 void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
 	if (WeaponToPickup == nullptr) return;
 	FWeaponData Data = WeaponToPickup->GetWeaponData();
@@ -187,6 +189,7 @@ bool ABaseCharacter::Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor*
 	return true;
 }
 
+//TODO: maybe cleanup function. a bit long and different uses
 ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, AActor* WeaponOwner, ABaseWeapon* OldWeapon) {
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(FindComponentByClass<USkeletalMeshComponent>());
 	if (CharacterMesh == nullptr) return nullptr;
@@ -198,7 +201,6 @@ ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, AActor* Weapo
 	Weapon->DisablePickUp();
 
 	FString s = EnumToString(stringify(EWeaponType), Weapon->WeaponType) + "WeaponHolsterSocket";
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *s);
 	FName HolsterSocket = FName(*s);
 	Weapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
 
@@ -210,20 +212,35 @@ ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, AActor* Weapo
 			OldWeapon->Destroy();
 		}
 	}
+	if (ActiveWeapon == nullptr) {
+		ActiveWeapon = Weapon;
+	}
 	return Weapon;
 }
 
 
 
 /// Equip Weapon logic
-//TODO: Use enums or something for different weapon types?
+//TODO: relatively simplistic, but needs to be changed later
+void ABaseCharacter::SwapWeapon() {
+	if (ActiveWeapon == MeleeWeaponSlot) {
+		ActiveWeapon = RangedWeaponSlot;
+	}
+	else {
+		ActiveWeapon = MeleeWeaponSlot;
+	}
+}
+
+void ABaseCharacter::DrawWeapon() {
+	EquipWeapon(ActiveWeapon);
+}
 
 void ABaseCharacter::ActionBar1() {
-	EquipWeapon(WeaponSlots[0].Weapon);
+	//EquipWeapon(WeaponSlots[0].Weapon);
 }
 
 void ABaseCharacter::ActionBar2() {
-	EquipWeapon(WeaponSlots[1].Weapon);
+	//EquipWeapon(WeaponSlots[1].Weapon);
 }
 
 void ABaseCharacter::EquipWeapon(ABaseWeapon* Weapon) {
@@ -277,7 +294,9 @@ void ABaseCharacter::HandleEquip() {
 
 	// When trying to swap to  the same weapon, holster weapon instead
 	if (WeaponToEquip == EquippedWeapon) {
-		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, EquippedWeapon->GetWeaponData().HolsterSocket);
+		FString s = EnumToString(stringify(EWeaponType), EquippedWeapon->WeaponType) + "WeaponHolsterSocket";
+		FName HolsterSocket = FName(*s);
+		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
 		EquippedWeapon = nullptr;
 		return;
 	}

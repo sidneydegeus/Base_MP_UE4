@@ -12,8 +12,8 @@ struct FWeaponSlot
 	GENERATED_USTRUCT_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly)
-	FName HolsterSocket;
+	//UPROPERTY(EditDefaultsOnly)
+	//FName HolsterSocket;
 
 	UPROPERTY()
 	class ABaseWeapon* Weapon;
@@ -61,6 +61,9 @@ protected:
 
 	UPROPERTY(Replicated)
 	class ABaseWeapon* RangedWeaponSlot;
+
+	UPROPERTY()
+	class ABaseWeapon* ActiveWeapon;
 
 	//TODO: change to selected weapon??
 	UPROPERTY(BlueprintReadOnly, Replicated)
@@ -138,6 +141,9 @@ protected:
 
 private:
 	void Fire();
+
+	void SwapWeapon();
+	void DrawWeapon();
 
 	void ActionBar1();
 	void ActionBar2();

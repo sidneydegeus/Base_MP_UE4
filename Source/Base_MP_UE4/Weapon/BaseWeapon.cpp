@@ -51,6 +51,11 @@ void ABaseWeapon::DisablePickUp() {
 void ABaseWeapon::Multicast_DisablePickUp_Implementation() {
 	UPickUpComponent* PickUpComponent = FindComponentByClass<UPickUpComponent>();
 	if (PickUpComponent == nullptr) return;
+	TArray<USceneComponent*> Children;
+	PickUpComponent->GetChildrenComponents(true, Children);
+	for (USceneComponent* Child : Children) {
+		Child->DestroyComponent();
+	}
 	PickUpComponent->DestroyComponent();
 }
 
