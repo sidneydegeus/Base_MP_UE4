@@ -60,6 +60,8 @@ void ABaseWeapon::Multicast_DisablePickUp_Implementation() {
 }
 
 
+void ABaseWeapon::DisplayWeaponName_Implementation(bool bDisplay) {}
+
 void ABaseWeapon::FindMesh() {
 	if (Mesh == nullptr) {
 		Mesh = FindComponentByClass<UMeshComponent>();

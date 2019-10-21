@@ -66,6 +66,10 @@ public:
 
 	void DisablePickUp();
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void DisplayWeaponName(bool bDisplay);
+	void DisplayWeaponName_Implementation(bool bDisplay);
+
 protected:
 	void FindMesh();
 
