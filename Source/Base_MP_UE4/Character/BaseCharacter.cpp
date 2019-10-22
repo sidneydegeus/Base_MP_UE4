@@ -16,6 +16,9 @@
 #include "Weapon/BaseWeapon.h"
 #include "InteractionComponent.h"
 
+#include "UI/PlayerUI.h"
+#include "BaseMP_PlayerController.h"
+
 #define stringify(name) # name
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -171,7 +174,6 @@ static FString EnumToString(const FString& enumName, const T value)
 void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
 	if (WeaponToPickup == nullptr) return;
 	FWeaponData Data = WeaponToPickup->GetWeaponData();
-
 	switch (WeaponToPickup->WeaponType) {
 		case EWeaponType::Melee:
 			MeleeWeaponSlot = SpawnPickedUpWeapon(Data, this, MeleeWeaponSlot);
@@ -180,7 +182,6 @@ void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, A
 			RangedWeaponSlot = SpawnPickedUpWeapon(Data, this, RangedWeaponSlot);
 			break;
 	}
-
 	OverlappedWeapon = nullptr;
 	WeaponToPickup->Destroy();
 }
@@ -213,7 +214,7 @@ ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, AActor* Weapo
 		}
 	}
 	if (ActiveWeapon == nullptr) {
-		ActiveWeapon = Weapon;
+		SetActiveWeapon(Weapon);
 	}
 	return Weapon;
 }
@@ -224,10 +225,12 @@ ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, AActor* Weapo
 //TODO: relatively simplistic, but needs to be changed later
 void ABaseCharacter::SwapWeapon() {
 	if (ActiveWeapon == MeleeWeaponSlot) {
-		ActiveWeapon = RangedWeaponSlot;
+		SetActiveWeapon(RangedWeaponSlot);
+		if (EquippedWeapon != nullptr) EquipWeapon(RangedWeaponSlot);
 	}
 	else {
-		ActiveWeapon = MeleeWeaponSlot;
+		SetActiveWeapon(MeleeWeaponSlot);
+		if (EquippedWeapon != nullptr) EquipWeapon(MeleeWeaponSlot);
 	}
 }
 
@@ -235,12 +238,11 @@ void ABaseCharacter::DrawWeapon() {
 	EquipWeapon(ActiveWeapon);
 }
 
-void ABaseCharacter::ActionBar1() {
-	//EquipWeapon(WeaponSlots[0].Weapon);
-}
-
-void ABaseCharacter::ActionBar2() {
-	//EquipWeapon(WeaponSlots[1].Weapon);
+void ABaseCharacter::SetActiveWeapon(ABaseWeapon* Weapon) {
+	if (Weapon == nullptr) return;
+	ActiveWeapon = Weapon;
+	if (UI == nullptr) return;
+	UI->SetWeaponNameText(Weapon->GetWeaponName());
 }
 
 void ABaseCharacter::EquipWeapon(ABaseWeapon* Weapon) {
@@ -270,7 +272,9 @@ void ABaseCharacter::Server_EquipWeapon_Implementation(ABaseWeapon* Weapon) {
 	EquipWeapon(Weapon);
 }
 
-bool ABaseCharacter::Server_EquipWeapon_Validate(ABaseWeapon* Weapon) { return true; }
+bool ABaseCharacter::Server_EquipWeapon_Validate(ABaseWeapon* Weapon) { 
+	return true; 
+}
 
 void ABaseCharacter::Multicast_WeaponEquip_Implementation() {
 	WeaponEquipEvent();
@@ -282,30 +286,30 @@ void ABaseCharacter::HandleEquip() {
 	if (!HasAuthority()) return;
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(GetMesh());
 	if (CharacterMesh == nullptr) return;
+	if (WeaponToEquip == nullptr) return;
 
-	// Safety check. Stop function if both are nullptr
-	if (EquippedWeapon == nullptr && WeaponToEquip == nullptr) return;
-	// when no weapon equiped, equip weapon to equip
-	if (EquippedWeapon == nullptr && WeaponToEquip != nullptr) {
-		WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
-		EquippedWeapon = WeaponToEquip;
-		return;
-	}
-
-	// When trying to swap to  the same weapon, holster weapon instead
+	// When trying to equip the same weapon, holster instead
 	if (WeaponToEquip == EquippedWeapon) {
-		FString s = EnumToString(stringify(EWeaponType), EquippedWeapon->WeaponType) + "WeaponHolsterSocket";
-		FName HolsterSocket = FName(*s);
+		FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), WeaponToEquip->WeaponType) + "WeaponHolsterSocket"));
 		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
 		EquippedWeapon = nullptr;
 		return;
 	}
 
-	// When trying to swap to another weapon while having one equipped
-	if (EquippedWeapon && WeaponToEquip != nullptr) {
-		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, EquippedWeapon->GetWeaponData().HolsterSocket);
+	// when no weapon equiped, equip weapon to equip
+	if (EquippedWeapon == nullptr) {
 		WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
 		EquippedWeapon = WeaponToEquip;
+		return;
+	}
+
+	// when equpping a weapon while having one equipped already
+	if (EquippedWeapon != nullptr && EquippedWeapon != WeaponToEquip) {
+		FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), EquippedWeapon->WeaponType) + "WeaponHolsterSocket"));
+		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
+		WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
+		EquippedWeapon = WeaponToEquip;
+		return;
 	}
 }
 
@@ -315,7 +319,8 @@ void ABaseCharacter::HandleEquip() {
 /// Possession
 void ABaseCharacter::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	UE_LOG(LogTemp, Warning, TEXT("possess character"));
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	Client_PossessedBy(PlayerController);
 }
 
 void ABaseCharacter::UnPossessed() {
@@ -323,8 +328,23 @@ void ABaseCharacter::UnPossessed() {
 	SetAutonomousProxy(false);
 	Destroy();
 	UE_LOG(LogTemp, Warning, TEXT("UNpossess character"));
+	Client_UnPossessed();
 }
 
+void ABaseCharacter::Client_PossessedBy_Implementation(APlayerController* PlayerController) {
+	if (PlayerController == nullptr) return;
+	if (UIClass == nullptr) return;
+	UI = CreateWidget<UPlayerUI>(PlayerController, UIClass);
+	UI->AddToViewport();
+	UE_LOG(LogTemp, Warning, TEXT("possess client"));
+}
+
+void ABaseCharacter::Client_UnPossessed_Implementation() {
+	ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
+	if (PlayerController == nullptr) return;
+	if (UI == nullptr) return;
+	UI->RemoveFromViewport();
+}
 
 
 /// Fire

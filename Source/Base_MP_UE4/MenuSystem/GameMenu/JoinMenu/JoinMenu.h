@@ -17,13 +17,13 @@ class BASE_MP_UE4_API UJoinMenu : public USubMenuWidget
 //Variables
 private:
 	UPROPERTY(meta = (BindWidget))
-		class UButton* JoinButton;
+	class UButton* JoinButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* BackButton;
+	class UButton* BackButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UEditableTextBox* IPAddressTextBox;
+	class UEditableTextBox* IPAddressTextBox;
 
 //Functions
 public:

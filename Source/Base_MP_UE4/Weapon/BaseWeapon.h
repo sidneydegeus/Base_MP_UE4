@@ -66,6 +66,8 @@ public:
 
 	void DisablePickUp();
 
+	FName GetWeaponName() { return WeaponName; };
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void DisplayWeaponName(bool bDisplay);
 	void DisplayWeaponName_Implementation(bool bDisplay);

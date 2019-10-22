@@ -17,13 +17,13 @@ class BASE_MP_UE4_API UHostMenu : public USubMenuWidget
 		//Variables
 private:
 	UPROPERTY(meta = (BindWidget))
-		class UButton* HostButton;
+	class UButton* HostButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* BackButton;
+	class UButton* BackButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UEditableTextBox* ServerNameTextBox;
+	class UEditableTextBox* ServerNameTextBox;
 
 	//Functions
 public:
@@ -35,6 +35,6 @@ protected:
 private:
 
 	UFUNCTION()
-		void HostServer();
+	void HostServer();
 	
 };

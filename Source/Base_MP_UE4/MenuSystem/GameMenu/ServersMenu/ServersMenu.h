@@ -27,19 +27,19 @@ class BASE_MP_UE4_API UServersMenu : public USubMenuWidget
 //Variables
 private:
 	UPROPERTY(meta = (BindWidget))
-		class UPanelWidget* ServerList;
+	class UPanelWidget* ServerList;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* JoinButton;
+	class UButton* JoinButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* RefreshButton;
+	class UButton* RefreshButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* BackButton;
+	class UButton* BackButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UImage* Loading;
+	class UImage* Loading;
 
 	TSubclassOf<class UUserWidget> ServerRowClass;
 
@@ -59,10 +59,10 @@ protected:
 
 private:
 	UFUNCTION()
-		void JoinServer();
+	void JoinServer();
 
 	UFUNCTION()
-		void RefreshServerList();
+	void RefreshServerList();
 
 	void UpdateChildren();
 

@@ -17,24 +17,24 @@ class BASE_MP_UE4_API UServerRow : public UUserWidget
 //Variables
 public:
 	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* ServerName;
+	class UTextBlock* ServerName;
 
 	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* HostUserName;
+	class UTextBlock* HostUserName;
 
 	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* ServerPlayerCount;
+	class UTextBlock* ServerPlayerCount;
 
 
 	UPROPERTY(BlueprintReadOnly)
-		bool Selected = false;
+	bool Selected = false;
 
 private:
 	UPROPERTY(meta = (BindWidget))
-		class UButton* ServerRowButton;
+	class UButton* ServerRowButton;
 
 	UPROPERTY()
-		class UServersMenu* Parent;
+	class UServersMenu* Parent;
 
 	uint32 Index;
 
@@ -44,5 +44,5 @@ public:
 
 private:
 	UFUNCTION()
-		void OnServerRowButtonClicked();
+	void OnServerRowButtonClicked();
 };

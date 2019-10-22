@@ -17,13 +17,13 @@ class BASE_MP_UE4_API UMainMenu : public USubMenuWidget
 //Variables
 private:
 	UPROPERTY(meta = (BindWidget))
-		class UButton* HostButton;
+	class UButton* HostButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* ServersButton;
+	class UButton* ServersButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* ExitGameButton;
+	class UButton* ExitGameButton;
 	
 	TSubclassOf<class USubMenuWidget> HostMenuClass;
 	TSubclassOf<class USubMenuWidget> ServersMenuClass;
@@ -38,12 +38,12 @@ protected:
 
 private:
 	UFUNCTION()
-		void HostServer();
+	void HostServer();
 
 	UFUNCTION()
-		void OpenServersMenu();
+	void OpenServersMenu();
 
 	UFUNCTION()
-		void QuitGame();
+	void QuitGame();
 
 };

@@ -52,6 +52,12 @@ public:
 
 
 protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UPlayerUI> UIClass;
+
+	UPROPERTY()
+	UPlayerUI* UI;
+
 	UPROPERTY(EditDefaultsOnly, Replicated)
 	TArray<struct FWeaponSlot> WeaponSlots;
 
@@ -74,7 +80,6 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	class ABaseWeapon* OverlappedWeapon;
-
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -139,14 +144,23 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 
+	UFUNCTION(Client, Reliable)
+	void Client_PossessedBy(APlayerController* PlayerController);
+	virtual void Client_PossessedBy_Implementation(APlayerController* PlayerController);
+
+	UFUNCTION(Client, Reliable)
+	void Client_UnPossessed();
+	virtual void Client_UnPossessed_Implementation();
+
 private:
 	void Fire();
 
 	void SwapWeapon();
 	void DrawWeapon();
+	void SetActiveWeapon(ABaseWeapon* Weapon);
 
-	void ActionBar1();
-	void ActionBar2();
+	//void ActionBar1();
+	//void ActionBar2();
 
 	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, AActor* WeaponOwner, ABaseWeapon* OldWeapon);
 	//bool FillEmptyWeaponSlot(struct FWeaponData Data);

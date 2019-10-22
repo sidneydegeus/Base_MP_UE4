@@ -17,13 +17,13 @@ class BASE_MP_UE4_API UInGameMenu : public UMenuWidget
 //Variables
 private:
 	UPROPERTY(meta = (BindWidget))
-		class UButton* InGameMenu_ResumeButton;
+	class UButton* InGameMenu_ResumeButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* InGameMenu_QuitToMainMenuButton;
+	class UButton* InGameMenu_QuitToMainMenuButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* InGameMenu_ExitGameButton;
+	class UButton* InGameMenu_ExitGameButton;
 
 //Functions
 protected:
@@ -31,11 +31,11 @@ protected:
 
 private:
 	UFUNCTION()
-		void Resume();
+	void Resume();
 
 	UFUNCTION()
-		void QuitToMainMenu();
+	void QuitToMainMenu();
 
 	UFUNCTION()
-		void QuitGame();
+	void QuitGame();
 };
