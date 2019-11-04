@@ -152,6 +152,16 @@ void ABaseCharacter::MoveRight(float Value) {
 	}
 }
 
+void ABaseCharacter::Jump() {
+	Super::Jump();
+	CharacterAnimInstance->SetIsJumping(true);
+}
+
+void ABaseCharacter::StopJumping() {
+	Super::StopJumping();
+	CharacterAnimInstance->SetIsJumping(false);
+}
+
 void ABaseCharacter::Interact() {
 	if (InteractionComponent != nullptr) {
 		InteractionComponent->Interact();
@@ -286,8 +296,6 @@ bool ABaseCharacter::Server_EquipWeapon_Validate(ABaseWeapon* Weapon) {
 }
 
 void ABaseCharacter::OnRep_UpdateUIEquippedWeapon() {
-	//UE_LOG(LogTemp, Warning, TEXT("update equipped weapon text"));
-	//if (!IsLocallyControlled()) return;
 	if (UI == nullptr || EquippedWeapon == nullptr) return;
 	UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
 }
@@ -295,7 +303,7 @@ void ABaseCharacter::OnRep_UpdateUIEquippedWeapon() {
 void ABaseCharacter::Multicast_WeaponEquip_Implementation(ABaseWeapon* Weapon) {
 	if (Weapon == nullptr) return;
 	PlayAnimMontage(EquipWeaponMontages[Weapon->GetWeaponType()]);
-	CharacterAnimInstance->SetbWeaponEquipped(true);
+	CharacterAnimInstance->SetWeaponEquipped(true);
 	CharacterAnimInstance->SetWeaponTypeEquipped(Weapon->GetWeaponType());
 }
 
@@ -304,15 +312,11 @@ void ABaseCharacter::HandleEquip() {
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(GetMesh());
 	if (CharacterMesh == nullptr || Unarmed == nullptr || WeaponToUnarm == nullptr) return;
 
-	if (!WeaponToUnarm) return;
 	if (WeaponToUnarm != Unarmed) {
 		FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), WeaponToUnarm->WeaponType) + "WeaponHolsterSocket"));
 		WeaponToUnarm->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
 	}
-
 	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
-
-
 	WeaponToUnarm = nullptr;
 
 

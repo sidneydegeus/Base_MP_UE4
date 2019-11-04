@@ -17,17 +17,28 @@ class BASE_MP_UE4_API UCharacterAnimInstance : public UAnimInstance
 	
 
 protected:
-	UPROPERTY(BlueprintReadOnly)
+	//TODO: maybe change to blueprint read only
+	UPROPERTY(BlueprintReadOnly, Category = State)
 	EWeaponType WeaponTypeEquipped;
 
-	UPROPERTY(BlueprintReadWrite)
-	bool bWeaponEquipped;
+	UPROPERTY(BlueprintReadOnly, Category = State)
+	bool IsWeaponEquipped;
 	
-	UPROPERTY(BlueprintReadWrite)
-	bool bSwappingWeapon;
+	UPROPERTY(BlueprintReadOnly, Category = State)
+	bool IsSwappingWeapon;
+
+	UPROPERTY(BlueprintReadOnly, Category = State)
+	bool IsJumping;
+
 
 public:
+	//Weapon
 	void SetWeaponTypeEquipped(EWeaponType WeaponType) { WeaponTypeEquipped = WeaponType; };
-	void SetbWeaponEquipped(bool Result) { bWeaponEquipped = Result; };
-	void SetbSwappingWeapon(bool Result) { bSwappingWeapon = Result; };
+	void SetWeaponEquipped(bool Result) { IsWeaponEquipped = Result; };
+	void SetSwappingWeapon(bool Result) { IsSwappingWeapon = Result; };
+
+	//movement
+	void SetIsJumping(bool Result) { IsJumping = Result; };
+
 };
+
