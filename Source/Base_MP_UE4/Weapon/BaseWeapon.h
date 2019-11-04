@@ -7,13 +7,13 @@
 #include "Projectile/BaseProjectile.h"
 #include "BaseWeapon.generated.h"
 
-UENUM()
+UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
 	//TODO: change location of this later? or something with sub categories or something
 	Unarmed,
+	Melee,
 	Ranged,
-	Melee
 };
 
 
@@ -25,8 +25,6 @@ struct FWeaponData
 	UPROPERTY(BlueprintReadWrite)
 	TSubclassOf<class ABaseWeapon> WeaponBlueprint;
 
-	UPROPERTY(EditDefaultsOnly)
-	FName HolsterSocket;
 };
 
 UCLASS(abstract)
@@ -49,11 +47,6 @@ protected:
 	FName WeaponName;
 
 public:	
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
-	ABaseWeapon();
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-
 	void ActivateTick(bool bReset);
 
 	UFUNCTION(BlueprintCallable, Category = "Firing")
@@ -61,18 +54,28 @@ public:
 
 	virtual void AimAt(FVector HitLocation);
 
-	FWeaponData GetWeaponData() { return WeaponData; };
-	void SetWeaponData(FWeaponData NewWeaponData) { WeaponData = NewWeaponData; };
-
 	void DisablePickUp();
-
-	FName GetWeaponName() { return WeaponName; };
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void DisplayWeaponName(bool bDisplay);
 	void DisplayWeaponName_Implementation(bool bDisplay);
 
+	//getters / setters
+	FWeaponData GetWeaponData() { return WeaponData; };
+	void SetWeaponData(FWeaponData NewWeaponData) { WeaponData = NewWeaponData; };
+
+	UFUNCTION(BlueprintCallable)
+	EWeaponType GetWeaponType() { return WeaponType; };
+
+	FName GetWeaponName() { return WeaponName; };
+
+
 protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	ABaseWeapon();
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+
 	void FindMesh();
 
 	UFUNCTION(Server, Reliable, WithValidation)

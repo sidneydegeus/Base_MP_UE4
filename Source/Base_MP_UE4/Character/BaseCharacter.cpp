@@ -14,18 +14,19 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "Weapon/BaseWeapon.h"
+#include "Weapon/Unarmed.h"
 #include "InteractionComponent.h"
 
 #include "UI/PlayerUI.h"
 #include "BaseMP_PlayerController.h"
+#include "Character/CharacterAnimInstance.h"
 
 #define stringify(name) # name
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ABaseCharacter, Unarmed);
 	DOREPLIFETIME(ABaseCharacter, EquippedWeapon);
-	DOREPLIFETIME(ABaseCharacter, WeaponSlots);
-
 	DOREPLIFETIME(ABaseCharacter, MeleeWeaponSlot);
 	DOREPLIFETIME(ABaseCharacter, RangedWeaponSlot);
 }
@@ -92,11 +93,20 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABaseCharacter::Fire);
 
 
-	PlayerInputComponent->BindAction("SwapWeapon", IE_Pressed, this, &ABaseCharacter::SwapWeapon);
-	PlayerInputComponent->BindAction("DrawWeapon", IE_Pressed, this, &ABaseCharacter::DrawWeapon);
+	//PlayerInputComponent->BindAction("SwapWeapon", IE_Pressed, this, &ABaseCharacter::SwapWeapon);
+	//PlayerInputComponent->BindAction("DrawWeapon", IE_Pressed, this, &ABaseCharacter::DrawWeapon);
 
-	//PlayerInputComponent->BindAction("ActionBar 1", IE_Pressed, this, &ABaseCharacter::ActionBar1);
-	//PlayerInputComponent->BindAction("ActionBar 2", IE_Pressed, this, &ABaseCharacter::ActionBar2);
+	PlayerInputComponent->BindAction("Weapon 1", IE_Pressed, this, &ABaseCharacter::WeaponSlot_1);
+	PlayerInputComponent->BindAction("Weapon 2", IE_Pressed, this, &ABaseCharacter::WeaponSlot_2);
+}
+
+void ABaseCharacter::BeginPlay() {
+	Super::BeginPlay();
+	CharacterAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
+	if (HasAuthority()) {
+		Unarmed = GetWorld()->SpawnActor<AUnarmed>();
+		EquipWeapon(Unarmed);
+	}
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
@@ -213,59 +223,58 @@ ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, AActor* Weapo
 			OldWeapon->Destroy();
 		}
 	}
-	if (ActiveWeapon == nullptr) {
-		SetActiveWeapon(Weapon);
-	}
 	return Weapon;
 }
 
 
 
 /// Equip Weapon logic
-//TODO: relatively simplistic, but needs to be changed later
-void ABaseCharacter::SwapWeapon() {
-	if (ActiveWeapon == MeleeWeaponSlot) {
-		SetActiveWeapon(RangedWeaponSlot);
-		if (EquippedWeapon != nullptr) EquipWeapon(RangedWeaponSlot);
-	}
-	else {
-		SetActiveWeapon(MeleeWeaponSlot);
-		if (EquippedWeapon != nullptr) EquipWeapon(MeleeWeaponSlot);
-	}
+////TODO: relatively simplistic, but needs to be changed later
+//void ABaseCharacter::SwapWeapon() {
+//	if (ActiveWeapon == MeleeWeaponSlot) {
+//		SetActiveWeapon(RangedWeaponSlot);
+//		if (EquippedWeapon != nullptr) EquipWeapon(RangedWeaponSlot);
+//	}
+//	else {
+//		SetActiveWeapon(MeleeWeaponSlot);
+//		if (EquippedWeapon != nullptr) EquipWeapon(MeleeWeaponSlot);
+//	}
+//}
+//
+//void ABaseCharacter::DrawWeapon() {
+//	EquipWeapon(ActiveWeapon);
+//}
+
+void ABaseCharacter::WeaponSlot_1() {
+	EquipWeapon(DetermineWeaponToArm(MeleeWeaponSlot));
 }
 
-void ABaseCharacter::DrawWeapon() {
-	EquipWeapon(ActiveWeapon);
+void ABaseCharacter::WeaponSlot_2() {
+	EquipWeapon(DetermineWeaponToArm(RangedWeaponSlot));
 }
 
-void ABaseCharacter::SetActiveWeapon(ABaseWeapon* Weapon) {
-	if (Weapon == nullptr) return;
-	ActiveWeapon = Weapon;
-	if (UI == nullptr) return;
-	UI->SetWeaponNameText(Weapon->GetWeaponName());
+ABaseWeapon* ABaseCharacter::DetermineWeaponToArm(ABaseWeapon* Weapon) {
+	ABaseWeapon* WeaponToArm;
+	(Weapon == EquippedWeapon) ? WeaponToArm = Unarmed : WeaponToArm = Weapon;
+	return WeaponToArm;
 }
 
 void ABaseCharacter::EquipWeapon(ABaseWeapon* Weapon) {
-	// If no weapon, don't perform any animation etc either
 	if (Weapon == nullptr) return;
 
-	if (EquippedWeapon == nullptr) {
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-		bUseControllerRotationYaw = true;
-	}
-	else if (EquippedWeapon == Weapon || Weapon == nullptr) {
-		GetCharacterMovement()->bOrientRotationToMovement = true;
-		bUseControllerRotationYaw = false;
-	}
+	WeaponToUnarm = EquippedWeapon;
+	EquippedWeapon = Weapon;
+	DetermineWeaponControlInput();
+	bSwappingWeapon = true;
+
+	if (IsLocallyControlled()) OnRep_UpdateUIEquippedWeapon();
 
 	if (Role < ROLE_Authority) {
 		Server_EquipWeapon(Weapon);
 	}
 	if (Role == ROLE_Authority) {
-		Multicast_WeaponEquip();
+		Multicast_WeaponEquip(Weapon);
 	}
-	WeaponToEquip = Weapon;
-	bSwappingWeapon = true;
 }
 
 void ABaseCharacter::Server_EquipWeapon_Implementation(ABaseWeapon* Weapon) {
@@ -276,42 +285,84 @@ bool ABaseCharacter::Server_EquipWeapon_Validate(ABaseWeapon* Weapon) {
 	return true; 
 }
 
-void ABaseCharacter::Multicast_WeaponEquip_Implementation() {
-	WeaponEquipEvent();
+void ABaseCharacter::OnRep_UpdateUIEquippedWeapon() {
+	//UE_LOG(LogTemp, Warning, TEXT("update equipped weapon text"));
+	//if (!IsLocallyControlled()) return;
+	if (UI == nullptr || EquippedWeapon == nullptr) return;
+	UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
 }
 
-void ABaseCharacter::WeaponEquipEvent_Implementation() {}
+void ABaseCharacter::Multicast_WeaponEquip_Implementation(ABaseWeapon* Weapon) {
+	if (Weapon == nullptr) return;
+	PlayAnimMontage(EquipWeaponMontages[Weapon->GetWeaponType()]);
+	CharacterAnimInstance->SetbWeaponEquipped(true);
+	CharacterAnimInstance->SetWeaponTypeEquipped(Weapon->GetWeaponType());
+}
 
 void ABaseCharacter::HandleEquip() {
 	if (!HasAuthority()) return;
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(GetMesh());
-	if (CharacterMesh == nullptr) return;
-	if (WeaponToEquip == nullptr) return;
+	if (CharacterMesh == nullptr || Unarmed == nullptr || WeaponToUnarm == nullptr) return;
 
-	// When trying to equip the same weapon, holster instead
-	if (WeaponToEquip == EquippedWeapon) {
-		FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), WeaponToEquip->WeaponType) + "WeaponHolsterSocket"));
-		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
-		EquippedWeapon = nullptr;
+	if (!WeaponToUnarm) return;
+	if (WeaponToUnarm != Unarmed) {
+		FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), WeaponToUnarm->WeaponType) + "WeaponHolsterSocket"));
+		WeaponToUnarm->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
+	}
+
+	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
+
+
+	WeaponToUnarm = nullptr;
+
+
+	//// When trying to equip the same weapon, holster instead
+	//if (WeaponToEquip == EquippedWeapon) {
+	//	FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), WeaponToEquip->WeaponType) + "WeaponHolsterSocket"));
+	//	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
+	//	EquippedWeapon = nullptr;
+	//	return;
+	//}
+
+	//// when no weapon equiped, equip weapon to equip
+	//if (EquippedWeapon == nullptr) {
+	//	WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
+	//	EquippedWeapon = WeaponToEquip;
+	//	return;
+	//}
+
+	//// when equpping a weapon while having one equipped already
+	//if (EquippedWeapon != nullptr && EquippedWeapon != WeaponToEquip) {
+	//	FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), EquippedWeapon->WeaponType) + "WeaponHolsterSocket"));
+	//	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
+	//	WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
+	//	EquippedWeapon = WeaponToEquip;
+	//	return;
+	//}
+}
+
+//EEquipWeaponState ABaseCharacter::DetermineEquipState(ABaseWeapon* WeaponToEquip) {
+//	EEquipWeaponState State = EEquipWeaponState::None;
+//	if (WeaponToEquip == EquippedWeapon) State = EEquipWeaponState::Equip_To_None;
+//	if (EquippedWeapon == nullptr) State = EEquipWeaponState::None_To_Equip;
+//	if (EquippedWeapon != nullptr && EquippedWeapon != WeaponToEquip) State = EEquipWeaponState::Equip_To_Equip;
+//	return State;
+//}
+
+void ABaseCharacter::DetermineWeaponControlInput() {
+	if (EquippedWeapon == nullptr || EquippedWeapon->WeaponType == EWeaponType::Melee) {
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		bUseControllerRotationYaw = false;
 		return;
 	}
 
-	// when no weapon equiped, equip weapon to equip
-	if (EquippedWeapon == nullptr) {
-		WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
-		EquippedWeapon = WeaponToEquip;
-		return;
-	}
-
-	// when equpping a weapon while having one equipped already
-	if (EquippedWeapon != nullptr && EquippedWeapon != WeaponToEquip) {
-		FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), EquippedWeapon->WeaponType) + "WeaponHolsterSocket"));
-		EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
-		WeaponToEquip->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
-		EquippedWeapon = WeaponToEquip;
+	if (EquippedWeapon->WeaponType == EWeaponType::Ranged) {
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		bUseControllerRotationYaw = true;
 		return;
 	}
 }
+
 
 
 

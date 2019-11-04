@@ -4,7 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Weapon/BaseWeapon.h"
 #include "BaseCharacter.generated.h"
+
+//UENUM()
+//enum class EEquipWeaponState : uint8
+//{
+//	None,
+//	None_To_Equip,
+//	Equip_To_None,
+//	Equip_To_Equip
+//};
 
 USTRUCT(BlueprintType)
 struct FWeaponSlot
@@ -55,13 +65,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UPlayerUI> UIClass;
 
+	UPROPERTY(EditDefaultsOnly)
+	TMap<EWeaponType, class UAnimMontage*> EquipWeaponMontages;
+
 	UPROPERTY()
 	UPlayerUI* UI;
 
-	UPROPERTY(EditDefaultsOnly, Replicated)
-	TArray<struct FWeaponSlot> WeaponSlots;
+	UPROPERTY(Replicated)
+	class ABaseWeapon* Unarmed;
 
-	//TODO: Rename to more generic later
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_UpdateUIEquippedWeapon)
+	class ABaseWeapon* EquippedWeapon;
+
 	UPROPERTY(Replicated)
 	class ABaseWeapon* MeleeWeaponSlot;
 
@@ -69,11 +84,7 @@ protected:
 	class ABaseWeapon* RangedWeaponSlot;
 
 	UPROPERTY()
-	class ABaseWeapon* ActiveWeapon;
-
-	//TODO: change to selected weapon??
-	UPROPERTY(BlueprintReadOnly, Replicated)
-	class ABaseWeapon* EquippedWeapon;
+	class ABaseWeapon* WeaponToUnarm;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bSwappingWeapon;
@@ -81,12 +92,14 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	class ABaseWeapon* OverlappedWeapon;
 
+	UPROPERTY()
+	class UCharacterAnimInstance* CharacterAnimInstance;
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	class UInteractionComponent* InteractionComponent;
 
-	UPROPERTY()
-	class ABaseWeapon* WeaponToEquip;
+
 
 
 
@@ -94,6 +107,7 @@ private:
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
 	/** Called for forwards/backward input */
@@ -130,12 +144,8 @@ protected:
 	bool Server_EquipWeapon_Validate(ABaseWeapon* Weapon);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_WeaponEquip();
-	void Multicast_WeaponEquip_Implementation();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
-	void WeaponEquipEvent();
-	virtual void WeaponEquipEvent_Implementation();
+	void Multicast_WeaponEquip(ABaseWeapon* Weapon);
+	void Multicast_WeaponEquip_Implementation(ABaseWeapon* Weapon);
 
 	UFUNCTION(BlueprintCallable)
 	void HandleEquip();
@@ -155,13 +165,16 @@ protected:
 private:
 	void Fire();
 
-	void SwapWeapon();
-	void DrawWeapon();
-	void SetActiveWeapon(ABaseWeapon* Weapon);
+	//void SwapWeapon();
+	//void DrawWeapon();
+	void DetermineWeaponControlInput();
 
-	//void ActionBar1();
-	//void ActionBar2();
+	void WeaponSlot_1();
+	void WeaponSlot_2();
+	ABaseWeapon* DetermineWeaponToArm(ABaseWeapon* Weapon);
+
+	UFUNCTION()
+	void OnRep_UpdateUIEquippedWeapon();
 
 	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, AActor* WeaponOwner, ABaseWeapon* OldWeapon);
-	//bool FillEmptyWeaponSlot(struct FWeaponData Data);
 };
