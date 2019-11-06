@@ -72,6 +72,9 @@ public:
 	UPROPERTY(Replicated)
 	bool bJump;
 
+	UPROPERTY(Replicated)
+	float AimPitch;
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UPlayerUI> UIClass;
@@ -108,8 +111,6 @@ private:
 
 public:
 	ABaseCharacter();
-	void EquipWeapon();
-	void UnequipWeapon();
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -117,6 +118,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+// Movement
+protected:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TurnAtRate(float Rate);
@@ -126,12 +129,28 @@ protected:
 
 	void Interact();
 
+// PickUp
+protected:
 	UFUNCTION(BlueprintCallable)
 	void PickUp();
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_PickUp(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
 	void Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
 	bool Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) { return true; };
+
+private:
+	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, AActor* WeaponOwner, ABaseWeapon* OldWeapon);
+
+// Weapon Equip
+public:
+	void EquipWeapon();
+	void UnequipWeapon();
+
+protected:
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetUnarmed();
+	void Server_SetUnarmed_Implementation();
+	bool Server_SetUnarmed_Validate() { return true; }
 
 	void StartEquipWeapon(ABaseWeapon* Weapon);
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -143,6 +162,14 @@ protected:
 	void Multicast_WeaponEquip(EEquipWeaponState State);
 	void Multicast_WeaponEquip_Implementation(EEquipWeaponState State);
 
+private:
+	ABaseWeapon* DetermineWeaponToArm(ABaseWeapon* Weapon);
+	EEquipWeaponState DetermineEquipWeaponState(ABaseWeapon* Weapon);
+	void DetermineWeaponControlInput();
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
+// Possession
 protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
@@ -161,12 +188,5 @@ private:
 	void WeaponSlot_1();
 	void WeaponSlot_2();
 
-	ABaseWeapon* DetermineWeaponToArm(ABaseWeapon* Weapon);
-	EEquipWeaponState DetermineEquipWeaponState(ABaseWeapon* Weapon);
-	void DetermineWeaponControlInput();
 
-	UFUNCTION()
-	void OnRep_EquippedWeapon();
-
-	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, AActor* WeaponOwner, ABaseWeapon* OldWeapon);
 };

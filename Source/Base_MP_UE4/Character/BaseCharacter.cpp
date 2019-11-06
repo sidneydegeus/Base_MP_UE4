@@ -12,6 +12,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include "Weapon/BaseWeapon.h"
 #include "Weapon/Unarmed.h"
@@ -30,6 +31,7 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ABaseCharacter, MeleeWeaponSlot);
 	DOREPLIFETIME(ABaseCharacter, RangedWeaponSlot);
 
+	DOREPLIFETIME(ABaseCharacter, AimPitch);
 	DOREPLIFETIME(ABaseCharacter, bJump);
 }
 
@@ -105,15 +107,15 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 void ABaseCharacter::BeginPlay() {
 	Super::BeginPlay();
 	CharacterAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
-	if (HasAuthority()) {
-		Unarmed = GetWorld()->SpawnActor<AUnarmed>();
-		EquippedWeapon = Unarmed;
-		if (IsLocallyControlled()) OnRep_EquippedWeapon();
-	}
+	Server_SetUnarmed();
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+
+	if (IsLocallyControlled()) {
+		AimPitch = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Pitch;
+	}
 }
 
 
@@ -274,6 +276,12 @@ EEquipWeaponState ABaseCharacter::DetermineEquipWeaponState(ABaseWeapon* Weapon)
 		return EEquipWeaponState::Ranged_To_Unarmed;
 
 	return EEquipWeaponState::Unarmed_To_Unarmed;
+}
+
+void ABaseCharacter::Server_SetUnarmed_Implementation() {
+	Unarmed = GetWorld()->SpawnActor<AUnarmed>();
+	EquippedWeapon = Unarmed;
+	if (IsLocallyControlled()) OnRep_EquippedWeapon();
 }
 
 void ABaseCharacter::StartEquipWeapon(ABaseWeapon* Weapon) {

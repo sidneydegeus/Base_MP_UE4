@@ -13,6 +13,7 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 	if (Character == nullptr) return;
 
 	IsJumping = Character->bJump;
+	AimPitch = Character->AimPitch;
 }
 
 void UCharacterAnimInstance::EquipWeaponAnimation(EEquipWeaponState EquipWeaponState) {
