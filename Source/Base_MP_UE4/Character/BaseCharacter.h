@@ -7,14 +7,21 @@
 #include "Weapon/BaseWeapon.h"
 #include "BaseCharacter.generated.h"
 
-//UENUM()
-//enum class EEquipWeaponState : uint8
-//{
-//	None,
-//	None_To_Equip,
-//	Equip_To_None,
-//	Equip_To_Equip
-//};
+UENUM(BlueprintType)
+enum class EEquipWeaponState : uint8
+{
+	Unarmed_To_Unarmed,
+	Unarmed_To_Melee,
+	Unarmed_To_Ranged,
+
+	Melee_To_Melee,
+	Melee_To_Unarmed,
+	Melee_To_Ranged,
+
+	Ranged_To_Ranged,
+	Ranged_To_Unarmed,
+	Ranged_To_Melee
+};
 
 USTRUCT(BlueprintType)
 struct FWeaponSlot
@@ -36,8 +43,6 @@ class BASE_MP_UE4_API ABaseCharacter : public ACharacter
 
 ///Variables
 public:
-	ABaseCharacter();
-
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
@@ -60,34 +65,27 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 
+	bool bSwappingWeapon;
+
+	//TODO: Character State... maybe move to a struct?
+	//TODO make protected, use getters instead
+	UPROPERTY(Replicated)
+	bool bJump;
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UPlayerUI> UIClass;
-
-	UPROPERTY(EditDefaultsOnly)
-	TMap<EWeaponType, class UAnimMontage*> EquipWeaponMontages;
-
 	UPROPERTY()
 	UPlayerUI* UI;
 
 	UPROPERTY(Replicated)
 	class ABaseWeapon* Unarmed;
-
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_UpdateUIEquippedWeapon)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedWeapon)
 	class ABaseWeapon* EquippedWeapon;
-
 	UPROPERTY(Replicated)
 	class ABaseWeapon* MeleeWeaponSlot;
-
 	UPROPERTY(Replicated)
 	class ABaseWeapon* RangedWeaponSlot;
-
-	UPROPERTY()
-	class ABaseWeapon* WeaponToUnarm;
-
-	UPROPERTY(BlueprintReadWrite)
-	bool bSwappingWeapon;
 
 	UPROPERTY(BlueprintReadWrite)
 	class ABaseWeapon* OverlappedWeapon;
@@ -99,11 +97,20 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UInteractionComponent* InteractionComponent;
 
-
+	UPROPERTY()
+	class ABaseWeapon* WeaponToEquip;
+	UPROPERTY()
+	class ABaseWeapon* WeaponToUnarm;
 
 
 
 ///Functions 
+
+public:
+	ABaseCharacter();
+	void EquipWeapon();
+	void UnequipWeapon();
+
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -124,20 +131,17 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_PickUp(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
 	void Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
-	bool Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
+	bool Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) { return true; };
 
-	void EquipWeapon(ABaseWeapon* Weapon);
+	void StartEquipWeapon(ABaseWeapon* Weapon);
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_EquipWeapon(ABaseWeapon* Weapon);
-	void Server_EquipWeapon_Implementation(ABaseWeapon* Weapon);
-	bool Server_EquipWeapon_Validate(ABaseWeapon* Weapon);
+	void Server_StartEquipWeapon(ABaseWeapon* Weapon);
+	void Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon);
+	bool Server_StartEquipWeapon_Validate(ABaseWeapon* Weapon) { return true; };
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_WeaponEquip(ABaseWeapon* Weapon);
-	void Multicast_WeaponEquip_Implementation(ABaseWeapon* Weapon);
-
-	UFUNCTION(BlueprintCallable)
-	void HandleEquip();
+	void Multicast_WeaponEquip(EEquipWeaponState State);
+	void Multicast_WeaponEquip_Implementation(EEquipWeaponState State);
 
 protected:
 	virtual void PossessedBy(AController* NewController) override;
@@ -154,16 +158,15 @@ protected:
 private:
 	void Fire();
 
-	//void SwapWeapon();
-	//void DrawWeapon();
-	void DetermineWeaponControlInput();
-
 	void WeaponSlot_1();
 	void WeaponSlot_2();
+
 	ABaseWeapon* DetermineWeaponToArm(ABaseWeapon* Weapon);
+	EEquipWeaponState DetermineEquipWeaponState(ABaseWeapon* Weapon);
+	void DetermineWeaponControlInput();
 
 	UFUNCTION()
-	void OnRep_UpdateUIEquippedWeapon();
+	void OnRep_EquippedWeapon();
 
 	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, AActor* WeaponOwner, ABaseWeapon* OldWeapon);
 };

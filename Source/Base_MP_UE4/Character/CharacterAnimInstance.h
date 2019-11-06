@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "Weapon/BaseWeapon.h"
+#include "Character/BaseCharacter.h"
 #include "CharacterAnimInstance.generated.h"
 
 /**
@@ -17,12 +18,15 @@ class BASE_MP_UE4_API UCharacterAnimInstance : public UAnimInstance
 	
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = Animations)
+	TMap<EEquipWeaponState, UAnimMontage*> EquipAnimations;
+
+	UPROPERTY(BlueprintReadOnly)
+	ABaseCharacter* Character;
+
 	//TODO: maybe change to blueprint read only
 	UPROPERTY(BlueprintReadOnly, Category = State)
 	EWeaponType WeaponTypeEquipped;
-
-	UPROPERTY(BlueprintReadOnly, Category = State)
-	bool IsWeaponEquipped;
 	
 	UPROPERTY(BlueprintReadOnly, Category = State)
 	bool IsSwappingWeapon;
@@ -32,13 +36,14 @@ protected:
 
 
 public:
+	virtual void NativeInitializeAnimation() override;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
 	//Weapon
 	void SetWeaponTypeEquipped(EWeaponType WeaponType) { WeaponTypeEquipped = WeaponType; };
-	void SetWeaponEquipped(bool Result) { IsWeaponEquipped = Result; };
-	void SetSwappingWeapon(bool Result) { IsSwappingWeapon = Result; };
+	void SetIsSwappingWeapon(bool Result) { IsSwappingWeapon = Result; };
 
-	//movement
-	void SetIsJumping(bool Result) { IsJumping = Result; };
+	void EquipWeaponAnimation(EEquipWeaponState EquipWeaponState);
 
 };
 
