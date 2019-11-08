@@ -38,8 +38,8 @@ void ABaseProjectile::BeginPlay() {
 	CollisionMesh->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
 }
 
-void ABaseProjectile::LaunchProjectile(float Speed) {
-	ProjectileMovement->SetVelocityInLocalSpace(FVector::ForwardVector * Speed);
+void ABaseProjectile::LaunchProjectile(FVector ForwardVector, float Speed) {
+	ProjectileMovement->SetVelocityInLocalSpace(ForwardVector * Speed);
 	ProjectileMovement->Activate();
 }
 

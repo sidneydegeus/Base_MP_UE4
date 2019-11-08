@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Projectile/BaseProjectile.h"
 #include "Components/MeshComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 
 
 void ABaseRangedWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -48,13 +49,13 @@ FRotator ABaseRangedWeapon::SpawnProjectileRotation() {
 
 /// Fire
 void ABaseRangedWeapon::Server_Fire_Implementation() {
-	if (ProjectileBlueprint) {
+	if (ProjectileBlueprint == nullptr) {
 		UE_LOG(LogTemp, Warning, TEXT("No projectile Blueprint!!!!"));
 		return;
 	}
 	ABaseProjectile* Projectile = SpawnProjectile();
 	if (Projectile == nullptr) return;
-	Projectile->LaunchProjectile(LaunchSpeed);
+	Projectile->LaunchProjectile(FVector::ForwardVector, LaunchSpeed);
 	Server_SetAmmo(Ammo - 1);
 	//TODO: not sure but this should probably be changed for other weapons
 	LastFireTime = FPlatformTime::Seconds();

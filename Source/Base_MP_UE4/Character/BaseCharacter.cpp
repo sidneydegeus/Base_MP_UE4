@@ -107,14 +107,14 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 void ABaseCharacter::BeginPlay() {
 	Super::BeginPlay();
 	CharacterAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
-	Server_SetUnarmed();
+	if (IsLocallyControlled()) Server_SetUnarmed();
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
 	if (IsLocallyControlled()) {
-		AimPitch = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Pitch;
+		AimPitch = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Pitch + AdditionalAimPitch;
 	}
 }
 

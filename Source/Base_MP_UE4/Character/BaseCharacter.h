@@ -96,6 +96,9 @@ protected:
 	UPROPERTY()
 	class UCharacterAnimInstance* CharacterAnimInstance;
 
+	UPROPERTY(EditDefaultsOnly)
+	float AdditionalAimPitch;
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	class UInteractionComponent* InteractionComponent;

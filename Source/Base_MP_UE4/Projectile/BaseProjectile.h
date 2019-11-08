@@ -37,7 +37,7 @@ private:
 //Functions
 public:	
 	ABaseProjectile();
-	void LaunchProjectile(float Speed);
+	void LaunchProjectile(FVector ForwardVector, float Speed);
 
 protected:
 	// Called when the game starts or when spawned
