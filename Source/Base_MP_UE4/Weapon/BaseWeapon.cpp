@@ -4,6 +4,10 @@
 #include "BaseWeapon.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/MeshComponent.h"
+#include "Components/SceneComponent.h"
+#include "GenericComponents/PickUpComponent.h"
+#include "Components/WidgetComponent.h"
+#include "UI/ItemUI.h"
 #include "GenericComponents/PickUpComponent.h"
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -14,11 +18,25 @@ void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 ABaseWeapon::ABaseWeapon() {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+
+	RootPlaceholderComponent = CreateDefaultSubobject<USceneComponent>(FName("RootPlaceholderComponent"));
+	SetRootComponent(RootPlaceholderComponent);
+
+	PickupComponent = CreateDefaultSubobject<UPickUpComponent>(FName("PickupComponent"));
+	PickupComponent->AttachToComponent(RootPlaceholderComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(FName("PickupWidget"));
+	PickupWidget->AttachToComponent(PickupComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+	PickupWidget->SetVisibility(false);
+	PickupWidget->SetWidgetSpace(EWidgetSpace::Screen);
 }
 
 void ABaseWeapon::BeginPlay() {
 	Super::BeginPlay();
 	WeaponData.WeaponBlueprint = GetClass();
+	UItemUI* ItemUI = Cast<UItemUI>(PickupWidget->GetUserWidgetObject());
+	if (ItemUI == nullptr) return;
+	ItemUI->SetItemName(GetWeaponName());
 }
 
 void ABaseWeapon::Tick(float DeltaTime) {
@@ -51,16 +69,24 @@ void ABaseWeapon::DisablePickUp() {
 void ABaseWeapon::Multicast_DisablePickUp_Implementation() {
 	UPickUpComponent* PickUpComponent = FindComponentByClass<UPickUpComponent>();
 	if (PickUpComponent == nullptr) return;
-	TArray<USceneComponent*> Children;
-	PickUpComponent->GetChildrenComponents(true, Children);
-	for (USceneComponent* Child : Children) {
+	TArray<USceneComponent*> ChildComponents;
+	PickUpComponent->GetChildrenComponents(true, ChildComponents);
+	for (USceneComponent* Child : ChildComponents) {
 		Child->DestroyComponent();
 	}
 	PickUpComponent->DestroyComponent();
 }
 
 
-void ABaseWeapon::DisplayWeaponName_Implementation(bool bDisplay) {}
+void ABaseWeapon::DisplayWeaponName(bool bDisplay) {
+	if (PickupWidget == nullptr) return;
+	if (bDisplay) {
+		PickupWidget->SetVisibility(true, true);
+	}
+	else {
+		PickupWidget->SetVisibility(false, false);
+	}
+}
 
 void ABaseWeapon::FindMesh() {
 	if (Mesh == nullptr) {

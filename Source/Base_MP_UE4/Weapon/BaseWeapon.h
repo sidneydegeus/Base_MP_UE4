@@ -38,6 +38,15 @@ public:
 
 protected:
 	UPROPERTY()
+	class USceneComponent* RootPlaceholderComponent;
+	
+	UPROPERTY(EditDefaultsOnly)
+	class UPickUpComponent* PickupComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UWidgetComponent* PickupWidget;
+
+	UPROPERTY()
 	class UMeshComponent* Mesh;
 
 	UPROPERTY(Replicated, BlueprintReadWrite, EditDefaultsOnly)
@@ -56,9 +65,8 @@ public:
 
 	void DisablePickUp();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	UFUNCTION(BlueprintCallable)
 	void DisplayWeaponName(bool bDisplay);
-	void DisplayWeaponName_Implementation(bool bDisplay);
 
 	//getters / setters
 	FWeaponData GetWeaponData() { return WeaponData; };

@@ -10,7 +10,6 @@ UPickUpComponent::UPickUpComponent(const FObjectInitializer& OI) : Super(OI) {
 	BodyInstance.SetObjectType(ECollisionChannel::ECC_WorldDynamic);
 	BodyInstance.SetResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	BodyInstance.SetResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-	SphereRadius = 64;
 
 	//PickUpWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	//PickUpWidgetComponent->RegisterComponent();

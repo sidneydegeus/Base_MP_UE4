@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "PickUpComponent.generated.h"
 
 /**
  * 
  */
 UCLASS(ClassGroup = (Interaction), meta = (BlueprintSpawnableComponent))
-class BASE_MP_UE4_API UPickUpComponent : public USphereComponent
+class BASE_MP_UE4_API UPickUpComponent : public UBoxComponent
 {
 	GENERATED_BODY()
 
