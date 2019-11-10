@@ -8,7 +8,7 @@ AUnarmed::AUnarmed() {
 	WeaponName = "Unarmed";
 	bReplicates = true;
 
-	//Retarded code, but an actor needs a root component...
-	Mesh = Cast<UMeshComponent>(CreateDefaultSubobject<USceneComponent>("Mesh"));
-	SetRootComponent(Cast<USceneComponent>(Mesh));
+	////Retarded code, but an actor needs a root component...
+	//Mesh = Cast<UMeshComponent>(CreateDefaultSubobject<USceneComponent>("Mesh"));
+	//SetRootComponent(Cast<USceneComponent>(Mesh));
 }

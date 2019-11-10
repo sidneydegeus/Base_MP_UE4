@@ -115,6 +115,7 @@ void ABaseCharacter::Tick(float DeltaTime) {
 
 	if (IsLocallyControlled()) {
 		AimPitch = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Pitch + AdditionalAimPitch;
+		Server_SetAimPitch(AimPitch);
 	}
 }
 
@@ -256,6 +257,8 @@ ABaseWeapon* ABaseCharacter::DetermineWeaponToArm(ABaseWeapon* Weapon) {
 }
 
 EEquipWeaponState ABaseCharacter::DetermineEquipWeaponState(ABaseWeapon* Weapon) {
+	if (EquippedWeapon == nullptr) return EEquipWeaponState::Unarmed_To_Unarmed;
+
 	if (EquippedWeapon->GetWeaponType() == EWeaponType::Unarmed && Weapon->GetWeaponType() == EWeaponType::Melee) 
 		return EEquipWeaponState::Unarmed_To_Melee;
 	if (EquippedWeapon->GetWeaponType() == EWeaponType::Unarmed && Weapon->GetWeaponType() == EWeaponType::Ranged)
@@ -334,6 +337,7 @@ void ABaseCharacter::Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon)
 void ABaseCharacter::OnRep_EquippedWeapon() {
 	if (CharacterAnimInstance == nullptr || EquippedWeapon == nullptr) return;
 	CharacterAnimInstance->SetWeaponTypeEquipped(EquippedWeapon->GetWeaponType());
+	if (IsLocallyControlled()) DetermineWeaponControlInput();
 	if (UI == nullptr) return;
 	UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
 }
@@ -371,6 +375,9 @@ void ABaseCharacter::PossessedBy(AController* NewController) {
 void ABaseCharacter::UnPossessed() {
 	Super::UnPossessed();
 	SetAutonomousProxy(false);
+	//MeleeWeaponSlot->Destroy();
+	//RangedWeaponSlot->Destroy();
+	//Unarmed->Destroy();
 	Destroy();
 	UE_LOG(LogTemp, Warning, TEXT("UNpossess character"));
 	Client_UnPossessed();

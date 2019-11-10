@@ -114,6 +114,7 @@ private:
 
 public:
 	ABaseCharacter();
+	ABaseWeapon* GetEquippedWeapon() { return EquippedWeapon; };
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -154,6 +155,11 @@ protected:
 	void Server_SetUnarmed();
 	void Server_SetUnarmed_Implementation();
 	bool Server_SetUnarmed_Validate() { return true; }
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetAimPitch(float Value);
+	void Server_SetAimPitch_Implementation(float Value) { AimPitch = Value; };
+	bool Server_SetAimPitch_Validate(float Value) { return true; }
 
 	void StartEquipWeapon(ABaseWeapon* Weapon);
 	UFUNCTION(Server, Reliable, WithValidation)

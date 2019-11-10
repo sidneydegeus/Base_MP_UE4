@@ -26,7 +26,7 @@ ABaseWeapon::ABaseWeapon() {
 	PickupComponent->AttachToComponent(RootPlaceholderComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(FName("PickupWidget"));
-	PickupWidget->AttachToComponent(PickupComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+	PickupWidget->AttachToComponent(PickupComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	PickupWidget->SetVisibility(false);
 	PickupWidget->SetWidgetSpace(EWidgetSpace::Screen);
 }
@@ -34,6 +34,7 @@ ABaseWeapon::ABaseWeapon() {
 void ABaseWeapon::BeginPlay() {
 	Super::BeginPlay();
 	WeaponData.WeaponBlueprint = GetClass();
+	if (PickupWidget == nullptr) return;
 	UItemUI* ItemUI = Cast<UItemUI>(PickupWidget->GetUserWidgetObject());
 	if (ItemUI == nullptr) return;
 	ItemUI->SetItemName(GetWeaponName());
