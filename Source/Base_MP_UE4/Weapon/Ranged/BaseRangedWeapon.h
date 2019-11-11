@@ -38,20 +38,24 @@ protected:
 
 	double LastFireTime = 0;
 
+	FTransform ProjectileSpawnTransform;
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	ABaseRangedWeapon();
+	void AimAt(FHitResult HitResult, bool bResultHit) override;
+	virtual void Fire() override;
 
 protected:
-	ABaseProjectile* SpawnProjectile();
-	virtual FVector SpawnProjectileLocation();
-	virtual FRotator SpawnProjectileRotation();
+	bool SpawnProjectile(FTransform Transform);
 
-	virtual void Server_Fire_Implementation() override;
+	virtual FVector SpawnProjectileLocation();
+
+	virtual void Server_Fire_Implementation(FTransform Transform) override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAmmo(uint32 Amount);
 	void Server_SetAmmo_Implementation(uint32 Amount);
-	bool Server_SetAmmo_Validate(uint32 Amount);
+	bool Server_SetAmmo_Validate(uint32 Amount) { return true; };
+
 };

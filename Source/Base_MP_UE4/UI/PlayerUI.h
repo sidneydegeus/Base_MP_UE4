@@ -19,6 +19,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* WeaponNameText;
 
+	UPROPERTY(meta = (BindWidget))
+	class UImage* CrosshairImage;
+
 public:
 	void SetWeaponNameText(FName WeaponName) { 
 		if (WeaponName == "None") WeaponNameText->SetText(FText::FromString(""));

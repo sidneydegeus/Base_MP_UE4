@@ -21,6 +21,7 @@
 #include "UI/PlayerUI.h"
 #include "BaseMP_PlayerController.h"
 #include "Character/CharacterAnimInstance.h"
+#include "BaseMP_PlayerController.h"
 
 #define stringify(name) # name
 
@@ -310,6 +311,11 @@ void ABaseCharacter::EquipWeapon() {
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(GetMesh());
 	if (CharacterMesh == nullptr || Unarmed == nullptr || WeaponToUnarm == nullptr || WeaponToEquip == nullptr) return;
 	EquippedWeapon = WeaponToEquip;
+
+	//// TODO: remove
+	ABaseMP_PlayerController* test = Cast<ABaseMP_PlayerController>(GetController());
+	test->SetWeapon(EquippedWeapon);
+
 	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
 	WeaponToUnarm = nullptr;
 	WeaponToEquip = nullptr;

@@ -61,7 +61,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Firing")
 	virtual void Fire();
 
-	virtual void AimAt(FVector HitLocation);
+	virtual void AimAt(FHitResult HitResult, bool bResultHit);
 
 	void DisablePickUp();
 
@@ -87,9 +87,14 @@ protected:
 	void FindMesh();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Fire();
-	virtual void Server_Fire_Implementation();
-	virtual bool Server_Fire_Validate();
+	void Server_Fire(FTransform Transform);
+	virtual void Server_Fire_Implementation(FTransform Transform);
+	virtual bool Server_Fire_Validate(FTransform Transform) { return true; };
+
+	//UFUNCTION(Server, Reliable, WithValidation)
+	//void Server_Fire(FTransform Transform);
+	//virtual void Server_Fire_Implementation(FTransform Transform);
+	//virtual bool Server_Fire_Validate(FTransform Transform) { return true; };
 
 private:
 	UFUNCTION(NetMulticast, Reliable)

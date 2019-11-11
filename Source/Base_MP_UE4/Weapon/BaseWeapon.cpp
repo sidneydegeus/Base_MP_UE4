@@ -59,7 +59,7 @@ void ABaseWeapon::ActivateTick(bool bReset) {
 }
 
 //TODO: maybe move to BaseRangedWeapon instead
-void ABaseWeapon::AimAt(FVector HitLocation) {
+void ABaseWeapon::AimAt(FHitResult HitResult, bool bResultHit) {
 	//INTENDED: override to add functionality
 }
 
@@ -99,15 +99,11 @@ void ABaseWeapon::FindMesh() {
 
 /// Fire 
 void ABaseWeapon::Fire() {
-	Server_Fire();
+	Server_Fire(FTransform());
 }
 
-void ABaseWeapon::Server_Fire_Implementation() {
+void ABaseWeapon::Server_Fire_Implementation(FTransform Transform) {
 	//INTENDED: override to add functionality
-}
-
-bool ABaseWeapon::Server_Fire_Validate() {
-	return true;
 }
 
 

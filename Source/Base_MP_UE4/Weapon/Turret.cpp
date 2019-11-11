@@ -21,22 +21,18 @@ FVector ATurret::SpawnProjectileLocation() {
 	return Barrel->GetSocketLocation(FName("Projectile"));
 }
 
-FRotator ATurret::SpawnProjectileRotation() {
-	if (Barrel == nullptr) return FRotator();
-	return Barrel->GetSocketRotation(FName("Projectile"));
-}
-
-void ATurret::AimAt(FVector HitLocation) {
+void ATurret::AimAt(FHitResult HitResult, bool bResultHit) {
 	if (!ensure(Barrel)) return;
 
 	FVector OutLaunchVelocity;
 	FVector StartLocation = Barrel->GetSocketLocation(FName("Projectile"));
+	FVector EndLocation = (bResultHit) ? HitResult.Location : HitResult.TraceEnd;
 
 	bool bHaveAimSolution = UGameplayStatics::SuggestProjectileVelocity(
 		this,
 		OutLaunchVelocity,
 		StartLocation,
-		HitLocation,
+		EndLocation,
 		LaunchSpeed,
 		false,
 		0,

@@ -21,7 +21,7 @@ protected:
 	FVector CurrentAimDirection;
 
 public:
-	virtual void AimAt(FVector HitLocation) override;
+	virtual void AimAt(FHitResult HitResult, bool bHitResult) override;
 
 protected:
 	void BeginPlay() override;
@@ -29,7 +29,6 @@ protected:
 	void Initialize(UBarrelComponent* TankBarrelToSet, UTurretComponent* TankTurretToSet);
 
 	virtual FVector SpawnProjectileLocation() override;
-	virtual FRotator SpawnProjectileRotation() override;
 
 
 private:

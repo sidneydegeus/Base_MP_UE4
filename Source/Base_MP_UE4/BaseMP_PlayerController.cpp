@@ -25,13 +25,12 @@ void ABaseMP_PlayerController::Tick(float DeltaTime) {
 void ABaseMP_PlayerController::AimTowardsCrosshair() {
 	if (!Weapon) return;
 
-	FVector HitLocation;
-	if (GetSightRayHitLocation(HitLocation)) {
-		Weapon->AimAt(HitLocation);
-	}
+	FHitResult HitResult;
+	bool bHitResult = GetSightRayHitLocation(HitResult);
+	Weapon->AimAt(HitResult, bHitResult);
 }
 
-bool ABaseMP_PlayerController::GetSightRayHitLocation(FVector& HitLocation) const {
+bool ABaseMP_PlayerController::GetSightRayHitLocation(FHitResult& HitResult) const {
 	int32 ViewportSizeX, ViewportSizeY;
 	GetViewportSize(ViewportSizeX, ViewportSizeY);
 	auto ScreenLocation = FVector2D(
@@ -41,7 +40,7 @@ bool ABaseMP_PlayerController::GetSightRayHitLocation(FVector& HitLocation) cons
 
 	FVector LookDirection;
 	if (GetLookDirection(ScreenLocation, LookDirection)) {
-		return GetLookVectorHitLocation(LookDirection, HitLocation);
+		return GetLookVectorHitLocation(LookDirection, HitResult);
 	}
 	return false;
 }
@@ -51,8 +50,8 @@ bool ABaseMP_PlayerController::GetLookDirection(FVector2D ScreenLocation, FVecto
 	return DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, CameraWorldLocation, LookDirection);
 }
 
-bool ABaseMP_PlayerController::GetLookVectorHitLocation(FVector LookDirection, FVector& HitLocation) const {
-	FHitResult HitResult;
+// TODO: out hitlocation should be hitresult
+bool ABaseMP_PlayerController::GetLookVectorHitLocation(FVector LookDirection, FHitResult& HitResult) const {
 	auto StartLocation = PlayerCameraManager->GetCameraLocation();
 	auto EndLocation = StartLocation + (LookDirection * LineTraceRange);
 
@@ -67,11 +66,12 @@ bool ABaseMP_PlayerController::GetLookVectorHitLocation(FVector LookDirection, F
 	);
 
 	if (bLineTraceHit) {
-		HitLocation = HitResult.Location;
-		DrawDebugLine(GetWorld(), StartLocation, HitLocation, FColor::Green, false, 1, 0, 1); //
+		//HitLocation = HitResult.Location;
+		DrawDebugLine(GetWorld(), StartLocation, HitResult.Location, FColor::Green, false, 1, 0, 1); //
 		return true;
 	}
-	HitLocation = EndLocation;
-	DrawDebugLine(GetWorld(), StartLocation, HitLocation, FColor::Red, false, 1, 0, 1); //
+	//HitLocation = EndLocation;
+	//HitResult.Location = EndLocation;
+	DrawDebugLine(GetWorld(), StartLocation, HitResult.TraceEnd, FColor::Red, false, 1, 0, 1); //
 	return false;
 }
