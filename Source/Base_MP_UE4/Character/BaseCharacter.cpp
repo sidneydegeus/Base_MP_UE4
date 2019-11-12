@@ -333,10 +333,11 @@ void ABaseCharacter::OnRep_EquippedWeapon() {
 	CharacterAnimInstance->SetWeaponTypeEquipped(EquippedWeapon->GetWeaponType());
 	if (IsLocallyControlled()) {
 		DetermineWeaponControlInput();
-		ABaseMP_PlayerController* BasePlayerController = Cast<ABaseMP_PlayerController>(GetController());
-		BasePlayerController->SetWeapon(EquippedWeapon);
+		ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
+		PlayerController->SetWeapon(EquippedWeapon);
 		if (UI == nullptr) return;
 		UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
+		UI->DisplayCrosshair(EquippedWeapon->GetWeaponType() == EWeaponType::Ranged ? true : false);
 	}
 }
 

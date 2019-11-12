@@ -66,11 +66,11 @@ bool ABaseMP_PlayerController::GetLookVectorHitLocation(FVector LookDirection, F
 
 	if (bLineTraceHit) {
 		//HitLocation = HitResult.Location;
-		DrawDebugLine(GetWorld(), StartLocation, HitResult.Location, FColor::Green, false, 1, 0, 1); //
+		//DrawDebugLine(GetWorld(), StartLocation, HitResult.Location, FColor::Green, false, 1, 0, 1); //
 		return true;
 	}
 	//HitLocation = EndLocation;
 	//HitResult.Location = EndLocation;
-	DrawDebugLine(GetWorld(), StartLocation, HitResult.TraceEnd, FColor::Red, false, 1, 0, 1); //
+	//DrawDebugLine(GetWorld(), StartLocation, HitResult.TraceEnd, FColor::Red, false, 1, 0, 1); //
 	return false;
 }

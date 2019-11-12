@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 #include "PlayerUI.generated.h"
 
 /**
@@ -26,5 +27,10 @@ public:
 	void SetWeaponNameText(FName WeaponName) { 
 		if (WeaponName == "None") WeaponNameText->SetText(FText::FromString(""));
 		else WeaponNameText->SetText(FText::FromName(WeaponName)); 
+	};
+
+	void DisplayCrosshair(bool Display) {
+		if (Display) CrosshairImage->SetVisibility(ESlateVisibility::Visible);
+		else  CrosshairImage->SetVisibility(ESlateVisibility::Hidden);
 	};
 };
