@@ -9,7 +9,6 @@
 
 void ABaseMP_PlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ABaseMP_PlayerController, Weapon);
 }
 
 void ABaseMP_PlayerController::BeginPlay() {
@@ -23,11 +22,11 @@ void ABaseMP_PlayerController::Tick(float DeltaTime) {
 }
 
 void ABaseMP_PlayerController::AimTowardsCrosshair() {
-	if (!Weapon) return;
-
-	FHitResult HitResult;
-	bool bHitResult = GetSightRayHitLocation(HitResult);
-	Weapon->AimAt(HitResult, bHitResult);
+	if (Weapon != nullptr && Weapon->GetWeaponType() == EWeaponType::Ranged) {
+		FHitResult HitResult;
+		bool bHitResult = GetSightRayHitLocation(HitResult);
+		Weapon->AimAt(HitResult, bHitResult);
+	}
 }
 
 bool ABaseMP_PlayerController::GetSightRayHitLocation(FHitResult& HitResult) const {

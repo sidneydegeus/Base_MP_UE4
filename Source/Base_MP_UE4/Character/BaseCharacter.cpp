@@ -97,10 +97,6 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABaseCharacter::Interact);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABaseCharacter::Fire);
 
-
-	//PlayerInputComponent->BindAction("SwapWeapon", IE_Pressed, this, &ABaseCharacter::SwapWeapon);
-	//PlayerInputComponent->BindAction("DrawWeapon", IE_Pressed, this, &ABaseCharacter::DrawWeapon);
-
 	PlayerInputComponent->BindAction("Weapon 1", IE_Pressed, this, &ABaseCharacter::WeaponSlot_1);
 	PlayerInputComponent->BindAction("Weapon 2", IE_Pressed, this, &ABaseCharacter::WeaponSlot_2);
 }
@@ -304,21 +300,13 @@ void ABaseCharacter::StartEquipWeapon(ABaseWeapon* Weapon) {
 	}
 }
 
-//TODO: maybe make server functions
 void ABaseCharacter::EquipWeapon() {
 	bSwappingWeapon = false;
 	if (!HasAuthority()) return;
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(GetMesh());
 	if (CharacterMesh == nullptr || Unarmed == nullptr || WeaponToUnarm == nullptr || WeaponToEquip == nullptr) return;
 	EquippedWeapon = WeaponToEquip;
-
-	//// TODO: remove
-	ABaseMP_PlayerController* test = Cast<ABaseMP_PlayerController>(GetController());
-	test->SetWeapon(EquippedWeapon);
-
 	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
-	WeaponToUnarm = nullptr;
-	WeaponToEquip = nullptr;
 	DetermineWeaponControlInput();
 	if (IsLocallyControlled()) OnRep_EquippedWeapon();
 }
@@ -343,9 +331,13 @@ void ABaseCharacter::Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon)
 void ABaseCharacter::OnRep_EquippedWeapon() {
 	if (CharacterAnimInstance == nullptr || EquippedWeapon == nullptr) return;
 	CharacterAnimInstance->SetWeaponTypeEquipped(EquippedWeapon->GetWeaponType());
-	if (IsLocallyControlled()) DetermineWeaponControlInput();
-	if (UI == nullptr) return;
-	UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
+	if (IsLocallyControlled()) {
+		DetermineWeaponControlInput();
+		ABaseMP_PlayerController* BasePlayerController = Cast<ABaseMP_PlayerController>(GetController());
+		BasePlayerController->SetWeapon(EquippedWeapon);
+		if (UI == nullptr) return;
+		UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
+	}
 }
 
 void ABaseCharacter::Multicast_WeaponEquip_Implementation(EEquipWeaponState EquipWeaponState) {

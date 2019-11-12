@@ -21,12 +21,14 @@ FVector ATurret::SpawnProjectileLocation() {
 	return Barrel->GetSocketLocation(FName("Projectile"));
 }
 
+
+//TODO: aim barrel/turret towards empty space?? dirty fix would be to add walls everywhere
 void ATurret::AimAt(FHitResult HitResult, bool bResultHit) {
 	if (!ensure(Barrel)) return;
 
 	FVector OutLaunchVelocity;
 	FVector StartLocation = Barrel->GetSocketLocation(FName("Projectile"));
-	FVector EndLocation = (bResultHit) ? HitResult.Location : HitResult.TraceEnd;
+	FVector EndLocation = HitResult.Location;
 
 	bool bHaveAimSolution = UGameplayStatics::SuggestProjectileVelocity(
 		this,
@@ -43,11 +45,14 @@ void ATurret::AimAt(FHitResult HitResult, bool bResultHit) {
 		//true //debug draw
 	);
 
-
+	//UE_LOG(LogTemp, Warning, TEXT("line trace end: %d - %d - %d"), HitResult.TraceEnd.X, HitResult.TraceEnd.Y, HitResult.TraceEnd.Z);
 	if (bHaveAimSolution) {
 		CurrentAimDirection = OutLaunchVelocity.GetSafeNormal();
 		MoveBarrelTowards(CurrentAimDirection);
 	}
+	//else {
+	//	MoveBarrelTowards(HitResult.TraceEnd);
+	//}
 }
 
 
@@ -62,7 +67,7 @@ void ATurret::MoveBarrelTowards(FVector AimDirection) {
 	auto BarrelRotator = Barrel->GetForwardVector().Rotation();
 	auto AimAsRotator = AimDirection.Rotation();
 	auto DeltaRotator = AimAsRotator - BarrelRotator;
-
+	UE_LOG(LogTemp, Warning, TEXT("delta rotator: %d"), DeltaRotator.Yaw);
 	Barrel->Elevate(DeltaRotator.Pitch);
 
 	if (FMath::Abs(DeltaRotator.Yaw) < 180) {

@@ -22,13 +22,12 @@ private:
 	float CrosshairXLocation = 0.5;
 
 	UPROPERTY(EditDefaultsOnly)
-	float CrosshairYLocation = 0.3;
+	float CrosshairYLocation = 0.333333;
 
 	UPROPERTY(EditDefaultsOnly)
 	float LineTraceRange = 1000000;
 
-	UPROPERTY(Replicated)
-		//UBaseAimingComponent* AimingComponent;
+	UPROPERTY()
 	ABaseWeapon* Weapon;
 
 //Functions
