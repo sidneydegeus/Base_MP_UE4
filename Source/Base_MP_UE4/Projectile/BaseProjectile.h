@@ -12,27 +12,31 @@ class BASE_MP_UE4_API ABaseProjectile : public AActor
 	GENERATED_BODY()
 	
 //Variables
-private:
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-		UStaticMeshComponent* CollisionMesh = nullptr;
+protected:
+	UPROPERTY()
+	USceneComponent* Root = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	class USphereComponent* ProjectileCollision = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-		class UParticleSystemComponent* LaunchBlast = nullptr;
+	class UParticleSystemComponent* LaunchBlast = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-		class UParticleSystemComponent* ImpactBlast = nullptr;
+	class UParticleSystemComponent* ImpactBlast = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-		class UProjectileMovementComponent* ProjectileMovement = nullptr;
+	class UProjectileMovementComponent* ProjectileMovement = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-		class URadialForceComponent* ExplosionForce = nullptr;
+	class URadialForceComponent* ExplosionForce = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-		float DestroyDelay = 10.f;
+	float DestroyDelay = 10.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
-		float ProjectileDamage = 20.f;
+	float ProjectileDamage = 20.f;
+
 
 //Functions
 public:	

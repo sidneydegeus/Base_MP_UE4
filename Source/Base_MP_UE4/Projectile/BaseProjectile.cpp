@@ -9,33 +9,38 @@
 #include "Classes/Kismet/GameplayStatics.h"
 #include "Classes/GameFramework/DamageType.h"
 #include "Classes/Components/StaticMeshComponent.h"
+#include "Classes/Components/SphereComponent.h"
 
 // Sets default values
 ABaseProjectile::ABaseProjectile() {
 	PrimaryActorTick.bCanEverTick = false;
 
-	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("Collision Mesh"));
-	SetRootComponent(CollisionMesh);
-	CollisionMesh->SetNotifyRigidBodyCollision(true);
-	CollisionMesh->SetVisibility(false);
+	Root = CreateDefaultSubobject<USceneComponent>(FName("Root"));
+	SetRootComponent(Root);
+	//Root->SetNotifyRigidBodyCollision(true);
+	//Root->SetVisibility(false);
+	//Root->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
+
+	ProjectileCollision = CreateDefaultSubobject<USphereComponent>(FName("Projectile Collision"));
+	ProjectileCollision->AttachToComponent(Root, FAttachmentTransformRules::KeepRelativeTransform);
 
 	LaunchBlast = CreateDefaultSubobject<UParticleSystemComponent>(FName("Launch Blast"));
-	LaunchBlast->AttachToComponent(CollisionMesh, FAttachmentTransformRules::KeepRelativeTransform);
+	LaunchBlast->AttachToComponent(Root, FAttachmentTransformRules::KeepRelativeTransform);
 
 	ImpactBlast = CreateDefaultSubobject<UParticleSystemComponent>(FName("Impact Blast"));
-	ImpactBlast->AttachToComponent(CollisionMesh, FAttachmentTransformRules::KeepRelativeTransform);
+	ImpactBlast->AttachToComponent(Root, FAttachmentTransformRules::KeepRelativeTransform);
 	ImpactBlast->bAutoActivate = false;
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(FName("Projectile Movement"));
 	ProjectileMovement->bAutoActivate = false;
 
 	ExplosionForce = CreateDefaultSubobject<URadialForceComponent>(FName("Explosion Force"));
-	ExplosionForce->AttachToComponent(CollisionMesh, FAttachmentTransformRules::KeepRelativeTransform);
+	ExplosionForce->AttachToComponent(Root, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void ABaseProjectile::BeginPlay() {
 	Super::BeginPlay();
-	CollisionMesh->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
+	//CollisionMesh->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
 }
 
 void ABaseProjectile::LaunchProjectile(FVector ForwardVector, float Speed) {
@@ -49,7 +54,7 @@ void ABaseProjectile::ResolveHit_Implementation() {
 	ExplosionForce->FireImpulse();
 
 	SetRootComponent(ImpactBlast);
-	CollisionMesh->DestroyComponent();
+	Root->DestroyComponent();
 
 	FTimerHandle Timer;
 	GetWorld()->GetTimerManager().SetTimer(Timer, this, &ABaseProjectile::OnTimerExpire, DestroyDelay, false);
