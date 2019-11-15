@@ -33,18 +33,19 @@ void ABaseRangedWeapon::AimAt(FHitResult HitResult, bool bResultHit) {
 
 /// Projectile
 bool ABaseRangedWeapon::SpawnProjectile(FTransform Transform) {
-	auto Projectile = GetWorld()->SpawnActorDeferred<ABaseProjectile>(ProjectileBlueprint, Transform);
-	if (Projectile == nullptr) return false;
-	if (GetOwner() != nullptr) Projectile->SetOwner(GetOwner());
-	UGameplayStatics::FinishSpawningActor(Projectile, Transform);
-
-	//auto Projectile = GetWorld()->SpawnActor<ABaseProjectile>(
-	//	ProjectileBlueprint,
-	//	Transform
-	//	);
+	//auto Projectile = GetWorld()->SpawnActorDeferred<ABaseProjectile>(ProjectileBlueprint, Transform);
 	//if (Projectile == nullptr) return false;
-	//UE_LOG(LogTemp, Warning, TEXT("Owner %s"), *GetOwner()->GetName());
-	//Projectile->SetOwner(GetOwner());
+	//if (GetOwner() != nullptr) Projectile->SetOwner(GetOwner());
+	//UGameplayStatics::FinishSpawningActor(Projectile, Transform);
+
+	FActorSpawnParameters F;
+	F.Owner = GetOwner();
+	auto Projectile = GetWorld()->SpawnActor<ABaseProjectile>(
+		ProjectileBlueprint,
+		Transform,
+		F
+		);
+	if (Projectile == nullptr) return false;
 	Projectile->LaunchProjectile(FVector::ForwardVector, LaunchSpeed);
 	return true;
 }
