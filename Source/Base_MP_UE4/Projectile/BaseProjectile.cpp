@@ -17,12 +17,13 @@ ABaseProjectile::ABaseProjectile() {
 
 	Root = CreateDefaultSubobject<USceneComponent>(FName("Root"));
 	SetRootComponent(Root);
-	//Root->SetNotifyRigidBodyCollision(true);
-	//Root->SetVisibility(false);
-	//Root->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
+	//RootTest->SetNotifyRigidBodyCollision(true);
+	//RootTest->SetVisibility(false);
 
 	ProjectileCollision = CreateDefaultSubobject<USphereComponent>(FName("Projectile Collision"));
 	ProjectileCollision->AttachToComponent(Root, FAttachmentTransformRules::KeepRelativeTransform);
+	ProjectileCollision->SetNotifyRigidBodyCollision(true);
+
 
 	LaunchBlast = CreateDefaultSubobject<UParticleSystemComponent>(FName("Launch Blast"));
 	LaunchBlast->AttachToComponent(Root, FAttachmentTransformRules::KeepRelativeTransform);
@@ -40,7 +41,10 @@ ABaseProjectile::ABaseProjectile() {
 
 void ABaseProjectile::BeginPlay() {
 	Super::BeginPlay();
-	//CollisionMesh->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
+	ProjectileCollision->OnComponentBeginOverlap.AddDynamic(this, &ABaseProjectile::BeginOverlap);
+	//RootTest->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
+	//ProjectileCollision->OnComponentHit.AddDynamic(this, &ABaseProjectile::OnHit);
+
 }
 
 void ABaseProjectile::LaunchProjectile(FVector ForwardVector, float Speed) {
@@ -61,19 +65,33 @@ void ABaseProjectile::ResolveHit_Implementation() {
 }
 
 void ABaseProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit) {
+	UE_LOG(LogTemp, Warning, TEXT("hittttt"));
 	if (OtherActor == GetOwner()) return;
 	ResolveHit();
 
-	if (HasAuthority()) {
-		UGameplayStatics::ApplyRadialDamage(
-			this,
-			ProjectileDamage,
-			GetActorLocation(),
-			ExplosionForce->Radius,
-			UDamageType::StaticClass(),
-			TArray<AActor*>()
-		);
-	}
+	//if (HasAuthority()) {
+	//	UGameplayStatics::ApplyRadialDamage(
+	//		this,
+	//		ProjectileDamage,
+	//		GetActorLocation(),
+	//		ExplosionForce->Radius,
+	//		UDamageType::StaticClass(),
+	//		TArray<AActor*>()
+	//	);
+	//}
+}
+
+void ABaseProjectile::BeginOverlap(UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult &SweepResult) {
+	if (!HasAuthority() || OtherActor == GetOwner()) return;
+	//if (!HasAuthority() || ) return;
+	UE_LOG(LogTemp, Warning, TEXT("hit other actor: %s"), *OtherActor->GetName());
+
+
 }
 
 void ABaseProjectile::OnTimerExpire() {

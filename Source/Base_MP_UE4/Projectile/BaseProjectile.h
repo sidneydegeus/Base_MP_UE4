@@ -13,7 +13,7 @@ class BASE_MP_UE4_API ABaseProjectile : public AActor
 	
 //Variables
 protected:
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USceneComponent* Root = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
@@ -53,6 +53,14 @@ protected:
 
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+		void BeginOverlap(UPrimitiveComponent* OverlappedComponent,
+			AActor* OtherActor,
+			UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex,
+			bool bFromSweep,
+			const FHitResult &SweepResult);
 
 private:
 	void OnTimerExpire();

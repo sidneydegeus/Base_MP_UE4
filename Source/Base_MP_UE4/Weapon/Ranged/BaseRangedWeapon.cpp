@@ -10,8 +10,7 @@
 
 #include "Character/BaseCharacter.h"
 #include "Camera/CameraComponent.h"
-#include "DrawDebugHelpers.h"
-//#include "Components/C"
+#include "Kismet/GameplayStatics.h"
 
 void ABaseRangedWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -34,12 +33,18 @@ void ABaseRangedWeapon::AimAt(FHitResult HitResult, bool bResultHit) {
 
 /// Projectile
 bool ABaseRangedWeapon::SpawnProjectile(FTransform Transform) {
-	auto Projectile = GetWorld()->SpawnActor<ABaseProjectile>(
-		ProjectileBlueprint,
-		Transform
-		);
+	auto Projectile = GetWorld()->SpawnActorDeferred<ABaseProjectile>(ProjectileBlueprint, Transform);
 	if (Projectile == nullptr) return false;
-	Projectile->SetOwner(this);
+	if (GetOwner() != nullptr) Projectile->SetOwner(GetOwner());
+	UGameplayStatics::FinishSpawningActor(Projectile, Transform);
+
+	//auto Projectile = GetWorld()->SpawnActor<ABaseProjectile>(
+	//	ProjectileBlueprint,
+	//	Transform
+	//	);
+	//if (Projectile == nullptr) return false;
+	//UE_LOG(LogTemp, Warning, TEXT("Owner %s"), *GetOwner()->GetName());
+	//Projectile->SetOwner(GetOwner());
 	Projectile->LaunchProjectile(FVector::ForwardVector, LaunchSpeed);
 	return true;
 }
