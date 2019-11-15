@@ -122,6 +122,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
+
 // Movement
 protected:
 	void MoveForward(float Value);

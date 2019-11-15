@@ -11,6 +11,8 @@
 #include "Classes/Components/StaticMeshComponent.h"
 #include "Classes/Components/SphereComponent.h"
 
+#include "Character/BaseCharacter.h"
+
 // Sets default values
 ABaseProjectile::ABaseProjectile() {
 	PrimaryActorTick.bCanEverTick = false;
@@ -88,8 +90,16 @@ void ABaseProjectile::BeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	bool bFromSweep,
 	const FHitResult &SweepResult) {
 	if (!HasAuthority() || OtherActor == GetOwner()) return;
-	//if (!HasAuthority() || ) return;
-	UE_LOG(LogTemp, Warning, TEXT("hit other actor: %s"), *OtherActor->GetName());
+
+	TSubclassOf<UDamageType> DamageType;
+	UGameplayStatics::ApplyDamage(
+		OtherActor,
+		ProjectileDamage,
+		GetInstigatorController(),
+		this,
+		DamageType
+	);
+
 
 
 }
