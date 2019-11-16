@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Components/ProgressBar.h"
 #include "PlayerUI.generated.h"
 
 /**
@@ -23,6 +24,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* CrosshairImage;
 
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* HealthBar;
+
 public:
 	void SetWeaponNameText(FName WeaponName) { 
 		if (WeaponName == "None") WeaponNameText->SetText(FText::FromString(""));
@@ -32,5 +36,9 @@ public:
 	void DisplayCrosshair(bool Display) {
 		if (Display) CrosshairImage->SetVisibility(ESlateVisibility::Visible);
 		else  CrosshairImage->SetVisibility(ESlateVisibility::Hidden);
+	};
+
+	void UpdateHealthBar(float Health) {
+		HealthBar->SetPercent(Health);
 	};
 };

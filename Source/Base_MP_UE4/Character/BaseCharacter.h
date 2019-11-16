@@ -76,7 +76,7 @@ public:
 	float AimPitch;
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Setup)
 	TSubclassOf<class UPlayerUI> UIClass;
 	UPROPERTY()
 	UPlayerUI* UI;
@@ -98,6 +98,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	float AdditionalAimPitch;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	int32 MaxHealth = 100;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
+	int32 CurrentHealth;
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -123,6 +129,14 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetCurrentHealth(int32 Value);
+	void Server_SetCurrentHealth_Implementation(int32 Value) { CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0, MaxHealth); };
+	bool Server_SetCurrentHealth_Validate(int32 Value) { return true; };
+
+	UFUNCTION()
+	void OnRep_CurrentHealth();
 
 // Movement
 protected:

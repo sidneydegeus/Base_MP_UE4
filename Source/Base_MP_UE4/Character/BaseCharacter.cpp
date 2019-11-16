@@ -32,6 +32,10 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ABaseCharacter, MeleeWeaponSlot);
 	DOREPLIFETIME(ABaseCharacter, RangedWeaponSlot);
 
+	//UI
+	DOREPLIFETIME(ABaseCharacter, CurrentHealth);
+
+	//States for animation
 	DOREPLIFETIME(ABaseCharacter, AimPitch);
 	DOREPLIFETIME(ABaseCharacter, bJump);
 }
@@ -104,6 +108,7 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 void ABaseCharacter::BeginPlay() {
 	Super::BeginPlay();
 	CharacterAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
+	CurrentHealth = MaxHealth;
 	if (IsLocallyControlled()) Server_SetUnarmed();
 }
 
@@ -118,14 +123,16 @@ void ABaseCharacter::Tick(float DeltaTime) {
 
 float ABaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
 	int32 DamagePoints = FPlatformMath::RoundToInt(Damage);
-	//int32 DamageToApply = FMath::Clamp(DamagePoints, 0, CurrentHealth);
-	UE_LOG(LogTemp, Warning, TEXT("TAking Damage"));
-
-
-	return 0;
+	int32 DamageToApply = FMath::Clamp(DamagePoints, 0, CurrentHealth);
+	Server_SetCurrentHealth(-DamageToApply);
+	return DamageToApply;
 }
 
-
+void ABaseCharacter::OnRep_CurrentHealth() {
+	if (UI == nullptr) return;
+	float HealthPercentage = (float)CurrentHealth / (float)MaxHealth;
+	UI->UpdateHealthBar(HealthPercentage);
+}
 
 
 /// Movement
