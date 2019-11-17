@@ -23,6 +23,15 @@ enum class EEquipWeaponState : uint8
 	Ranged_To_Melee
 };
 
+UENUM(BlueprintType)
+enum class ECharacterHealthState : uint8
+{
+	Alive,
+	Dead
+
+	// injured?
+};
+
 USTRUCT(BlueprintType)
 struct FWeaponSlot
 {
@@ -75,6 +84,8 @@ public:
 	UPROPERTY(Replicated)
 	float AimPitch;
 
+	ECharacterHealthState HealthState = ECharacterHealthState::Alive;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 	TSubclassOf<class UPlayerUI> UIClass;
@@ -102,8 +113,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 	int32 MaxHealth = 100;
 
+	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	float DestroyCharacterDeathDelay = 5.0f;
+
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
 	int32 CurrentHealth;
+	
+	UPROPERTY()
+	class ABaseMP_PlayerController* PlayerController;
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -132,11 +149,17 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetCurrentHealth(int32 Value);
-	void Server_SetCurrentHealth_Implementation(int32 Value) { CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0, MaxHealth); };
+	void Server_SetCurrentHealth_Implementation(int32 Value);
 	bool Server_SetCurrentHealth_Validate(int32 Value) { return true; };
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();
+
+	void ApplyDeath();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_OnDeath(int32 Index);
+	void Multicast_OnDeath_Implementation(int32 Index);
 
 // Movement
 protected:
@@ -200,8 +223,8 @@ protected:
 	virtual void UnPossessed() override;
 
 	UFUNCTION(Client, Reliable)
-	void Client_PossessedBy(APlayerController* PlayerController);
-	virtual void Client_PossessedBy_Implementation(APlayerController* PlayerController);
+	void Client_PossessedBy(ABaseMP_PlayerController* NewPlayerController);
+	virtual void Client_PossessedBy_Implementation(ABaseMP_PlayerController* NewPlayerController);
 
 	UFUNCTION(Client, Reliable)
 	void Client_UnPossessed();

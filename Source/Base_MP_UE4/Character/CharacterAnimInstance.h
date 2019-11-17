@@ -34,21 +34,26 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = State)
 	bool IsJumping;
 
-
+	UPROPERTY(BlueprintReadOnly, Category = State)
+	ECharacterHealthState CharacterHealthState = ECharacterHealthState::Alive;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float AimPitch;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 DeathAnimationIndex;
 
 
 public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	void SetDeathAnimationIndex(int32 Index) { DeathAnimationIndex = Index; };
+
 	//Weapon
 	void SetWeaponTypeEquipped(EWeaponType WeaponType) { WeaponTypeEquipped = WeaponType; };
 	void SetIsSwappingWeapon(bool Result) { IsSwappingWeapon = Result; };
 
 	void EquipWeaponAnimation(EEquipWeaponState EquipWeaponState);
-
 };
 

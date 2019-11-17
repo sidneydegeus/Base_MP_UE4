@@ -134,6 +134,35 @@ void ABaseCharacter::OnRep_CurrentHealth() {
 	UI->UpdateHealthBar(HealthPercentage);
 }
 
+void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
+	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0, MaxHealth);
+	if (CurrentHealth <= 0) {
+		if (CharacterAnimInstance == nullptr) return;
+		auto DeathAnimationIndex = FMath::RandRange(1, 3);
+		Multicast_OnDeath(DeathAnimationIndex);
+		// delete unit after x time
+		FTimerHandle Timer;
+		GetWorld()->GetTimerManager().SetTimer(Timer, this, &ABaseProjectile::OnTimerExpire, DestroyCharacterDeathDelay, false);
+	}
+}
+
+void ABaseCharacter::ApplyDeath() {
+	HealthState = ECharacterHealthState::Dead;
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+}
+
+void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
+	ApplyDeath();
+	if (!CharacterAnimInstance) return;
+	CharacterAnimInstance->SetDeathAnimationIndex(Index);
+	//CharacterAnimInstance->DeathAnimation(Index);
+	//PlayAnimMontage(CharacterAnimInstance->GetDeathAnimations()[Index]);
+	if (IsLocallyControlled() && PlayerController) {
+		DisableInput(PlayerController);
+	}
+}
 
 /// Movement
 
@@ -348,11 +377,9 @@ void ABaseCharacter::Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon)
 void ABaseCharacter::OnRep_EquippedWeapon() {
 	if (CharacterAnimInstance == nullptr || EquippedWeapon == nullptr) return;
 	CharacterAnimInstance->SetWeaponTypeEquipped(EquippedWeapon->GetWeaponType());
-	if (IsLocallyControlled()) {
+	if (IsLocallyControlled() && PlayerController && UI) {
 		DetermineWeaponControlInput();
-		ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
 		PlayerController->SetWeapon(EquippedWeapon);
-		if (UI == nullptr) return;
 		UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
 		UI->DisplayCrosshair(EquippedWeapon->GetWeaponType() == EWeaponType::Ranged ? true : false);
 	}
@@ -384,8 +411,8 @@ void ABaseCharacter::DetermineWeaponControlInput() {
 /// Possession
 void ABaseCharacter::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	Client_PossessedBy(PlayerController);
+	ABaseMP_PlayerController* NewPlayerController = Cast<ABaseMP_PlayerController>(GetController());
+	Client_PossessedBy(NewPlayerController);
 }
 
 void ABaseCharacter::UnPossessed() {
@@ -395,20 +422,19 @@ void ABaseCharacter::UnPossessed() {
 	//RangedWeaponSlot->Destroy();
 	//Unarmed->Destroy();
 	Destroy();
-	UE_LOG(LogTemp, Warning, TEXT("UNpossess character"));
 	Client_UnPossessed();
 }
 
-void ABaseCharacter::Client_PossessedBy_Implementation(APlayerController* PlayerController) {
-	if (PlayerController == nullptr) return;
+void ABaseCharacter::Client_PossessedBy_Implementation(ABaseMP_PlayerController* NewPlayerController) {
+	if (NewPlayerController == nullptr) return;
+	PlayerController = NewPlayerController;
 	if (UIClass == nullptr) return;
 	UI = CreateWidget<UPlayerUI>(PlayerController, UIClass);
 	UI->AddToViewport();
-	UE_LOG(LogTemp, Warning, TEXT("possess client"));
 }
 
 void ABaseCharacter::Client_UnPossessed_Implementation() {
-	ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
+	//ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
 	if (PlayerController == nullptr) return;
 	if (UI == nullptr) return;
 	UI->RemoveFromViewport();
