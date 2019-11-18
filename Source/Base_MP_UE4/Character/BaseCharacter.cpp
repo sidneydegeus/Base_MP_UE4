@@ -17,6 +17,7 @@
 #include "Weapon/BaseWeapon.h"
 #include "Weapon/Unarmed.h"
 #include "InteractionComponent.h"
+#include "GenericComponents/ExitPawnComponent.h"
 
 #include "UI/PlayerUI.h"
 #include "BaseMP_PlayerController.h"
@@ -72,7 +73,7 @@ ABaseCharacter::ABaseCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
-
+	ExitComponent = CreateDefaultSubobject<UExitPawnComponent>(TEXT("ExitableComponent"));
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -141,8 +142,6 @@ void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
 		auto DeathAnimationIndex = FMath::RandRange(1, 3);
 		Multicast_OnDeath(DeathAnimationIndex);
 		// delete unit after x time
-		FTimerHandle Timer;
-		GetWorld()->GetTimerManager().SetTimer(Timer, this, &ABaseProjectile::OnTimerExpire, DestroyCharacterDeathDelay, false);
 	}
 }
 
@@ -161,8 +160,17 @@ void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
 	//PlayAnimMontage(CharacterAnimInstance->GetDeathAnimations()[Index]);
 	if (IsLocallyControlled() && PlayerController) {
 		DisableInput(PlayerController);
+		FTimerHandle Timer;
+		GetWorld()->GetTimerManager().SetTimer(Timer, this, &ABaseCharacter::Respawn, DestroyCharacterDeathDelay, false);
 	}
 }
+
+void ABaseCharacter::Respawn() {
+	if (!ExitComponent) return;
+	ExitComponent->ExitPawn();
+	Destroy();
+}
+
 
 /// Movement
 

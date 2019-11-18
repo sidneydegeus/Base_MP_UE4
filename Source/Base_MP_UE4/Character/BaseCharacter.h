@@ -126,6 +126,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UInteractionComponent* InteractionComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	class UExitPawnComponent* ExitComponent;
+
 	UPROPERTY()
 	class ABaseWeapon* WeaponToEquip;
 	UPROPERTY()
@@ -236,5 +239,6 @@ private:
 	void WeaponSlot_1();
 	void WeaponSlot_2();
 
+	void Respawn();
 
 };
