@@ -125,7 +125,9 @@ void ABaseCharacter::Tick(float DeltaTime) {
 float ABaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
 	int32 DamagePoints = FPlatformMath::RoundToInt(Damage);
 	int32 DamageToApply = FMath::Clamp(DamagePoints, 0, CurrentHealth);
-	Server_SetCurrentHealth(-DamageToApply);
+	if (CurrentHealth > 0) {
+		Server_SetCurrentHealth(-DamageToApply);
+	}
 	return DamageToApply;
 }
 
@@ -137,27 +139,26 @@ void ABaseCharacter::OnRep_CurrentHealth() {
 
 void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0, MaxHealth);
+	if (IsLocallyControlled()) OnRep_CurrentHealth();
 	if (CurrentHealth <= 0) {
 		if (CharacterAnimInstance == nullptr) return;
+		// TODO: get an array or something with animation count?
 		auto DeathAnimationIndex = FMath::RandRange(1, 3);
 		Multicast_OnDeath(DeathAnimationIndex);
-		// delete unit after x time
 	}
 }
 
+// TODO: client enemy falls through the ground
 void ABaseCharacter::ApplyDeath() {
 	HealthState = ECharacterHealthState::Dead;
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
 }
 
 void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
 	ApplyDeath();
 	if (!CharacterAnimInstance) return;
 	CharacterAnimInstance->SetDeathAnimationIndex(Index);
-	//CharacterAnimInstance->DeathAnimation(Index);
-	//PlayAnimMontage(CharacterAnimInstance->GetDeathAnimations()[Index]);
 	if (IsLocallyControlled() && PlayerController) {
 		DisableInput(PlayerController);
 		FTimerHandle Timer;
@@ -170,6 +171,8 @@ void ABaseCharacter::Respawn() {
 	ExitComponent->ExitPawn();
 	Destroy();
 }
+
+
 
 
 /// Movement
