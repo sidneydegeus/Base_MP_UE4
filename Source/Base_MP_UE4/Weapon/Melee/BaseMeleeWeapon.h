@@ -16,4 +16,7 @@ class BASE_MP_UE4_API ABaseMeleeWeapon : public ABaseWeapon
 	
 public:
 	ABaseMeleeWeapon();
+
+protected:
+	virtual void Server_Fire_Implementation(FTransform Transform) override;
 };

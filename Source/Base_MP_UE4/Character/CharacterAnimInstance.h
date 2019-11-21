@@ -16,6 +16,9 @@ class BASE_MP_UE4_API UCharacterAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(EditDefaultsOnly, Category = Animations)
+	TArray<UAnimMontage*> MeleeAttackAnimations;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Animations)

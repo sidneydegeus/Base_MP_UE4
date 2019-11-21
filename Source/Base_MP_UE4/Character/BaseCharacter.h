@@ -141,6 +141,7 @@ private:
 public:
 	ABaseCharacter();
 	ABaseWeapon* GetEquippedWeapon() { return EquippedWeapon; };
+	void RequestWeaponAnimation();
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -163,6 +164,10 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_OnDeath(int32 Index);
 	void Multicast_OnDeath_Implementation(int32 Index);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_MeleeAttack(int32 Index);
+	void Multicast_MeleeAttack_Implementation(int32 Index);
 
 // Movement
 protected:

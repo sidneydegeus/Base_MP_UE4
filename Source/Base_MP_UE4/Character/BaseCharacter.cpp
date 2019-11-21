@@ -459,3 +459,21 @@ void ABaseCharacter::Fire() {
 		EquippedWeapon->Fire();
 	}
 }
+
+//TODO: make generic for all weapon types. Only  works melee now
+void ABaseCharacter::RequestWeaponAnimation() {
+	if (!HasAuthority() || CharacterAnimInstance == nullptr) return;
+
+	if (CharacterAnimInstance->MeleeAttackAnimations.Num() > 0) {
+		auto AttackAnimationIndex = FMath::RandRange(1, CharacterAnimInstance->MeleeAttackAnimations.Num()) - 1;
+		Multicast_MeleeAttack(AttackAnimationIndex);
+	}
+	// get animation array size
+	// send random index number to multicast
+}
+
+void ABaseCharacter::Multicast_MeleeAttack_Implementation(int32 Index) {
+	// play weapon anim montage with index
+	if (CharacterAnimInstance == nullptr) return;
+	PlayAnimMontage(CharacterAnimInstance->MeleeAttackAnimations[Index]);
+}
