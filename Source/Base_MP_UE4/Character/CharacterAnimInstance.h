@@ -38,6 +38,9 @@ protected:
 	bool IsJumping;
 
 	UPROPERTY(BlueprintReadOnly, Category = State)
+	bool InCombat;
+
+	UPROPERTY(BlueprintReadOnly, Category = State)
 	ECharacterHealthState CharacterHealthState = ECharacterHealthState::Alive;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)

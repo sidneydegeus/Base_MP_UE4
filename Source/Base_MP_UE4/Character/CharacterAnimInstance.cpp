@@ -15,6 +15,7 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 	IsJumping = Character->bJump;
 	AimPitch = Character->AimPitch;
 	CharacterHealthState = Character->HealthState;
+	InCombat = Character->GetInCombat();
 
 	if (Character->GetEquippedWeapon() == nullptr) return;
 	SetWeaponTypeEquipped(Character->GetEquippedWeapon()->GetWeaponType());

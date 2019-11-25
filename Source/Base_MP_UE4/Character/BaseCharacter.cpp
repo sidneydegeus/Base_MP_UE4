@@ -24,6 +24,9 @@
 #include "Character/CharacterAnimInstance.h"
 #include "BaseMP_PlayerController.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+//#include "KismetSystemLibrary.h"
+
 #define stringify(name) # name
 
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
@@ -108,6 +111,7 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 void ABaseCharacter::BeginPlay() {
 	Super::BeginPlay();
+	DefaultMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	CharacterAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
 	CurrentHealth = MaxHealth;
 	if (IsLocallyControlled()) Server_SetUnarmed();
@@ -161,8 +165,7 @@ void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
 	CharacterAnimInstance->SetDeathAnimationIndex(Index);
 	if (IsLocallyControlled() && PlayerController) {
 		DisableInput(PlayerController);
-		FTimerHandle Timer;
-		GetWorld()->GetTimerManager().SetTimer(Timer, this, &ABaseCharacter::Respawn, DestroyCharacterDeathDelay, false);
+		GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &ABaseCharacter::Respawn, DestroyCharacterDeathDelay, false);
 	}
 }
 
@@ -172,7 +175,19 @@ void ABaseCharacter::Respawn() {
 	Destroy();
 }
 
+void ABaseCharacter::SetIsAttacking(bool Value) {
+	bIsAttacking = Value;
+	bInCombat = true;
+	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
+	CharacterMovementComponent->MaxWalkSpeed = MaxCombatWalkSpeed;
+	GetWorld()->GetTimerManager().SetTimer(LeaveCombatHandle, this,  &ABaseCharacter::OnLeaveCombat, LeaveCombatDelay, false);
+};
 
+void ABaseCharacter::OnLeaveCombat() {
+	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
+	CharacterMovementComponent->MaxWalkSpeed = DefaultMaxWalkSpeed;
+	bInCombat = false;
+}
 
 
 /// Movement
@@ -452,10 +467,11 @@ void ABaseCharacter::Client_UnPossessed_Implementation() {
 }
 
 
+
 /// Fire
 void ABaseCharacter::Fire() {
 	if (EquippedWeapon == nullptr) return;
-	if (!bSwappingWeapon) {
+	if (!bIsAttacking) {
 		EquippedWeapon->Fire();
 	}
 }

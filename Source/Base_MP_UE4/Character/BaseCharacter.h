@@ -84,6 +84,8 @@ public:
 	UPROPERTY(Replicated)
 	float AimPitch;
 
+
+
 	ECharacterHealthState HealthState = ECharacterHealthState::Alive;
 
 protected:
@@ -116,11 +118,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 	float DestroyCharacterDeathDelay = 5.0f;
 
+	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	float LeaveCombatDelay = 3.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	float MaxCombatWalkSpeed = 300.f;
+
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
 	int32 CurrentHealth;
 	
 	UPROPERTY()
 	class ABaseMP_PlayerController* PlayerController;
+
+	float DefaultMaxWalkSpeed;
+	bool bIsAttacking;
+	bool bInCombat;
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -134,6 +146,8 @@ private:
 	UPROPERTY()
 	class ABaseWeapon* WeaponToUnarm;
 
+	FTimerHandle RespawnTimer;
+	FTimerHandle LeaveCombatHandle;
 
 
 ///Functions 
@@ -142,6 +156,12 @@ public:
 	ABaseCharacter();
 	ABaseWeapon* GetEquippedWeapon() { return EquippedWeapon; };
 	void RequestWeaponAnimation();
+	void SetIsAttacking(bool Value);
+	bool GetInCombat() { return bInCombat; };
+
+	//make private
+	UFUNCTION()
+	void OnLeaveCombat();
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
