@@ -159,10 +159,6 @@ public:
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
 
-	//make private
-	UFUNCTION()
-	void OnLeaveCombat();
-
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -264,6 +260,13 @@ private:
 	void WeaponSlot_1();
 	void WeaponSlot_2();
 
-	void Respawn();
+	void EnterCombat();
+	void ResetCamera();
+
+	UFUNCTION()
+	void OnRespawn();
+
+	UFUNCTION()
+	void OnLeaveCombat();
 
 };

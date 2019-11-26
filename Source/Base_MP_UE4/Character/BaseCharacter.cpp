@@ -6,11 +6,11 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -22,10 +22,8 @@
 #include "UI/PlayerUI.h"
 #include "BaseMP_PlayerController.h"
 #include "Character/CharacterAnimInstance.h"
-#include "BaseMP_PlayerController.h"
 
-#include "GameFramework/CharacterMovementComponent.h"
-//#include "KismetSystemLibrary.h"
+#include "Engine/World.h"
 
 #define stringify(name) # name
 
@@ -126,68 +124,31 @@ void ABaseCharacter::Tick(float DeltaTime) {
 	}
 }
 
-float ABaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
-	int32 DamagePoints = FPlatformMath::RoundToInt(Damage);
-	int32 DamageToApply = FMath::Clamp(DamagePoints, 0, CurrentHealth);
-	if (CurrentHealth > 0) {
-		Server_SetCurrentHealth(-DamageToApply);
-	}
-	return DamageToApply;
-}
-
-void ABaseCharacter::OnRep_CurrentHealth() {
-	if (UI == nullptr) return;
-	float HealthPercentage = (float)CurrentHealth / (float)MaxHealth;
-	UI->UpdateHealthBar(HealthPercentage);
-}
-
-void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
-	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0, MaxHealth);
-	if (IsLocallyControlled()) OnRep_CurrentHealth();
-	if (CurrentHealth <= 0) {
-		if (CharacterAnimInstance == nullptr) return;
-		// TODO: get an array or something with animation count?
-		auto DeathAnimationIndex = FMath::RandRange(1, 3);
-		Multicast_OnDeath(DeathAnimationIndex);
-	}
-}
-
-// TODO: client enemy falls through the ground
-void ABaseCharacter::ApplyDeath() {
-	HealthState = ECharacterHealthState::Dead;
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
-}
-
-void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
-	ApplyDeath();
-	if (!CharacterAnimInstance) return;
-	CharacterAnimInstance->SetDeathAnimationIndex(Index);
-	if (IsLocallyControlled() && PlayerController) {
-		DisableInput(PlayerController);
-		GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &ABaseCharacter::Respawn, DestroyCharacterDeathDelay, false);
-	}
-}
-
-void ABaseCharacter::Respawn() {
-	if (!ExitComponent) return;
-	ExitComponent->ExitPawn();
-	Destroy();
-}
-
 void ABaseCharacter::SetIsAttacking(bool Value) {
 	bIsAttacking = Value;
-	bInCombat = true;
-	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
-	CharacterMovementComponent->MaxWalkSpeed = MaxCombatWalkSpeed;
+	if (!bInCombat) EnterCombat();
 	GetWorld()->GetTimerManager().SetTimer(LeaveCombatHandle, this,  &ABaseCharacter::OnLeaveCombat, LeaveCombatDelay, false);
 };
 
-void ABaseCharacter::OnLeaveCombat() {
-	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
-	CharacterMovementComponent->MaxWalkSpeed = DefaultMaxWalkSpeed;
-	bInCombat = false;
+void ABaseCharacter::ResetCamera() {
+	FRotator MeshRotation = GetMesh()->K2_GetComponentRotation();
+	FRotator ControlRotation = GetControlRotation();
+	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(MeshRotation, ControlRotation);
+	AddControllerYawInput(Delta.Yaw);
 }
+
+void ABaseCharacter::EnterCombat() {
+	bInCombat = true;
+	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
+	CharacterMovementComponent->MaxWalkSpeed = MaxCombatWalkSpeed;
+	//ResetCamera();
+	//TODO: lock camera like with rifle while in combat
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	bUseControllerRotationYaw = true;
+}
+
+
+
 
 
 /// Movement
@@ -228,8 +189,10 @@ void ABaseCharacter::MoveRight(float Value) {
 }
 
 void ABaseCharacter::Jump() {
-	Super::Jump();
-	bJump = true;
+	if (!bIsAttacking) {
+		Super::Jump();
+		bJump = true;
+	}
 }
 
 void ABaseCharacter::StopJumping() {
@@ -246,6 +209,60 @@ void ABaseCharacter::Interact() {
 
 
 
+
+
+
+/// Health, Damage, Death and Respawn
+
+float ABaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
+	int32 DamagePoints = FPlatformMath::RoundToInt(Damage);
+	int32 DamageToApply = FMath::Clamp(DamagePoints, 0, CurrentHealth);
+	if (CurrentHealth > 0) {
+		Server_SetCurrentHealth(-DamageToApply);
+	}
+	return DamageToApply;
+}
+
+void ABaseCharacter::OnRep_CurrentHealth() {
+	if (UI == nullptr) return;
+	float HealthPercentage = (float)CurrentHealth / (float)MaxHealth;
+	UI->UpdateHealthBar(HealthPercentage);
+}
+
+void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
+	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0, MaxHealth);
+	if (IsLocallyControlled()) OnRep_CurrentHealth();
+	if (CurrentHealth <= 0) {
+		if (CharacterAnimInstance == nullptr) return;
+		// TODO: get an array or something with animation count?
+		auto DeathAnimationIndex = FMath::RandRange(1, 3);
+		Multicast_OnDeath(DeathAnimationIndex);
+	}
+}
+
+void ABaseCharacter::ApplyDeath() {
+	HealthState = ECharacterHealthState::Dead;
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
+}
+
+void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
+	ApplyDeath();
+	if (!CharacterAnimInstance) return;
+	CharacterAnimInstance->SetDeathAnimationIndex(Index);
+	if (IsLocallyControlled() && PlayerController) {
+		DisableInput(PlayerController);
+		GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &ABaseCharacter::OnRespawn, DestroyCharacterDeathDelay, false);
+	}
+}
+
+
+
+
+
+
+
+
 /// PickUp Logic
 // TODO: eventually change to item and make more generic?
 void ABaseCharacter::PickUp() {
@@ -256,7 +273,6 @@ void ABaseCharacter::PickUp() {
 	Server_PickUp(OverlappedWeapon, this);
 	OverlappedWeapon = nullptr;
 }
-
 
 // TODO: move to an enum .h file
 template<typename T>
@@ -309,8 +325,10 @@ ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, AActor* Weapo
 
 
 
-/// Equip Weapon logic
 
+
+
+/// Equip Weapon logic
 void ABaseCharacter::WeaponSlot_1() {
 	StartEquipWeapon(DetermineWeaponToArm(MeleeWeaponSlot));
 }
@@ -413,8 +431,11 @@ void ABaseCharacter::OnRep_EquippedWeapon() {
 
 void ABaseCharacter::Multicast_WeaponEquip_Implementation(EEquipWeaponState EquipWeaponState) {
 	CharacterAnimInstance->EquipWeaponAnimation(EquipWeaponState);
+	bIsAttacking = false;
 }
 
+//TODO: add variables (booleans) to the weapon to modify movement and camera stuff.
+// E.g. Out of combat - no camera lock, in combat camera lock (like with rifle)
 void ABaseCharacter::DetermineWeaponControlInput() {
 	if (EquippedWeapon == nullptr) return;
 
@@ -434,6 +455,9 @@ void ABaseCharacter::DetermineWeaponControlInput() {
 
 
 
+
+
+
 /// Possession
 void ABaseCharacter::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
@@ -444,9 +468,6 @@ void ABaseCharacter::PossessedBy(AController* NewController) {
 void ABaseCharacter::UnPossessed() {
 	Super::UnPossessed();
 	SetAutonomousProxy(false);
-	//MeleeWeaponSlot->Destroy();
-	//RangedWeaponSlot->Destroy();
-	//Unarmed->Destroy();
 	Destroy();
 	Client_UnPossessed();
 }
@@ -460,11 +481,15 @@ void ABaseCharacter::Client_PossessedBy_Implementation(ABaseMP_PlayerController*
 }
 
 void ABaseCharacter::Client_UnPossessed_Implementation() {
-	//ABaseMP_PlayerController* PlayerController = Cast<ABaseMP_PlayerController>(GetController());
 	if (PlayerController == nullptr) return;
 	if (UI == nullptr) return;
 	UI->RemoveFromViewport();
 }
+
+
+
+
+
 
 
 
@@ -484,12 +509,33 @@ void ABaseCharacter::RequestWeaponAnimation() {
 		auto AttackAnimationIndex = FMath::RandRange(1, CharacterAnimInstance->MeleeAttackAnimations.Num()) - 1;
 		Multicast_MeleeAttack(AttackAnimationIndex);
 	}
-	// get animation array size
-	// send random index number to multicast
+	// TODO: never pick same random number as last random number
 }
 
 void ABaseCharacter::Multicast_MeleeAttack_Implementation(int32 Index) {
 	// play weapon anim montage with index
 	if (CharacterAnimInstance == nullptr) return;
 	PlayAnimMontage(CharacterAnimInstance->MeleeAttackAnimations[Index]);
+}
+
+
+
+
+
+
+
+
+/// Callbacks / Timers
+void ABaseCharacter::OnRespawn() {
+	if (!ExitComponent) return;
+	ExitComponent->ExitPawn();
+	Destroy();
+}
+
+void ABaseCharacter::OnLeaveCombat() {
+	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
+	CharacterMovementComponent->MaxWalkSpeed = DefaultMaxWalkSpeed;
+	bInCombat = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
 }
