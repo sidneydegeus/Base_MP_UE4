@@ -32,6 +32,15 @@ enum class ECharacterHealthState : uint8
 	// injured?
 };
 
+UENUM()
+enum class ESideStepState : uint8
+{
+	SideStep_Forward,
+	SideStep_Backward,
+	SideStep_Left,
+	SideStep_Right
+};
+
 USTRUCT(BlueprintType)
 struct FWeaponSlot
 {
@@ -43,6 +52,21 @@ public:
 
 	UPROPERTY()
 	class ABaseWeapon* Weapon;
+};
+
+USTRUCT(BlueprintType)
+struct FSideStepInfo
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	bool IsSideStepping;
+
+	UPROPERTY(BlueprintReadOnly)
+	float SideStepAngle;
+
+	FVector SideStepDirection;
 };
 
 UCLASS(config = Game, abstract)
@@ -84,7 +108,8 @@ public:
 	UPROPERTY(Replicated)
 	float AimPitch;
 
-
+	UPROPERTY(BlueprintReadOnly)
+	FSideStepInfo SideStepInfo;
 
 	ECharacterHealthState HealthState = ECharacterHealthState::Alive;
 
@@ -121,7 +146,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
 	float LeaveCombatDelay = 3.0f;
 
-	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	UPROPERTY(EditDefaultsOnly, Category = Movement)
+	float DodgeSpeed = 600.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = Movement)
+	float SideStepSpeed = 450.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = Movement)
 	float MaxCombatWalkSpeed = 300.f;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
@@ -133,6 +164,7 @@ protected:
 	float DefaultMaxWalkSpeed;
 	bool bIsAttacking;
 	bool bInCombat;
+
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -148,7 +180,7 @@ private:
 
 	FTimerHandle RespawnTimer;
 	FTimerHandle LeaveCombatHandle;
-
+	
 
 ///Functions 
 
@@ -158,6 +190,8 @@ public:
 	void RequestWeaponAnimation();
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
+	FSideStepInfo GetSideStepInfo() { return SideStepInfo; };
+
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -186,6 +220,9 @@ protected:
 	void Multicast_MeleeAttack_Implementation(int32 Index);
 
 // Movement
+public:
+	void OnSideStepEnd();
+
 protected:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -193,6 +230,21 @@ protected:
 	void LookUpAtRate(float Rate);
 	virtual void Jump() override;
 	virtual void StopJumping() override;
+
+	void SideStep(float Angle);
+	void SideStepForward();
+	void SideStepBackward();
+	void SideStepLeft();
+	void SideStepRight();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SideStep(float Angle);
+	void Server_SideStep_Implementation(float Angle);
+	bool Server_SideStep_Validate(float Angle) { return true; };
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SideStep(float Angle);
+	void Multicast_SideStep_Implementation(float Angle);
 
 	void Interact();
 
@@ -234,6 +286,7 @@ protected:
 	void Multicast_WeaponEquip(EEquipWeaponState State);
 	void Multicast_WeaponEquip_Implementation(EEquipWeaponState State);
 
+
 private:
 	ABaseWeapon* DetermineWeaponToArm(ABaseWeapon* Weapon);
 	EEquipWeaponState DetermineEquipWeaponState(ABaseWeapon* Weapon);
@@ -263,8 +316,18 @@ private:
 	void EnterCombat();
 	void ResetCamera();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetWorldLocation(FVector NewLocation);
+	void Server_SetWorldLocation_Implementation(FVector NewLocation);
+	bool Server_SetWorldLocation_Validate(FVector NewLocation) { return true; }
+
+	FVector GetForwardDirection();
+	FVector GetRightDirection();
+
 	UFUNCTION()
 	void OnRespawn();
+
+	void ResetCombatTimer();
 
 	UFUNCTION()
 	void OnLeaveCombat();

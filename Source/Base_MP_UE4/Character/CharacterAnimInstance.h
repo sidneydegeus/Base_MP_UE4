@@ -41,6 +41,9 @@ protected:
 	bool InCombat;
 
 	UPROPERTY(BlueprintReadOnly, Category = State)
+	FSideStepInfo SideStep;
+
+	UPROPERTY(BlueprintReadOnly, Category = State)
 	ECharacterHealthState CharacterHealthState = ECharacterHealthState::Alive;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)

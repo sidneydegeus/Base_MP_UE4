@@ -91,6 +91,11 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseCharacter::MoveRight);
+	//PlayerInputComponent->BindAction("SideStep", IE_Pressed, this, &ABaseCharacter::SideStep);
+	PlayerInputComponent->BindAction("SideStep_Forward", IE_DoubleClick, this, &ABaseCharacter::SideStepForward);
+	PlayerInputComponent->BindAction("SideStep_Backward", IE_DoubleClick, this, &ABaseCharacter::SideStepBackward);
+	PlayerInputComponent->BindAction("SideStep_Left", IE_DoubleClick, this, &ABaseCharacter::SideStepLeft);
+	PlayerInputComponent->BindAction("SideStep_Right", IE_DoubleClick, this, &ABaseCharacter::SideStepRight);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -105,6 +110,8 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAction("Weapon 1", IE_Pressed, this, &ABaseCharacter::WeaponSlot_1);
 	PlayerInputComponent->BindAction("Weapon 2", IE_Pressed, this, &ABaseCharacter::WeaponSlot_2);
+	
+
 }
 
 void ABaseCharacter::BeginPlay() {
@@ -121,14 +128,27 @@ void ABaseCharacter::Tick(float DeltaTime) {
 	if (IsLocallyControlled()) {
 		AimPitch = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Pitch + AdditionalAimPitch;
 		Server_SetAimPitch(AimPitch);
+
+		if (SideStepInfo.IsSideStepping == true) {
+			if (SideStepInfo.SideStepAngle == 0.f || SideStepInfo.SideStepAngle == 90.f) {
+				AddMovementInput(SideStepInfo.SideStepDirection, 1.0);
+			}
+			else if (SideStepInfo.SideStepAngle == -90.f || SideStepInfo.SideStepAngle == -180.f) {
+				AddMovementInput(SideStepInfo.SideStepDirection, -1.0);
+			}
+		}
 	}
 }
 
 void ABaseCharacter::SetIsAttacking(bool Value) {
 	bIsAttacking = Value;
 	if (!bInCombat) EnterCombat();
-	GetWorld()->GetTimerManager().SetTimer(LeaveCombatHandle, this,  &ABaseCharacter::OnLeaveCombat, LeaveCombatDelay, false);
+	ResetCombatTimer();
 };
+
+void ABaseCharacter::ResetCombatTimer() {
+	GetWorld()->GetTimerManager().SetTimer(LeaveCombatHandle, this, &ABaseCharacter::OnLeaveCombat, LeaveCombatDelay, false);
+}
 
 void ABaseCharacter::ResetCamera() {
 	FRotator MeshRotation = GetMesh()->K2_GetComponentRotation();
@@ -141,11 +161,12 @@ void ABaseCharacter::EnterCombat() {
 	bInCombat = true;
 	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
 	CharacterMovementComponent->MaxWalkSpeed = MaxCombatWalkSpeed;
-	//ResetCamera();
-	//TODO: lock camera like with rifle while in combat
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	bUseControllerRotationYaw = true;
 }
+
+
+
 
 
 
@@ -164,31 +185,23 @@ void ABaseCharacter::LookUpAtRate(float Rate) {
 }
 
 void ABaseCharacter::MoveForward(float Value) {
-	if ((Controller != NULL) && (Value != 0.0f)) {
+	if (SideStepInfo.IsSideStepping == true) return;
+	if (Value != 0.0f) {
 		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get forward vector
-		const FVector Direction  = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
+		AddMovementInput(GetForwardDirection(), Value);
 	}
 }
 
 void ABaseCharacter::MoveRight(float Value) {
-	if ((Controller != NULL) && (Value != 0.0f)) {
-		// find out which way is right
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get right vector 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	if (SideStepInfo.IsSideStepping == true) return;
+	if (Value != 0.0f) {
 		// add movement in that direction
-		AddMovementInput(Direction, Value);
+		AddMovementInput(GetRightDirection(), Value);
 	}
 }
 
 void ABaseCharacter::Jump() {
+	if (SideStepInfo.IsSideStepping == true) return;
 	if (!bIsAttacking) {
 		Super::Jump();
 		bJump = true;
@@ -206,7 +219,55 @@ void ABaseCharacter::Interact() {
 	}
 }
 
+void ABaseCharacter::SideStep(float Angle) {
+	if (bInCombat && !bJump && !bIsAttacking) { // and is not dodge/rolling
+		SideStepInfo.IsSideStepping = true;
+		SideStepInfo.SideStepAngle = Angle;
+		GetCharacterMovement()->MaxWalkSpeed = SideStepSpeed;
+		ResetCombatTimer();
+		if (IsLocallyControlled()) {
+			Server_SideStep(Angle);
+		}
+	}
+}
 
+void ABaseCharacter::OnSideStepEnd() {
+	SideStepInfo.IsSideStepping = false;
+	GetCharacterMovement()->MaxWalkSpeed = MaxCombatWalkSpeed;
+}
+
+void ABaseCharacter::SideStepForward() {
+	SideStepInfo.SideStepDirection = GetForwardDirection();
+	float Angle = 0.f;
+	SideStep(Angle);
+}
+
+void ABaseCharacter::SideStepBackward() {
+	SideStepInfo.SideStepDirection = GetForwardDirection();
+	float Angle = -180.f;
+	SideStep(Angle);
+}
+
+void ABaseCharacter::SideStepLeft() {
+	SideStepInfo.SideStepDirection = GetRightDirection();
+	float Angle = -90.f;
+	SideStep(Angle);
+}
+
+void ABaseCharacter::SideStepRight() {
+	SideStepInfo.SideStepDirection = GetRightDirection();
+	float Angle = 90.f;
+	SideStep(Angle);
+}
+
+void ABaseCharacter::Server_SideStep_Implementation(float Angle) {
+	Multicast_SideStep(Angle);
+}
+
+void ABaseCharacter::Multicast_SideStep_Implementation(float Angle) {
+	if (IsLocallyControlled()) return;
+	SideStep(Angle);
+}
 
 
 
@@ -538,4 +599,35 @@ void ABaseCharacter::OnLeaveCombat() {
 	bInCombat = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
+}
+
+
+
+
+/// Utility
+
+void ABaseCharacter::Server_SetWorldLocation_Implementation(FVector NewLocation) {
+	GetCapsuleComponent()->SetWorldLocation(NewLocation, true);
+}
+
+FVector ABaseCharacter::GetForwardDirection() {
+	if (Controller != NULL) {
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		// get forward vector 
+		return FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	}
+	return FVector();
+}
+
+FVector ABaseCharacter::GetRightDirection() {
+	if (Controller != NULL) {
+		// find out which way is right
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		// get right vector 
+		return FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	}
+	return FVector();
 }
