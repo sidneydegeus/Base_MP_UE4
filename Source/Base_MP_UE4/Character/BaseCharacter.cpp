@@ -91,11 +91,14 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseCharacter::MoveRight);
-	//PlayerInputComponent->BindAction("SideStep", IE_Pressed, this, &ABaseCharacter::SideStep);
+
 	PlayerInputComponent->BindAction("SideStep_Forward", IE_DoubleClick, this, &ABaseCharacter::SideStepForward);
 	PlayerInputComponent->BindAction("SideStep_Backward", IE_DoubleClick, this, &ABaseCharacter::SideStepBackward);
 	PlayerInputComponent->BindAction("SideStep_Left", IE_DoubleClick, this, &ABaseCharacter::SideStepLeft);
 	PlayerInputComponent->BindAction("SideStep_Right", IE_DoubleClick, this, &ABaseCharacter::SideStepRight);
+
+	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &ABaseCharacter::Dodge); 
+	//PlayerInputComponent->BindAction("AnyKey", IE_Pressed, this, &ABaseCharacter::Dodge);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -129,12 +132,34 @@ void ABaseCharacter::Tick(float DeltaTime) {
 		AimPitch = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation()).Pitch + AdditionalAimPitch;
 		Server_SetAimPitch(AimPitch);
 
-		if (SideStepInfo.IsSideStepping == true) {
-			if (SideStepInfo.SideStepAngle == 0.f || SideStepInfo.SideStepAngle == 90.f) {
-				AddMovementInput(SideStepInfo.SideStepDirection, 1.0);
+		if (ManeuverInfo.IsManeuvering) {
+			if (ManeuverInfo.ManeuverAngle == 0.f) {
+				AddMovementInput(ManeuverInfo.ForwardManeuverDirection, 1.0);
 			}
-			else if (SideStepInfo.SideStepAngle == -90.f || SideStepInfo.SideStepAngle == -180.f) {
-				AddMovementInput(SideStepInfo.SideStepDirection, -1.0);
+			else if (ManeuverInfo.ManeuverAngle == -180.f) {
+				AddMovementInput(ManeuverInfo.ForwardManeuverDirection, -1.0);
+			}
+			else if (ManeuverInfo.ManeuverAngle == 90.f) {
+				AddMovementInput(ManeuverInfo.RightManeuverDirection, 1.0);
+			}
+			else if (ManeuverInfo.ManeuverAngle == -90.f) {
+				AddMovementInput(ManeuverInfo.RightManeuverDirection, -1.0);
+			}
+			else if (ManeuverInfo.ManeuverAngle == 45.f) {
+				AddMovementInput(ManeuverInfo.ForwardManeuverDirection, 1.0);
+				AddMovementInput(ManeuverInfo.RightManeuverDirection, 1.0);
+			}
+			else if (ManeuverInfo.ManeuverAngle == -45.f) {
+				AddMovementInput(ManeuverInfo.ForwardManeuverDirection, 1.0);
+				AddMovementInput(ManeuverInfo.RightManeuverDirection, -1.0);
+			}
+			else if (ManeuverInfo.ManeuverAngle == -135.f) {
+				AddMovementInput(ManeuverInfo.ForwardManeuverDirection, -1.0);
+				AddMovementInput(ManeuverInfo.RightManeuverDirection, -1.0);
+			}
+			else if (ManeuverInfo.ManeuverAngle == 135.f) {
+				AddMovementInput(ManeuverInfo.ForwardManeuverDirection, -1.0);
+				AddMovementInput(ManeuverInfo.RightManeuverDirection, 1.0);
 			}
 		}
 	}
@@ -185,23 +210,43 @@ void ABaseCharacter::LookUpAtRate(float Rate) {
 }
 
 void ABaseCharacter::MoveForward(float Value) {
-	if (SideStepInfo.IsSideStepping == true) return;
+	if (Value > 0.0f) {
+		MovementInput.bForward = true;
+	}
+	else if (Value < 0.0f) {
+		MovementInput.bBackward = true;
+	}
+	else {
+		MovementInput.bForward = false;
+		MovementInput.bBackward = false;
+	}
+
+	if (ManeuverInfo.IsManeuvering) return;
 	if (Value != 0.0f) {
-		// find out which way is forward
 		AddMovementInput(GetForwardDirection(), Value);
 	}
 }
 
 void ABaseCharacter::MoveRight(float Value) {
-	if (SideStepInfo.IsSideStepping == true) return;
+	if (Value > 0.0f) {
+		MovementInput.bRight = true;
+	}
+	else if (Value < 0.0f) {
+		MovementInput.bLeft = true;
+	}
+	else {
+		MovementInput.bRight = false;
+		MovementInput.bLeft = false;
+	}
+
+	if (ManeuverInfo.IsManeuvering) return;
 	if (Value != 0.0f) {
-		// add movement in that direction
 		AddMovementInput(GetRightDirection(), Value);
 	}
 }
 
 void ABaseCharacter::Jump() {
-	if (SideStepInfo.IsSideStepping == true) return;
+	if (ManeuverInfo.IsManeuvering) return;
 	if (!bIsAttacking) {
 		Super::Jump();
 		bJump = true;
@@ -219,55 +264,106 @@ void ABaseCharacter::Interact() {
 	}
 }
 
-void ABaseCharacter::SideStep(float Angle) {
-	if (bInCombat && !bJump && !bIsAttacking) { // and is not dodge/rolling
-		SideStepInfo.IsSideStepping = true;
-		SideStepInfo.SideStepAngle = Angle;
-		GetCharacterMovement()->MaxWalkSpeed = SideStepSpeed;
+/// Movement - Maneuver
+void ABaseCharacter::Maneuver(float Angle, EManeuverType ManeuverType) {
+	if (bInCombat && !bJump && !bIsAttacking && !ManeuverInfo.IsManeuvering) {
+		ManeuverInfo.ForwardManeuverDirection = GetForwardDirection();
+		ManeuverInfo.RightManeuverDirection = GetRightDirection();
+		ManeuverInfo.IsManeuvering = true;
+		ManeuverInfo.ManeuverAngle = Angle;
+		ManeuverInfo.ManeuverType = ManeuverType;
+		if (ManeuverType == EManeuverType::SideStep) GetCharacterMovement()->MaxWalkSpeed = SideStepSpeed;
+		else GetCharacterMovement()->MaxWalkSpeed = DodgeSpeed;
 		ResetCombatTimer();
 		if (IsLocallyControlled()) {
-			Server_SideStep(Angle);
+			Server_Maneuver(Angle, ManeuverType);
 		}
 	}
 }
 
-void ABaseCharacter::OnSideStepEnd() {
-	SideStepInfo.IsSideStepping = false;
+void ABaseCharacter::OnManeuverEnd() {
+	ManeuverInfo.IsManeuvering = false;
+	ManeuverInfo.ManeuverType = EManeuverType::None;
 	GetCharacterMovement()->MaxWalkSpeed = MaxCombatWalkSpeed;
 }
 
+void ABaseCharacter::Server_Maneuver_Implementation(float Angle, EManeuverType ManeuverType) {
+	Multicast_Maneuver(Angle, ManeuverType);
+}
+
+void ABaseCharacter::Multicast_Maneuver_Implementation(float Angle, EManeuverType ManeuverType) {
+	if (IsLocallyControlled()) return;
+	Maneuver(Angle, ManeuverType);
+}
+
+
+
+/// Movement - SideStep
 void ABaseCharacter::SideStepForward() {
-	SideStepInfo.SideStepDirection = GetForwardDirection();
-	float Angle = 0.f;
-	SideStep(Angle);
+	Maneuver(0.f, EManeuverType::SideStep);
 }
 
 void ABaseCharacter::SideStepBackward() {
-	SideStepInfo.SideStepDirection = GetForwardDirection();
-	float Angle = -180.f;
-	SideStep(Angle);
+	Maneuver(-180.f, EManeuverType::SideStep);
 }
 
 void ABaseCharacter::SideStepLeft() {
-	SideStepInfo.SideStepDirection = GetRightDirection();
-	float Angle = -90.f;
-	SideStep(Angle);
+	Maneuver(-90.f, EManeuverType::SideStep);
 }
 
 void ABaseCharacter::SideStepRight() {
-	SideStepInfo.SideStepDirection = GetRightDirection();
-	float Angle = 90.f;
-	SideStep(Angle);
+	Maneuver(90.f, EManeuverType::SideStep);
 }
 
-void ABaseCharacter::Server_SideStep_Implementation(float Angle) {
-	Multicast_SideStep(Angle);
+/// Movement - Dodge
+void ABaseCharacter::Dodge() {
+	if (MovementInput.bForward) {
+		if (MovementInput.bLeft) { //forward left
+			Maneuver(-45.f, EManeuverType::Dodge);
+		}
+		else if (MovementInput.bRight) { // forward right
+			Maneuver(45.f, EManeuverType::Dodge);
+		}
+		else { // forward
+			Maneuver(0.f, EManeuverType::Dodge);
+		}
+	}
+	else if (MovementInput.bBackward) {
+		if (MovementInput.bLeft) { //backward left
+			Maneuver(-135.f, EManeuverType::Dodge);
+		}
+		else if (MovementInput.bRight) { // backward right
+			Maneuver(135.f, EManeuverType::Dodge);
+		}
+		else { // backward
+			Maneuver(-180.f, EManeuverType::Dodge);
+		}
+	}
+	else if (MovementInput.bLeft) { // left
+		Maneuver(-90.f, EManeuverType::Dodge);
+	}
+	else if (MovementInput.bRight) { // right
+		Maneuver(90.f, EManeuverType::Dodge);
+	}
+
 }
 
-void ABaseCharacter::Multicast_SideStep_Implementation(float Angle) {
-	if (IsLocallyControlled()) return;
-	SideStep(Angle);
-}
+//void ABaseCharacter::DodgeBackward() {
+//	ManeuverInfo.ManeuverDirection = GetForwardDirection();
+//	Maneuver(-180.f, EManeuverType::Dodge);
+//}
+//
+//void ABaseCharacter::DodgeLeft() {
+//	ManeuverInfo.ManeuverDirection = GetRightDirection();
+//	Maneuver(-90.f, EManeuverType::Dodge);
+//}
+//
+//void ABaseCharacter::DodgeRight() {
+//	ManeuverInfo.ManeuverDirection = GetRightDirection();
+//	Maneuver(90.f, EManeuverType::Dodge);
+//}
+
+
 
 
 
@@ -605,10 +701,6 @@ void ABaseCharacter::OnLeaveCombat() {
 
 
 /// Utility
-
-void ABaseCharacter::Server_SetWorldLocation_Implementation(FVector NewLocation) {
-	GetCapsuleComponent()->SetWorldLocation(NewLocation, true);
-}
 
 FVector ABaseCharacter::GetForwardDirection() {
 	if (Controller != NULL) {

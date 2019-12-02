@@ -28,17 +28,15 @@ enum class ECharacterHealthState : uint8
 {
 	Alive,
 	Dead
-
 	// injured?
 };
 
-UENUM()
-enum class ESideStepState : uint8
+UENUM(BlueprintType)
+enum class EManeuverType : uint8
 {
-	SideStep_Forward,
-	SideStep_Backward,
-	SideStep_Left,
-	SideStep_Right
+	None,
+	SideStep,
+	Dodge
 };
 
 USTRUCT(BlueprintType)
@@ -55,18 +53,34 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct FSideStepInfo
+struct FManeuverInfo
 {
 	GENERATED_USTRUCT_BODY()
 
 public:
 	UPROPERTY(BlueprintReadOnly)
-	bool IsSideStepping;
+	bool IsManeuvering;
 
 	UPROPERTY(BlueprintReadOnly)
-	float SideStepAngle;
+	float ManeuverAngle;
 
-	FVector SideStepDirection;
+	FVector ForwardManeuverDirection;
+	FVector RightManeuverDirection;
+
+	UPROPERTY(BlueprintReadOnly)
+	EManeuverType ManeuverType;
+};
+
+USTRUCT()
+struct FMovementInput
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	bool bLeft;
+	bool bRight;
+	bool bForward;
+	bool bBackward;
 };
 
 UCLASS(config = Game, abstract)
@@ -109,7 +123,7 @@ public:
 	float AimPitch;
 
 	UPROPERTY(BlueprintReadOnly)
-	FSideStepInfo SideStepInfo;
+	FManeuverInfo ManeuverInfo;
 
 	ECharacterHealthState HealthState = ECharacterHealthState::Alive;
 
@@ -137,13 +151,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	float AdditionalAimPitch;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	UPROPERTY(EditDefaultsOnly, Category = Statistics)
 	int32 MaxHealth = 100;
 
-	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	UPROPERTY(EditDefaultsOnly, Category = Delays)
 	float DestroyCharacterDeathDelay = 5.0f;
 
-	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	UPROPERTY(EditDefaultsOnly, Category = Delays)
 	float LeaveCombatDelay = 3.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = Movement)
@@ -160,6 +174,8 @@ protected:
 	
 	UPROPERTY()
 	class ABaseMP_PlayerController* PlayerController;
+
+	FMovementInput MovementInput;
 
 	float DefaultMaxWalkSpeed;
 	bool bIsAttacking;
@@ -190,8 +206,6 @@ public:
 	void RequestWeaponAnimation();
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
-	FSideStepInfo GetSideStepInfo() { return SideStepInfo; };
-
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -221,7 +235,7 @@ protected:
 
 // Movement
 public:
-	void OnSideStepEnd();
+	void OnManeuverEnd();
 
 protected:
 	void MoveForward(float Value);
@@ -231,20 +245,23 @@ protected:
 	virtual void Jump() override;
 	virtual void StopJumping() override;
 
-	void SideStep(float Angle);
+	void Maneuver(float Angle, EManeuverType ManeuverType);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Maneuver(float Angle, EManeuverType ManeuverType);
+	void Server_Maneuver_Implementation(float Angle, EManeuverType ManeuverType);
+	bool Server_Maneuver_Validate(float Angle, EManeuverType ManeuverType) { return true; };
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_Maneuver(float Angle, EManeuverType ManeuverType);
+	void Multicast_Maneuver_Implementation(float Angle, EManeuverType ManeuverType);
+
 	void SideStepForward();
 	void SideStepBackward();
 	void SideStepLeft();
 	void SideStepRight();
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SideStep(float Angle);
-	void Server_SideStep_Implementation(float Angle);
-	bool Server_SideStep_Validate(float Angle) { return true; };
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SideStep(float Angle);
-	void Multicast_SideStep_Implementation(float Angle);
+	void Dodge();
 
 	void Interact();
 
@@ -316,10 +333,7 @@ private:
 	void EnterCombat();
 	void ResetCamera();
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetWorldLocation(FVector NewLocation);
-	void Server_SetWorldLocation_Implementation(FVector NewLocation);
-	bool Server_SetWorldLocation_Validate(FVector NewLocation) { return true; }
+	void AnykeyPressed();
 
 	FVector GetForwardDirection();
 	FVector GetRightDirection();
