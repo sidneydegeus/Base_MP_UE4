@@ -160,6 +160,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Delays)
 	float LeaveCombatDelay = 3.0f;
 
+	UPROPERTY(EditDefaultsOnly, Category = Delays)
+	float ResetAttackDelay = 2.0f;
+
 	UPROPERTY(EditDefaultsOnly, Category = Movement)
 	float DodgeSpeed = 600.f;
 
@@ -196,7 +199,9 @@ private:
 
 	FTimerHandle RespawnTimer;
 	FTimerHandle LeaveCombatHandle;
+	FTimerHandle IsAttackingHandle;
 	
+	float PreviousMaxSpeed;
 
 ///Functions 
 
@@ -206,6 +211,7 @@ public:
 	void RequestWeaponAnimation();
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
+	void OnStopAttack(bool bCancelAnimation = false);
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;

@@ -10,5 +10,5 @@ void UEndMeleeAttackNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 	if (MeshComp == nullptr && MeshComp->GetOwner() == nullptr) return;
 	ABaseCharacter* Character = Cast<ABaseCharacter>(MeshComp->GetOwner());
 	if (Character == nullptr) return;
-	Character->SetIsAttacking(false);
+	Character->OnStopAttack();
 }

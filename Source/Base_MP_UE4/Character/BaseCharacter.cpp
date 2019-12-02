@@ -24,6 +24,7 @@
 #include "Character/CharacterAnimInstance.h"
 
 #include "Engine/World.h"
+#include "TimerManager.h"
 
 #define stringify(name) # name
 
@@ -247,15 +248,16 @@ void ABaseCharacter::MoveRight(float Value) {
 
 void ABaseCharacter::Jump() {
 	if (ManeuverInfo.IsManeuvering) return;
-	if (!bIsAttacking) {
-		Super::Jump();
-		bJump = true;
-	}
+	Super::Jump();
+	bJump = true;
+	if (bIsAttacking) OnStopAttack(true);
+
 }
 
 void ABaseCharacter::StopJumping() {
 	Super::StopJumping();
 	bJump = false;
+	if (bIsAttacking) OnStopAttack(true);
 }
 
 void ABaseCharacter::Interact() {
@@ -266,25 +268,27 @@ void ABaseCharacter::Interact() {
 
 /// Movement - Maneuver
 void ABaseCharacter::Maneuver(float Angle, EManeuverType ManeuverType) {
-	if (bInCombat && !bJump && !bIsAttacking && !ManeuverInfo.IsManeuvering) {
+	if (!bJump && !ManeuverInfo.IsManeuvering) {
+		OnStopAttack(true);
 		ManeuverInfo.ForwardManeuverDirection = GetForwardDirection();
 		ManeuverInfo.RightManeuverDirection = GetRightDirection();
 		ManeuverInfo.IsManeuvering = true;
 		ManeuverInfo.ManeuverAngle = Angle;
 		ManeuverInfo.ManeuverType = ManeuverType;
+		PreviousMaxSpeed = GetCharacterMovement()->MaxWalkSpeed;
 		if (ManeuverType == EManeuverType::SideStep) GetCharacterMovement()->MaxWalkSpeed = SideStepSpeed;
 		else GetCharacterMovement()->MaxWalkSpeed = DodgeSpeed;
-		ResetCombatTimer();
 		if (IsLocallyControlled()) {
 			Server_Maneuver(Angle, ManeuverType);
 		}
+		ResetCombatTimer();
 	}
 }
 
 void ABaseCharacter::OnManeuverEnd() {
 	ManeuverInfo.IsManeuvering = false;
 	ManeuverInfo.ManeuverType = EManeuverType::None;
-	GetCharacterMovement()->MaxWalkSpeed = MaxCombatWalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = PreviousMaxSpeed;
 }
 
 void ABaseCharacter::Server_Maneuver_Implementation(float Angle, EManeuverType ManeuverType) {
@@ -348,20 +352,6 @@ void ABaseCharacter::Dodge() {
 
 }
 
-//void ABaseCharacter::DodgeBackward() {
-//	ManeuverInfo.ManeuverDirection = GetForwardDirection();
-//	Maneuver(-180.f, EManeuverType::Dodge);
-//}
-//
-//void ABaseCharacter::DodgeLeft() {
-//	ManeuverInfo.ManeuverDirection = GetRightDirection();
-//	Maneuver(-90.f, EManeuverType::Dodge);
-//}
-//
-//void ABaseCharacter::DodgeRight() {
-//	ManeuverInfo.ManeuverDirection = GetRightDirection();
-//	Maneuver(90.f, EManeuverType::Dodge);
-//}
 
 
 
@@ -589,6 +579,7 @@ void ABaseCharacter::OnRep_EquippedWeapon() {
 void ABaseCharacter::Multicast_WeaponEquip_Implementation(EEquipWeaponState EquipWeaponState) {
 	CharacterAnimInstance->EquipWeaponAnimation(EquipWeaponState);
 	bIsAttacking = false;
+	OnLeaveCombat();
 }
 
 //TODO: add variables (booleans) to the weapon to modify movement and camera stuff.
@@ -653,7 +644,7 @@ void ABaseCharacter::Client_UnPossessed_Implementation() {
 /// Fire
 void ABaseCharacter::Fire() {
 	if (EquippedWeapon == nullptr) return;
-	if (!bIsAttacking) {
+	if (!bIsAttacking && !ManeuverInfo.IsManeuvering) {
 		EquippedWeapon->Fire();
 	}
 }
@@ -667,10 +658,11 @@ void ABaseCharacter::RequestWeaponAnimation() {
 		Multicast_MeleeAttack(AttackAnimationIndex);
 	}
 	// TODO: never pick same random number as last random number
+	FTimerDelegate StopAttackDelegate = FTimerDelegate::CreateUObject(this, &ABaseCharacter::OnStopAttack, false);
+	GetWorld()->GetTimerManager().SetTimer(IsAttackingHandle, StopAttackDelegate, ResetAttackDelay, false);
 }
 
 void ABaseCharacter::Multicast_MeleeAttack_Implementation(int32 Index) {
-	// play weapon anim montage with index
 	if (CharacterAnimInstance == nullptr) return;
 	PlayAnimMontage(CharacterAnimInstance->MeleeAttackAnimations[Index]);
 }
@@ -690,11 +682,22 @@ void ABaseCharacter::OnRespawn() {
 }
 
 void ABaseCharacter::OnLeaveCombat() {
+
+	GetWorld()->GetTimerManager().ClearTimer(LeaveCombatHandle);
 	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
 	CharacterMovementComponent->MaxWalkSpeed = DefaultMaxWalkSpeed;
 	bInCombat = false;
+	bIsAttacking = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
+}
+
+void ABaseCharacter::OnStopAttack(bool bCancelAnimation) {
+	GetWorld()->GetTimerManager().ClearTimer(IsAttackingHandle);
+	bIsAttacking = false;
+	if (bCancelAnimation) {
+		StopAnimMontage();
+	}
 }
 
 
