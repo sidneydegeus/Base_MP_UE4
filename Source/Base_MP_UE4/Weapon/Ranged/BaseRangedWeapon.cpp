@@ -19,6 +19,8 @@ void ABaseRangedWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 ABaseRangedWeapon::ABaseRangedWeapon() {
 	WeaponType = EWeaponType::Ranged;
+	bOutCombat_CharacterCameraOrientation = false;
+	bOutCombat_CharacterUseControllerRotationYaw = true;
 }
 
 void ABaseRangedWeapon::AimAt(FHitResult HitResult, bool bResultHit) {

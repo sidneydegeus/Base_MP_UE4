@@ -55,6 +55,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName WeaponName;
 
+	UPROPERTY(EditDefaultsOnly, Category = WeaponControl)
+	bool bInCombat_CharacterCameraOrientation = false;
+	UPROPERTY(EditDefaultsOnly, Category = WeaponControl)
+	bool bInCombat_CharacterUseControllerRotationYaw = true;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = WeaponControl)
+	bool bOutCombat_CharacterCameraOrientation = true;
+	UPROPERTY(EditDefaultsOnly, Category = WeaponControl)
+	bool bOutCombat_CharacterUseControllerRotationYaw = false;
+
+
 public:	
 	void ActivateTick(bool bReset);
 
@@ -76,6 +88,12 @@ public:
 	EWeaponType GetWeaponType() { return WeaponType; };
 
 	FName GetWeaponName() { return WeaponName; };
+
+	bool GetInCombat_CharacterCameraOrientation() { return bInCombat_CharacterCameraOrientation; };
+	bool GetInCombat_CharacterUseControllerRotationYaw() { return bInCombat_CharacterUseControllerRotationYaw; };
+	bool GetOutCombat_CharacterCameraOrientation() { return bOutCombat_CharacterCameraOrientation; };
+	bool GetOutCombat_CharacterUseControllerRotationYaw() { return bOutCombat_CharacterUseControllerRotationYaw; };
+
 
 
 protected:

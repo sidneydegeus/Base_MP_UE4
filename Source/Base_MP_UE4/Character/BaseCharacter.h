@@ -66,6 +66,8 @@ public:
 
 	FVector ForwardManeuverDirection;
 	FVector RightManeuverDirection;
+	float ForwardInputValue;
+	float RightInputValue;
 
 	UPROPERTY(BlueprintReadOnly)
 	EManeuverType ManeuverType;
@@ -219,7 +221,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
+	
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetCurrentHealth(int32 Value);
@@ -244,20 +246,27 @@ public:
 	void OnManeuverEnd();
 
 protected:
+	virtual void Jump() override;
+	virtual void StopJumping() override;
+
+	void Interact();
+
+private:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TurnAtRate(float Rate);
 	void LookUpAtRate(float Rate);
-	virtual void Jump() override;
-	virtual void StopJumping() override;
 
-	void Maneuver(float Angle, EManeuverType ManeuverType);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetAimPitch(float Value);
+	void Server_SetAimPitch_Implementation(float Value) { AimPitch = Value; };
+	bool Server_SetAimPitch_Validate(float Value) { return true; }
 
+	void Maneuver(float Angle, EManeuverType ManeuverType, float ForwardInputValue, float RightInputValue);
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Maneuver(float Angle, EManeuverType ManeuverType);
 	void Server_Maneuver_Implementation(float Angle, EManeuverType ManeuverType);
 	bool Server_Maneuver_Validate(float Angle, EManeuverType ManeuverType) { return true; };
-
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_Maneuver(float Angle, EManeuverType ManeuverType);
 	void Multicast_Maneuver_Implementation(float Angle, EManeuverType ManeuverType);
@@ -268,8 +277,8 @@ protected:
 	void SideStepRight();
 
 	void Dodge();
-
-	void Interact();
+	void DodgeFreeCamera();
+	void DodgeLockedCamera();
 
 // PickUp
 protected:
@@ -289,15 +298,13 @@ public:
 	void UnequipWeapon();
 
 protected:
+	void WeaponSlot_1();
+	void WeaponSlot_2();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetUnarmed();
 	void Server_SetUnarmed_Implementation();
 	bool Server_SetUnarmed_Validate() { return true; }
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetAimPitch(float Value);
-	void Server_SetAimPitch_Implementation(float Value) { AimPitch = Value; };
-	bool Server_SetAimPitch_Validate(float Value) { return true; }
 
 	void StartEquipWeapon(ABaseWeapon* Weapon);
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -313,7 +320,7 @@ protected:
 private:
 	ABaseWeapon* DetermineWeaponToArm(ABaseWeapon* Weapon);
 	EEquipWeaponState DetermineEquipWeaponState(ABaseWeapon* Weapon);
-	void DetermineWeaponControlInput();
+	void DetermineWeaponControlInput(bool Combat);
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
@@ -330,26 +337,23 @@ protected:
 	void Client_UnPossessed();
 	virtual void Client_UnPossessed_Implementation();
 
-private:
+// Combat, Attacking
+protected:
 	void Fire();
-
-	void WeaponSlot_1();
-	void WeaponSlot_2();
-
 	void EnterCombat();
-	void ResetCamera();
+	void ResetCombatTimer();
+	void OnLeaveCombat();
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
-	void AnykeyPressed();
-
+// Utility
+private:	
 	FVector GetForwardDirection();
 	FVector GetRightDirection();
 
 	UFUNCTION()
 	void OnRespawn();
 
-	void ResetCombatTimer();
 
-	UFUNCTION()
-	void OnLeaveCombat();
+
 
 };

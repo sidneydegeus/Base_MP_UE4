@@ -134,7 +134,9 @@ void ABaseCharacter::Tick(float DeltaTime) {
 		Server_SetAimPitch(AimPitch);
 
 		if (ManeuverInfo.IsManeuvering) {
-			if (ManeuverInfo.ManeuverAngle == 0.f) {
+			AddMovementInput(ManeuverInfo.ForwardManeuverDirection, ManeuverInfo.ForwardInputValue);
+			AddMovementInput(ManeuverInfo.RightManeuverDirection, ManeuverInfo.RightInputValue);
+			/*if (ManeuverInfo.ManeuverAngle == 0.f) {
 				AddMovementInput(ManeuverInfo.ForwardManeuverDirection, 1.0);
 			}
 			else if (ManeuverInfo.ManeuverAngle == -180.f) {
@@ -161,35 +163,11 @@ void ABaseCharacter::Tick(float DeltaTime) {
 			else if (ManeuverInfo.ManeuverAngle == 135.f) {
 				AddMovementInput(ManeuverInfo.ForwardManeuverDirection, -1.0);
 				AddMovementInput(ManeuverInfo.RightManeuverDirection, 1.0);
-			}
+			}*/
 		}
 	}
 }
 
-void ABaseCharacter::SetIsAttacking(bool Value) {
-	bIsAttacking = Value;
-	if (!bInCombat) EnterCombat();
-	ResetCombatTimer();
-};
-
-void ABaseCharacter::ResetCombatTimer() {
-	GetWorld()->GetTimerManager().SetTimer(LeaveCombatHandle, this, &ABaseCharacter::OnLeaveCombat, LeaveCombatDelay, false);
-}
-
-void ABaseCharacter::ResetCamera() {
-	FRotator MeshRotation = GetMesh()->K2_GetComponentRotation();
-	FRotator ControlRotation = GetControlRotation();
-	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(MeshRotation, ControlRotation);
-	AddControllerYawInput(Delta.Yaw);
-}
-
-void ABaseCharacter::EnterCombat() {
-	bInCombat = true;
-	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
-	CharacterMovementComponent->MaxWalkSpeed = MaxCombatWalkSpeed;
-	GetCharacterMovement()->bOrientRotationToMovement = false;
-	bUseControllerRotationYaw = true;
-}
 
 
 
@@ -267,9 +245,11 @@ void ABaseCharacter::Interact() {
 }
 
 /// Movement - Maneuver
-void ABaseCharacter::Maneuver(float Angle, EManeuverType ManeuverType) {
+void ABaseCharacter::Maneuver(float Angle, EManeuverType ManeuverType, float ForwardInputValue, float RightInputValue) {
 	if (!bJump && !ManeuverInfo.IsManeuvering) {
 		OnStopAttack(true);
+		ManeuverInfo.ForwardInputValue = ForwardInputValue;
+		ManeuverInfo.RightInputValue = RightInputValue;
 		ManeuverInfo.ForwardManeuverDirection = GetForwardDirection();
 		ManeuverInfo.RightManeuverDirection = GetRightDirection();
 		ManeuverInfo.IsManeuvering = true;
@@ -280,8 +260,15 @@ void ABaseCharacter::Maneuver(float Angle, EManeuverType ManeuverType) {
 		else GetCharacterMovement()->MaxWalkSpeed = DodgeSpeed;
 		if (IsLocallyControlled()) {
 			Server_Maneuver(Angle, ManeuverType);
+			if (bInCombat) {
+				GetCharacterMovement()->bOrientRotationToMovement = false;
+				bUseControllerRotationYaw = false;
+			}
+			else {
+				DetermineWeaponControlInput(bInCombat);
+			}
+
 		}
-		ResetCombatTimer();
 	}
 }
 
@@ -289,6 +276,15 @@ void ABaseCharacter::OnManeuverEnd() {
 	ManeuverInfo.IsManeuvering = false;
 	ManeuverInfo.ManeuverType = EManeuverType::None;
 	GetCharacterMovement()->MaxWalkSpeed = PreviousMaxSpeed;
+	if (EquippedWeapon == nullptr) return;
+	if (bInCombat) {
+		GetCharacterMovement()->bOrientRotationToMovement = EquippedWeapon->GetInCombat_CharacterCameraOrientation();
+		bUseControllerRotationYaw = EquippedWeapon->GetInCombat_CharacterUseControllerRotationYaw();
+	}
+	else {
+		GetCharacterMovement()->bOrientRotationToMovement = EquippedWeapon->GetOutCombat_CharacterCameraOrientation();
+		bUseControllerRotationYaw = EquippedWeapon->GetOutCombat_CharacterUseControllerRotationYaw();
+	}
 }
 
 void ABaseCharacter::Server_Maneuver_Implementation(float Angle, EManeuverType ManeuverType) {
@@ -297,62 +293,113 @@ void ABaseCharacter::Server_Maneuver_Implementation(float Angle, EManeuverType M
 
 void ABaseCharacter::Multicast_Maneuver_Implementation(float Angle, EManeuverType ManeuverType) {
 	if (IsLocallyControlled()) return;
-	Maneuver(Angle, ManeuverType);
+	Maneuver(Angle, ManeuverType, 0.f, 0.f);
 }
-
-
 
 /// Movement - SideStep
 void ABaseCharacter::SideStepForward() {
-	Maneuver(0.f, EManeuverType::SideStep);
+	Maneuver(0.f, EManeuverType::SideStep, 1.f, 0.f);
 }
 
 void ABaseCharacter::SideStepBackward() {
-	Maneuver(-180.f, EManeuverType::SideStep);
+	Maneuver(-180.f, EManeuverType::SideStep, -1.f, 0.f);
 }
 
 void ABaseCharacter::SideStepLeft() {
-	Maneuver(-90.f, EManeuverType::SideStep);
+	Maneuver(-90.f, EManeuverType::SideStep, 0.f, -1.f);
 }
 
 void ABaseCharacter::SideStepRight() {
-	Maneuver(90.f, EManeuverType::SideStep);
+	Maneuver(90.f, EManeuverType::SideStep, 0.f, 1.f);
 }
 
 /// Movement - Dodge
 void ABaseCharacter::Dodge() {
+	if (bUseControllerRotationYaw == false && GetCharacterMovement()->bOrientRotationToMovement == true) {
+		DodgeFreeCamera();
+	}
+	else {
+		DodgeLockedCamera();
+	}
+}
+
+void ABaseCharacter::DodgeFreeCamera() {
+	if (MovementInput.bForward) {
+		if (MovementInput.bLeft) {
+			Maneuver(-45.f, EManeuverType::Dodge, 1.f, -1.f);
+		}
+		else if (MovementInput.bRight) {
+			Maneuver(45.f, EManeuverType::Dodge, 1.f, 1.f);
+		}
+		else {
+			Maneuver(0.f, EManeuverType::Dodge, 1.f, 0.f);
+		}
+	}
+	else if (MovementInput.bLeft) {
+		if (MovementInput.bBackward) {
+			Maneuver(-45.f, EManeuverType::Dodge, -1.f, -1.f);
+		}
+		else if (MovementInput.bForward) {
+			Maneuver(45.f, EManeuverType::Dodge, 1.f, -1.f);
+		}
+		else {
+			Maneuver(0.f, EManeuverType::Dodge, -0.f, -1.f);
+		}
+	}
+	else if (MovementInput.bBackward) {
+		if (MovementInput.bLeft) {
+			Maneuver(-45.f, EManeuverType::Dodge, -1.f, -1.f);
+		}
+		else if (MovementInput.bRight) {
+			Maneuver(45.f, EManeuverType::Dodge, -1.f, 1.f);
+		}
+		else {
+			Maneuver(0.f, EManeuverType::Dodge, -1.0f, 0.f);
+		}
+	}
+	else if (MovementInput.bRight) {
+		if (MovementInput.bForward) {
+			Maneuver(-45.f, EManeuverType::Dodge, -1.f, 1.f);
+		}
+		else if (MovementInput.bBackward) {
+			Maneuver(45.f, EManeuverType::Dodge, 1.f, 1.f);
+		}
+		else {
+			Maneuver(0.f, EManeuverType::Dodge, 0.f, 1.f);
+		}
+	}
+}
+
+void ABaseCharacter::DodgeLockedCamera() {
 	if (MovementInput.bForward) {
 		if (MovementInput.bLeft) { //forward left
-			Maneuver(-45.f, EManeuverType::Dodge);
+			Maneuver(-45.f, EManeuverType::Dodge, 1.f, -1.f);
 		}
 		else if (MovementInput.bRight) { // forward right
-			Maneuver(45.f, EManeuverType::Dodge);
+			Maneuver(45.f, EManeuverType::Dodge, 1.f, 1.f);
 		}
 		else { // forward
-			Maneuver(0.f, EManeuverType::Dodge);
+			Maneuver(0.f, EManeuverType::Dodge, 1.f, 0.f);
 		}
 	}
 	else if (MovementInput.bBackward) {
 		if (MovementInput.bLeft) { //backward left
-			Maneuver(-135.f, EManeuverType::Dodge);
+			Maneuver(-135.f, EManeuverType::Dodge, -1.f, -1.f);
 		}
 		else if (MovementInput.bRight) { // backward right
-			Maneuver(135.f, EManeuverType::Dodge);
+			Maneuver(135.f, EManeuverType::Dodge, -1.f, 1.f);
 		}
 		else { // backward
-			Maneuver(-180.f, EManeuverType::Dodge);
+			Maneuver(-180.f, EManeuverType::Dodge, -1.f, 0.f);
 		}
 	}
 	else if (MovementInput.bLeft) { // left
-		Maneuver(-90.f, EManeuverType::Dodge);
+		Maneuver(-90.f, EManeuverType::Dodge, 0.f, -1.f);
 	}
 	else if (MovementInput.bRight) { // right
-		Maneuver(90.f, EManeuverType::Dodge);
+		Maneuver(90.f, EManeuverType::Dodge, 0.f, 1.f);
 	}
-
 }
-
-
 
 
 
@@ -413,10 +460,7 @@ void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
 /// PickUp Logic
 // TODO: eventually change to item and make more generic?
 void ABaseCharacter::PickUp() {
-	if (OverlappedWeapon == nullptr) {
-		UE_LOG(LogTemp, Warning, TEXT("no overlapping weapon"));
-		return;
-	}
+	if (OverlappedWeapon == nullptr) return;
 	Server_PickUp(OverlappedWeapon, this);
 	OverlappedWeapon = nullptr;
 }
@@ -544,7 +588,7 @@ void ABaseCharacter::EquipWeapon() {
 	if (CharacterMesh == nullptr || Unarmed == nullptr || WeaponToUnarm == nullptr || WeaponToEquip == nullptr) return;
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
-	DetermineWeaponControlInput();
+	DetermineWeaponControlInput(bInCombat);
 	if (IsLocallyControlled()) OnRep_EquippedWeapon();
 }
 
@@ -557,7 +601,7 @@ void ABaseCharacter::UnequipWeapon() {
 		FName HolsterSocket = FName(*FString(EnumToString(stringify(EWeaponType), WeaponToUnarm->WeaponType) + "WeaponHolsterSocket"));
 		WeaponToUnarm->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, HolsterSocket);
 	}
-	DetermineWeaponControlInput();
+	DetermineWeaponControlInput(bInCombat);
 	if (IsLocallyControlled()) OnRep_EquippedWeapon();
 }
 
@@ -569,7 +613,7 @@ void ABaseCharacter::OnRep_EquippedWeapon() {
 	if (CharacterAnimInstance == nullptr || EquippedWeapon == nullptr) return;
 	CharacterAnimInstance->SetWeaponTypeEquipped(EquippedWeapon->GetWeaponType());
 	if (IsLocallyControlled() && PlayerController && UI) {
-		DetermineWeaponControlInput();
+		DetermineWeaponControlInput(bInCombat);
 		PlayerController->SetWeapon(EquippedWeapon);
 		UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
 		UI->DisplayCrosshair(EquippedWeapon->GetWeaponType() == EWeaponType::Ranged ? true : false);
@@ -582,21 +626,27 @@ void ABaseCharacter::Multicast_WeaponEquip_Implementation(EEquipWeaponState Equi
 	OnLeaveCombat();
 }
 
-//TODO: add variables (booleans) to the weapon to modify movement and camera stuff.
-// E.g. Out of combat - no camera lock, in combat camera lock (like with rifle)
-void ABaseCharacter::DetermineWeaponControlInput() {
+void ABaseCharacter::DetermineWeaponControlInput(bool Combat) {
 	if (EquippedWeapon == nullptr) return;
 
-	if (EquippedWeapon->WeaponType == EWeaponType::Ranged) {
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-		bUseControllerRotationYaw = true;
-		return;
+	if (Combat) {
+		GetCharacterMovement()->bOrientRotationToMovement = EquippedWeapon->GetInCombat_CharacterCameraOrientation();
+		bUseControllerRotationYaw = EquippedWeapon->GetInCombat_CharacterUseControllerRotationYaw();
 	}
 	else {
-		GetCharacterMovement()->bOrientRotationToMovement = true;
-		bUseControllerRotationYaw = false;
-		return;
+		GetCharacterMovement()->bOrientRotationToMovement = EquippedWeapon->GetOutCombat_CharacterCameraOrientation();
+		bUseControllerRotationYaw = EquippedWeapon->GetOutCombat_CharacterUseControllerRotationYaw();
 	}
+	//if (EquippedWeapon->WeaponType == EWeaponType::Ranged) {
+	//	GetCharacterMovement()->bOrientRotationToMovement = EquippedWeapon->GetOutCombat_CharacterCameraOrientation();
+	//	bUseControllerRotationYaw = EquippedWeapon->GetOutCombat_CharacterUseControllerRotationYaw();
+	//	return;
+	//}
+	//else {
+	//	GetCharacterMovement()->bOrientRotationToMovement = true;
+	//	bUseControllerRotationYaw = false;
+	//	return;
+	//}
 }
 
 
@@ -649,6 +699,24 @@ void ABaseCharacter::Fire() {
 	}
 }
 
+void ABaseCharacter::SetIsAttacking(bool Value) {
+	bIsAttacking = Value;
+	if (!bInCombat) EnterCombat();
+	ResetCombatTimer();
+};
+
+void ABaseCharacter::ResetCombatTimer() {
+	GetWorld()->GetTimerManager().SetTimer(LeaveCombatHandle, this, &ABaseCharacter::OnLeaveCombat, LeaveCombatDelay, false);
+}
+
+void ABaseCharacter::EnterCombat() {
+	bInCombat = true;
+	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
+	CharacterMovementComponent->MaxWalkSpeed = MaxCombatWalkSpeed;
+	if (EquippedWeapon == nullptr) return;
+	DetermineWeaponControlInput(bInCombat);
+}
+
 //TODO: make generic for all weapon types. Only  works melee now
 void ABaseCharacter::RequestWeaponAnimation() {
 	if (!HasAuthority() || CharacterAnimInstance == nullptr) return;
@@ -686,10 +754,12 @@ void ABaseCharacter::OnLeaveCombat() {
 	GetWorld()->GetTimerManager().ClearTimer(LeaveCombatHandle);
 	UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
 	CharacterMovementComponent->MaxWalkSpeed = DefaultMaxWalkSpeed;
+	PreviousMaxSpeed = DefaultMaxWalkSpeed;
 	bInCombat = false;
 	bIsAttacking = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	bUseControllerRotationYaw = false;
+	if (EquippedWeapon == nullptr) return;
+	GetCharacterMovement()->bOrientRotationToMovement = EquippedWeapon->GetOutCombat_CharacterCameraOrientation();
+	bUseControllerRotationYaw = EquippedWeapon->GetOutCombat_CharacterUseControllerRotationYaw();
 }
 
 void ABaseCharacter::OnStopAttack(bool bCancelAnimation) {
