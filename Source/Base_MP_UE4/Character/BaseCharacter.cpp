@@ -302,15 +302,21 @@ void ABaseCharacter::SideStepForward() {
 }
 
 void ABaseCharacter::SideStepBackward() {
-	Maneuver(-180.f, EManeuverType::SideStep, -1.f, 0.f);
+	float Angle = -180.f;
+	if (bUseControllerRotationYaw == false && GetCharacterMovement()->bOrientRotationToMovement == true) Angle = 0.f;
+	Maneuver(Angle, EManeuverType::SideStep, -1.f, 0.f);
 }
 
 void ABaseCharacter::SideStepLeft() {
-	Maneuver(-90.f, EManeuverType::SideStep, 0.f, -1.f);
+	float Angle = -90.f;
+	if (bUseControllerRotationYaw == false && GetCharacterMovement()->bOrientRotationToMovement == true) Angle = 0.f;
+	Maneuver(Angle, EManeuverType::SideStep, 0.f, -1.f);
 }
 
 void ABaseCharacter::SideStepRight() {
-	Maneuver(90.f, EManeuverType::SideStep, 0.f, 1.f);
+	float Angle = 90.f;
+	if (bUseControllerRotationYaw == false && GetCharacterMovement()->bOrientRotationToMovement == true) Angle = 0.f;
+	Maneuver(Angle, EManeuverType::SideStep, 0.f, 1.f);
 }
 
 /// Movement - Dodge
