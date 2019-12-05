@@ -247,7 +247,7 @@ void ABaseCharacter::Interact() {
 /// Movement - Maneuver
 void ABaseCharacter::Maneuver(float Angle, EManeuverType ManeuverType, float ForwardInputValue, float RightInputValue) {
 	if (!GetMovementComponent()->IsFalling() && !ManeuverInfo.IsManeuvering) {
-		OnStopAttack(true);
+		if (bIsAttacking) OnStopAttack(true);
 		ManeuverInfo.ForwardInputValue = ForwardInputValue;
 		ManeuverInfo.RightInputValue = RightInputValue;
 		ManeuverInfo.ForwardManeuverDirection = GetForwardDirection();
