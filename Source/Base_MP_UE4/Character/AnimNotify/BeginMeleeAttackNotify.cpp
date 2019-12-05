@@ -4,6 +4,8 @@
 #include "BeginMeleeAttackNotify.h"
 #include "Engine.h"
 #include "Character/BaseCharacter.h"
+#include "Weapon/BaseWeapon.h"
+#include "Weapon/Melee/BaseMeleeWeapon.h"
 
 // set  attacking staet teo start
 
@@ -12,4 +14,11 @@ void UBeginMeleeAttackNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 	ABaseCharacter* Character = Cast<ABaseCharacter>(MeshComp->GetOwner());
 	if (Character == nullptr) return;
 	Character->SetIsAttacking(true);
+	// activate collision
+	ABaseWeapon* EquippedWeapon = Character->GetEquippedWeapon();
+	if (EquippedWeapon->WeaponType == EWeaponType::Melee) {
+		ABaseMeleeWeapon* Weapon = Cast<ABaseMeleeWeapon>(EquippedWeapon);
+		Weapon->ResetActorsHit();
+		Weapon->ActivateHitBoxCollision();
+	}
 }
