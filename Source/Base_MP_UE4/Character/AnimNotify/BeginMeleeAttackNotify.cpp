@@ -13,12 +13,5 @@ void UBeginMeleeAttackNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 	if (MeshComp == nullptr && MeshComp->GetOwner() == nullptr) return;
 	ABaseCharacter* Character = Cast<ABaseCharacter>(MeshComp->GetOwner());
 	if (Character == nullptr) return;
-	Character->SetIsAttacking(true);
-	// activate collision
-	ABaseWeapon* EquippedWeapon = Character->GetEquippedWeapon();
-	if (EquippedWeapon->WeaponType == EWeaponType::Melee) {
-		ABaseMeleeWeapon* Weapon = Cast<ABaseMeleeWeapon>(EquippedWeapon);
-		Weapon->ResetActorsHit();
-		Weapon->ActivateHitBoxCollision();
-	}
+	Character->OnStartAttack();
 }

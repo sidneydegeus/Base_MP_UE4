@@ -213,6 +213,8 @@ public:
 	void RequestWeaponAnimation();
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
+
+	void OnStartAttack();
 	void OnStopAttack(bool bCancelAnimation = false);
 
 protected:

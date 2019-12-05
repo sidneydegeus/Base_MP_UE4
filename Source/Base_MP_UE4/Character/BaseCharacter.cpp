@@ -13,9 +13,11 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "TimerManager.h"
 
 #include "Weapon/BaseWeapon.h"
 #include "Weapon/Unarmed.h"
+#include "Weapon/Melee/BaseMeleeWeapon.h"
 #include "InteractionComponent.h"
 #include "GenericComponents/ExitPawnComponent.h"
 
@@ -23,8 +25,6 @@
 #include "BaseMP_PlayerController.h"
 #include "Character/CharacterAnimInstance.h"
 
-#include "Engine/World.h"
-#include "TimerManager.h"
 
 #define stringify(name) # name
 
@@ -87,8 +87,8 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABaseCharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ABaseCharacter::StopJumping);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseCharacter::MoveRight);
@@ -246,7 +246,7 @@ void ABaseCharacter::Interact() {
 
 /// Movement - Maneuver
 void ABaseCharacter::Maneuver(float Angle, EManeuverType ManeuverType, float ForwardInputValue, float RightInputValue) {
-	if (!bJump && !ManeuverInfo.IsManeuvering) {
+	if (!GetMovementComponent()->IsFalling() && !ManeuverInfo.IsManeuvering) {
 		OnStopAttack(true);
 		ManeuverInfo.ForwardInputValue = ForwardInputValue;
 		ManeuverInfo.RightInputValue = RightInputValue;
@@ -768,9 +768,23 @@ void ABaseCharacter::OnLeaveCombat() {
 	bUseControllerRotationYaw = EquippedWeapon->GetOutCombat_CharacterUseControllerRotationYaw();
 }
 
+void ABaseCharacter::OnStartAttack() {
+	bIsAttacking = true;
+	if (EquippedWeapon->WeaponType == EWeaponType::Melee) {
+		ABaseMeleeWeapon* Weapon = Cast<ABaseMeleeWeapon>(EquippedWeapon);
+		Weapon->ResetActorsHit();
+		Weapon->ActivateHitBoxCollision();
+	}
+}
+
 void ABaseCharacter::OnStopAttack(bool bCancelAnimation) {
 	GetWorld()->GetTimerManager().ClearTimer(IsAttackingHandle);
 	bIsAttacking = false;
+	if (EquippedWeapon->WeaponType == EWeaponType::Melee) {
+		ABaseMeleeWeapon* Weapon = Cast<ABaseMeleeWeapon>(EquippedWeapon);
+		Weapon->ResetActorsHit();
+		Weapon->DeactivateHitBoxCollision();
+	}
 	if (bCancelAnimation) {
 		StopAnimMontage();
 	}
