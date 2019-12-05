@@ -593,7 +593,8 @@ void ABaseCharacter::EquipWeapon() {
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(GetMesh());
 	if (CharacterMesh == nullptr || Unarmed == nullptr || WeaponToUnarm == nullptr || WeaponToEquip == nullptr) return;
 	EquippedWeapon = WeaponToEquip;
-	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("WeaponSocket"));
+	FName WeaponSocket = FName(*FString(EnumToString(stringify(EWeaponType), EquippedWeapon->WeaponType) + "WeaponSocket"));
+	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
 	DetermineWeaponControlInput(bInCombat);
 	if (IsLocallyControlled()) OnRep_EquippedWeapon();
 }
@@ -769,7 +770,7 @@ void ABaseCharacter::OnLeaveCombat() {
 }
 
 void ABaseCharacter::OnStartAttack() {
-	bIsAttacking = true;
+	SetIsAttacking(true);
 	if (EquippedWeapon->WeaponType == EWeaponType::Melee) {
 		ABaseMeleeWeapon* Weapon = Cast<ABaseMeleeWeapon>(EquippedWeapon);
 		Weapon->ResetActorsHit();
@@ -779,7 +780,7 @@ void ABaseCharacter::OnStartAttack() {
 
 void ABaseCharacter::OnStopAttack(bool bCancelAnimation) {
 	GetWorld()->GetTimerManager().ClearTimer(IsAttackingHandle);
-	bIsAttacking = false;
+	SetIsAttacking(false);
 	if (EquippedWeapon->WeaponType == EWeaponType::Melee) {
 		ABaseMeleeWeapon* Weapon = Cast<ABaseMeleeWeapon>(EquippedWeapon);
 		Weapon->ResetActorsHit();
