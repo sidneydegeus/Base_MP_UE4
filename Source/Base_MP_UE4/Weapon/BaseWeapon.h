@@ -109,6 +109,7 @@ protected:
 	virtual void Server_Fire_Implementation(FTransform Transform);
 	virtual bool Server_Fire_Validate(FTransform Transform) { return true; };
 
+
 	//UFUNCTION(Server, Reliable, WithValidation)
 	//void Server_Fire(FTransform Transform);
 	//virtual void Server_Fire_Implementation(FTransform Transform);

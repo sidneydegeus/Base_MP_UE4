@@ -644,16 +644,6 @@ void ABaseCharacter::DetermineWeaponControlInput(bool Combat) {
 		GetCharacterMovement()->bOrientRotationToMovement = EquippedWeapon->GetOutCombat_CharacterCameraOrientation();
 		bUseControllerRotationYaw = EquippedWeapon->GetOutCombat_CharacterUseControllerRotationYaw();
 	}
-	//if (EquippedWeapon->WeaponType == EWeaponType::Ranged) {
-	//	GetCharacterMovement()->bOrientRotationToMovement = EquippedWeapon->GetOutCombat_CharacterCameraOrientation();
-	//	bUseControllerRotationYaw = EquippedWeapon->GetOutCombat_CharacterUseControllerRotationYaw();
-	//	return;
-	//}
-	//else {
-	//	GetCharacterMovement()->bOrientRotationToMovement = true;
-	//	bUseControllerRotationYaw = false;
-	//	return;
-	//}
 }
 
 

@@ -9,6 +9,7 @@
 #include "Components/WidgetComponent.h"
 #include "UI/ItemUI.h"
 #include "GenericComponents/PickUpComponent.h"
+#include "Character/BaseCharacter.h"
 
 void ABaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -105,6 +106,7 @@ void ABaseWeapon::Fire() {
 void ABaseWeapon::Server_Fire_Implementation(FTransform Transform) {
 	//INTENDED: override to add functionality
 }
+
 
 
 

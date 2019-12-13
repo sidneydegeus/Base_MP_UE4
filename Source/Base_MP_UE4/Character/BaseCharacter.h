@@ -213,6 +213,7 @@ public:
 	void RequestWeaponAnimation();
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
+	UCharacterAnimInstance* GetCharacterAnimInstance() { return CharacterAnimInstance; };
 
 	void OnStartAttack();
 	void OnStopAttack(bool bCancelAnimation = false);
