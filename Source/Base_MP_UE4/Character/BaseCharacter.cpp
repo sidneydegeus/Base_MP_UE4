@@ -104,9 +104,9 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("Turn", this, &ABaseCharacter::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("TurnRate", this, &ABaseCharacter::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &ABaseCharacter::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ABaseCharacter::LookUpAtRate);
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABaseCharacter::Interact);
@@ -183,9 +183,22 @@ void ABaseCharacter::TurnAtRate(float Rate) {
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
+// Turn
+void ABaseCharacter::AddControllerYawInput(float Val) {
+	if (!bLockedOnTarget) {
+		Super::AddControllerYawInput(Val);
+	}
+}
+
 void ABaseCharacter::LookUpAtRate(float Rate) {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+//LookUp
+void ABaseCharacter::AddControllerPitchInput(float Val) {
+	float Value = UKismetMathLibrary::SelectFloat(0.2f, 1.f, bLockedOnTarget) * Val;
+	Super::AddControllerPitchInput(Value);
 }
 
 void ABaseCharacter::MoveForward(float Value) {
@@ -456,6 +469,11 @@ void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
 	}
 }
 
+void ABaseCharacter::OnRespawn() {
+	if (!ExitComponent) return;
+	ExitComponent->ExitPawn();
+	Destroy();
+}
 
 
 
@@ -740,11 +758,6 @@ void ABaseCharacter::Multicast_MeleeAttack_Implementation(int32 Index) {
 
 
 /// Callbacks / Timers
-void ABaseCharacter::OnRespawn() {
-	if (!ExitComponent) return;
-	ExitComponent->ExitPawn();
-	Destroy();
-}
 
 void ABaseCharacter::OnLeaveCombat() {
 

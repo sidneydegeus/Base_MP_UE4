@@ -114,12 +114,7 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 
-	bool bSwappingWeapon;
 
-	//TODO: Character State... maybe move to a struct?
-	//TODO make protected, use getters instead
-	UPROPERTY(Replicated)
-	bool bJump;
 
 	UPROPERTY(Replicated)
 	float AimPitch;
@@ -127,7 +122,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FManeuverInfo ManeuverInfo;
 
-	ECharacterHealthState HealthState = ECharacterHealthState::Alive;
+
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
@@ -183,8 +178,7 @@ protected:
 	FMovementInput MovementInput;
 
 	float DefaultMaxWalkSpeed;
-	bool bIsAttacking;
-	bool bInCombat;
+
 
 
 private:
@@ -204,6 +198,29 @@ private:
 	FTimerHandle IsAttackingHandle;
 	
 	float PreviousMaxSpeed;
+
+// States
+public:
+	bool bSwappingWeapon;
+
+	//TODO: Character State... maybe move to a struct?
+	//TODO make protected, use getters instead
+	UPROPERTY(Replicated)
+	bool bJump;
+
+	//TODO: change to boolean? there's only 
+	ECharacterHealthState HealthState = ECharacterHealthState::Alive;
+
+protected:
+	bool bIsAttacking;
+	bool bInCombat;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bLockedOnTarget;
+
+
+
+
 
 ///Functions 
 
@@ -253,6 +270,9 @@ protected:
 	virtual void StopJumping() override;
 
 	void Interact();
+
+	void AddControllerYawInput(float Val) override;
+	void AddControllerPitchInput(float Val) override;
 
 private:
 	void MoveForward(float Value);
