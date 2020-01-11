@@ -14,7 +14,7 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 
 	IsJumping = Character->bJump;
 	AimPitch = Character->AimPitch;
-	CharacterHealthState = Character->HealthState;
+	IsAlive = Character->bIsAlive;
 	InCombat = Character->GetInCombat();
 	ManeuverInfo = Character->ManeuverInfo;
 

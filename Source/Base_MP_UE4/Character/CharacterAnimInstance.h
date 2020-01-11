@@ -44,7 +44,8 @@ protected:
 	FManeuverInfo ManeuverInfo;
 
 	UPROPERTY(BlueprintReadOnly, Category = State)
-	ECharacterHealthState CharacterHealthState = ECharacterHealthState::Alive;
+	bool IsAlive = true;
+	//ECharacterHealthState CharacterHealthState = ECharacterHealthState::Alive;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float AimPitch;

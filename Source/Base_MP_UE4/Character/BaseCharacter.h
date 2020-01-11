@@ -208,15 +208,18 @@ public:
 	UPROPERTY(Replicated)
 	bool bJump;
 
-	//TODO: change to boolean? there's only 
-	ECharacterHealthState HealthState = ECharacterHealthState::Alive;
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsAlive = true;
 
 protected:
 	bool bIsAttacking;
 	bool bInCombat;
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bLockedOnTarget;
+	bool bIsLockedOnTarget;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsBeingLockedOn;
 
 
 
@@ -260,6 +263,10 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_MeleeAttack(int32 Index);
 	void Multicast_MeleeAttack_Implementation(int32 Index);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void TargetKilled();
+	void TargetKilled_Implementation() {};
 
 // Movement
 public:

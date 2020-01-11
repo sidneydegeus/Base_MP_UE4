@@ -7,9 +7,9 @@
 UPickUpComponent::UPickUpComponent(const FObjectInitializer& OI) : Super(OI) {
 	BodyInstance.SetCollisionProfileNameDeferred(FName("Custom"));
 	BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	BodyInstance.SetObjectType(ECollisionChannel::ECC_WorldDynamic);
+	BodyInstance.SetObjectType(ECollisionChannel::ECC_GameTraceChannel3); // Custom collision "Item"
 	BodyInstance.SetResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	BodyInstance.SetResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Overlap);
+	BodyInstance.SetResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Overlap); // Custom Collision "Character"
 
 	//PickUpWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	//PickUpWidgetComponent->RegisterComponent();

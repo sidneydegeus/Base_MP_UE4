@@ -185,7 +185,7 @@ void ABaseCharacter::TurnAtRate(float Rate) {
 
 // Turn
 void ABaseCharacter::AddControllerYawInput(float Val) {
-	if (!bLockedOnTarget) {
+	if (!bIsLockedOnTarget) {
 		Super::AddControllerYawInput(Val);
 	}
 }
@@ -197,7 +197,7 @@ void ABaseCharacter::LookUpAtRate(float Rate) {
 
 //LookUp
 void ABaseCharacter::AddControllerPitchInput(float Val) {
-	float Value = UKismetMathLibrary::SelectFloat(0.2f, 1.f, bLockedOnTarget) * Val;
+	float Value = UKismetMathLibrary::SelectFloat(0.2f, 1.f, bIsLockedOnTarget) * Val;
 	Super::AddControllerPitchInput(Value);
 }
 
@@ -454,9 +454,15 @@ void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
 }
 
 void ABaseCharacter::ApplyDeath() {
-	HealthState = ECharacterHealthState::Dead;
+	bIsAlive = false;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
+	if (bIsBeingLockedOn) {
+		ABaseCharacter* Player = Cast<ABaseCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+		if (Player) {
+			Player->TargetKilled();
+		}
+	}
 }
 
 void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
