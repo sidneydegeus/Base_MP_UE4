@@ -92,14 +92,6 @@ class BASE_MP_UE4_API ABaseCharacter : public ACharacter
 
 ///Variables
 public:
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
-
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
@@ -107,14 +99,6 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
-
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-
-
 
 	UPROPERTY(Replicated)
 	float AimPitch;
@@ -125,11 +109,6 @@ public:
 
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = Setup)
-	TSubclassOf<class UPlayerUI> UIClass;
-	UPROPERTY()
-	UPlayerUI* UI;
-
 	UPROPERTY(Replicated)
 	class ABaseWeapon* Unarmed;
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedWeapon)
@@ -171,29 +150,23 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
 	int32 CurrentHealth;
-	
-	UPROPERTY()
-	class ABaseMP_PlayerController* PlayerController;
 
 	FMovementInput MovementInput;
 
 	float DefaultMaxWalkSpeed;
 
-
-
-private:
 	UPROPERTY(VisibleAnywhere)
 	class UInteractionComponent* InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	class UExitPawnComponent* ExitComponent;
 
+private:
 	UPROPERTY()
 	class ABaseWeapon* WeaponToEquip;
 	UPROPERTY()
 	class ABaseWeapon* WeaponToUnarm;
 
-	FTimerHandle RespawnTimer;
 	FTimerHandle LeaveCombatHandle;
 	FTimerHandle IsAttackingHandle;
 	
@@ -240,7 +213,6 @@ public:
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
@@ -252,9 +224,9 @@ protected:
 	bool Server_SetCurrentHealth_Validate(int32 Value) { return true; };
 
 	UFUNCTION()
-	void OnRep_CurrentHealth();
+	virtual void OnRep_CurrentHealth();
 
-	void ApplyDeath();
+	virtual void OnDeath();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_OnDeath(int32 Index);
@@ -281,7 +253,6 @@ protected:
 	void AddControllerYawInput(float Val) override;
 	void AddControllerPitchInput(float Val) override;
 
-private:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TurnAtRate(float Rate);
@@ -346,26 +317,16 @@ protected:
 	void Multicast_WeaponEquip(EEquipWeaponState State);
 	void Multicast_WeaponEquip_Implementation(EEquipWeaponState State);
 
+	UFUNCTION()
+	virtual void OnRep_EquippedWeapon();
+
+	void DetermineWeaponControlInput(bool Combat);
 
 private:
 	ABaseWeapon* DetermineWeaponToArm(ABaseWeapon* Weapon);
 	EEquipWeaponState DetermineEquipWeaponState(ABaseWeapon* Weapon);
-	void DetermineWeaponControlInput(bool Combat);
-	UFUNCTION()
-	void OnRep_EquippedWeapon();
 
-// Possession
-protected:
-	virtual void PossessedBy(AController* NewController) override;
-	virtual void UnPossessed() override;
 
-	UFUNCTION(Client, Reliable)
-	void Client_PossessedBy(ABaseMP_PlayerController* NewPlayerController);
-	virtual void Client_PossessedBy_Implementation(ABaseMP_PlayerController* NewPlayerController);
-
-	UFUNCTION(Client, Reliable)
-	void Client_UnPossessed();
-	virtual void Client_UnPossessed_Implementation();
 
 // Combat, Attacking
 protected:
@@ -379,9 +340,6 @@ protected:
 private:	
 	FVector GetForwardDirection();
 	FVector GetRightDirection();
-
-	UFUNCTION()
-	void OnRespawn();
 
 
 

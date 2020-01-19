@@ -3,13 +3,11 @@
 
 #include "BaseCharacter.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
-#include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/InputComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
-#include "GameFramework/SpringArmComponent.h"
+
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -21,8 +19,6 @@
 #include "InteractionComponent.h"
 #include "GenericComponents/ExitPawnComponent.h"
 
-#include "UI/PlayerUI.h"
-#include "BaseMP_PlayerController.h"
 #include "Character/CharacterAnimInstance.h"
 
 
@@ -63,17 +59,6 @@ ABaseCharacter::ABaseCharacter()
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
-	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-
-	// Create a follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
 	ExitComponent = CreateDefaultSubobject<UExitPawnComponent>(TEXT("ExitableComponent"));
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -83,40 +68,7 @@ ABaseCharacter::ABaseCharacter()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
-{
-	// Set up gameplay key bindings
-	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABaseCharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ABaseCharacter::StopJumping);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseCharacter::MoveRight);
-
-	PlayerInputComponent->BindAction("SideStep_Forward", IE_DoubleClick, this, &ABaseCharacter::SideStepForward);
-	PlayerInputComponent->BindAction("SideStep_Backward", IE_DoubleClick, this, &ABaseCharacter::SideStepBackward);
-	PlayerInputComponent->BindAction("SideStep_Left", IE_DoubleClick, this, &ABaseCharacter::SideStepLeft);
-	PlayerInputComponent->BindAction("SideStep_Right", IE_DoubleClick, this, &ABaseCharacter::SideStepRight);
-
-	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &ABaseCharacter::Dodge); 
-	//PlayerInputComponent->BindAction("AnyKey", IE_Pressed, this, &ABaseCharacter::Dodge);
-
-	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	// "turn" handles devices that provide an absolute delta, such as a mouse.
-	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	PlayerInputComponent->BindAxis("Turn", this, &ABaseCharacter::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &ABaseCharacter::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &ABaseCharacter::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &ABaseCharacter::LookUpAtRate);
-
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ABaseCharacter::Interact);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABaseCharacter::Fire);
-
-	PlayerInputComponent->BindAction("Weapon 1", IE_Pressed, this, &ABaseCharacter::WeaponSlot_1);
-	PlayerInputComponent->BindAction("Weapon 2", IE_Pressed, this, &ABaseCharacter::WeaponSlot_2);
-	
-
-}
 
 void ABaseCharacter::BeginPlay() {
 	Super::BeginPlay();
@@ -436,11 +388,7 @@ float ABaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& Damage
 	return DamageToApply;
 }
 
-void ABaseCharacter::OnRep_CurrentHealth() {
-	if (UI == nullptr) return;
-	float HealthPercentage = (float)CurrentHealth / (float)MaxHealth;
-	UI->UpdateHealthBar(HealthPercentage);
-}
+void ABaseCharacter::OnRep_CurrentHealth() {}
 
 void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0, MaxHealth);
@@ -453,7 +401,7 @@ void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
 	}
 }
 
-void ABaseCharacter::ApplyDeath() {
+void ABaseCharacter::OnDeath() {
 	bIsAlive = false;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
@@ -466,20 +414,11 @@ void ABaseCharacter::ApplyDeath() {
 }
 
 void ABaseCharacter::Multicast_OnDeath_Implementation(int32 Index) {
-	ApplyDeath();
+	OnDeath();
 	if (!CharacterAnimInstance) return;
 	CharacterAnimInstance->SetDeathAnimationIndex(Index);
-	if (IsLocallyControlled() && PlayerController) {
-		DisableInput(PlayerController);
-		GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &ABaseCharacter::OnRespawn, DestroyCharacterDeathDelay, false);
-	}
 }
 
-void ABaseCharacter::OnRespawn() {
-	if (!ExitComponent) return;
-	ExitComponent->ExitPawn();
-	Destroy();
-}
 
 
 
@@ -643,12 +582,6 @@ void ABaseCharacter::Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon)
 void ABaseCharacter::OnRep_EquippedWeapon() {
 	if (CharacterAnimInstance == nullptr || EquippedWeapon == nullptr) return;
 	CharacterAnimInstance->SetWeaponTypeEquipped(EquippedWeapon->GetWeaponType());
-	if (IsLocallyControlled() && PlayerController && UI) {
-		DetermineWeaponControlInput(bInCombat);
-		PlayerController->SetWeapon(EquippedWeapon);
-		UI->SetWeaponNameText(EquippedWeapon->GetWeaponName());
-		UI->DisplayCrosshair(EquippedWeapon->GetWeaponType() == EWeaponType::Ranged ? true : false);
-	}
 }
 
 void ABaseCharacter::Multicast_WeaponEquip_Implementation(EEquipWeaponState EquipWeaponState) {
@@ -669,44 +602,6 @@ void ABaseCharacter::DetermineWeaponControlInput(bool Combat) {
 		bUseControllerRotationYaw = EquippedWeapon->GetOutCombat_CharacterUseControllerRotationYaw();
 	}
 }
-
-
-
-
-
-
-
-
-/// Possession
-void ABaseCharacter::PossessedBy(AController* NewController) {
-	Super::PossessedBy(NewController);
-	ABaseMP_PlayerController* NewPlayerController = Cast<ABaseMP_PlayerController>(GetController());
-	Client_PossessedBy(NewPlayerController);
-}
-
-void ABaseCharacter::UnPossessed() {
-	Super::UnPossessed();
-	SetAutonomousProxy(false);
-	Destroy();
-	Client_UnPossessed();
-}
-
-void ABaseCharacter::Client_PossessedBy_Implementation(ABaseMP_PlayerController* NewPlayerController) {
-	if (NewPlayerController == nullptr) return;
-	PlayerController = NewPlayerController;
-	if (UIClass == nullptr) return;
-	UI = CreateWidget<UPlayerUI>(PlayerController, UIClass);
-	UI->AddToViewport();
-}
-
-void ABaseCharacter::Client_UnPossessed_Implementation() {
-	if (PlayerController == nullptr) return;
-	if (UI == nullptr) return;
-	UI->RemoveFromViewport();
-}
-
-
-
 
 
 
