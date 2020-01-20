@@ -2,14 +2,14 @@ Work in progress -
 
 <h1>Base_MP_UE4</h1>
 Basic multiplayer (with third person characters) in Unreal Engine 4 (1.22.3) with a main menu that allows hosting and joining.
+This project is meant to learn the engine and the editor in  it's entirety. Primarily using C++ for the vast majority of the code/mechanics.
 
+Contains various interactions such as:
+- picking up weapons
+- entering/exiting vehicles
+- targetting (lock on)
 
-I've sort of done this already before but the idea is that this is a very clean project to be used as a template so that it's easy to look back at.
-
-
-Might get updated in terms of branches to have a template for various ways (e.g. using regular connect by ip or using steam as a server)
-
-
+Other stuff is related to animations and movement and so on such as replicated death, dodges, sidesteps, weapon attacks and so on.
 
 
 Usage of royalty free music:
