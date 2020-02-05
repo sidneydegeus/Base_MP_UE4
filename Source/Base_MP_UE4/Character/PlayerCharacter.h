@@ -14,19 +14,6 @@ class BASE_MP_UE4_API APlayerCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 	
-public:
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
-
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Setup)
@@ -38,7 +25,6 @@ protected:
 	class ABaseMP_PlayerController* PlayerController;
 
 	FTimerHandle RespawnTimer;
-
 
 // FUNCTIONS
 
@@ -54,6 +40,8 @@ protected:
 	UFUNCTION()
 	virtual void OnRespawn();
 	
+	virtual void LockTarget();
+
 // Possession
 protected:
 	virtual void PossessedBy(AController* NewController) override;

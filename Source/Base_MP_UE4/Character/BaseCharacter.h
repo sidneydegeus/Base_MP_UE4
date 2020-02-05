@@ -85,10 +85,24 @@ public:
 	bool bBackward;
 };
 
-UCLASS(config = Game, abstract)
+UCLASS(config = Game)
 class BASE_MP_UE4_API ABaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
+
+public:
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class USpringArmComponent* CameraBoom;
+
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* FollowCamera;
+
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 ///Variables
 public:
@@ -161,6 +175,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	class UExitPawnComponent* ExitComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	class ULockOnComponent* LockOnComponent;
+
 private:
 	UPROPERTY()
 	class ABaseWeapon* WeaponToEquip;
@@ -184,13 +201,17 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsAlive = true;
 
+
+
 protected:
 	bool bIsAttacking;
 	bool bInCombat;
 
+	// remove blueprintreadwrite
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsLockedOnTarget;
 
+	// remove blueprintreadwrite
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsBeingLockedOn;
 
@@ -206,10 +227,18 @@ public:
 	void RequestWeaponAnimation();
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
+	bool GetIsLockedOnTarget() { return bIsLockedOnTarget; };
+	void SetIsLockedOnTarget(bool Value) { bIsLockedOnTarget = Value; }
+
+	ULockOnComponent* GetLockOnComponent() { return LockOnComponent; };
+
 	UCharacterAnimInstance* GetCharacterAnimInstance() { return CharacterAnimInstance; };
 
 	void OnStartAttack();
 	void OnStopAttack(bool bCancelAnimation = false);
+
+	UFUNCTION(BlueprintCallable)
+	float DistanceToCharacter(const ACharacter* OtherCharacter);
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -238,7 +267,7 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void TargetKilled();
-	void TargetKilled_Implementation() {};
+	void TargetKilled_Implementation();
 
 // Movement
 public:
