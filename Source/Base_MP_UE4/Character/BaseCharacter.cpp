@@ -59,6 +59,7 @@ ABaseCharacter::ABaseCharacter() {
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore); // Custom channel Projectile
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
+	GetMesh()->SetGenerateOverlapEvents(true);
 
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
