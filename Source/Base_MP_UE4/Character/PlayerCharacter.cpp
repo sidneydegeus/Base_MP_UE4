@@ -49,6 +49,7 @@ void APlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	PlayerInputComponent->BindAction("Weapon 1", IE_Pressed, this, &APlayerCharacter::WeaponSlot_1);
 	PlayerInputComponent->BindAction("Weapon 2", IE_Pressed, this, &APlayerCharacter::WeaponSlot_2);
 
+	PlayerInputComponent->BindAction("PickUp", IE_Pressed, this, &APlayerCharacter::PickUp);
 	PlayerInputComponent->BindAction("LockTarget", IE_Pressed, this, &APlayerCharacter::LockTarget);
 	
 }

@@ -133,7 +133,7 @@ protected:
 	class ABaseWeapon* RangedWeaponSlot;
 
 	UPROPERTY(BlueprintReadWrite)
-	class ABaseWeapon* OverlappedWeapon;
+	TArray<ABaseWeapon*> OverlappedWeapons;
 
 	UPROPERTY()
 	class UCharacterAnimInstance* CharacterAnimInstance;
@@ -227,8 +227,13 @@ public:
 	void RequestWeaponAnimation();
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
-	bool GetIsLockedOnTarget() { return bIsLockedOnTarget; };
-	void SetIsLockedOnTarget(bool Value) { bIsLockedOnTarget = Value; }
+
+
+	bool GetIsLockedOnTarget() { return bIsLockedOnTarget; }; //
+	void SetIsLockedOnTarget(bool Value) { bIsLockedOnTarget = Value; } //
+
+	void AddOverlappedWeapon(ABaseWeapon* Weapon) { OverlappedWeapons.Add(Weapon); };
+	void RemoveOverlappedWeapon(ABaseWeapon* Weapon) { if (Weapon) OverlappedWeapons.Remove(Weapon); };
 
 	ULockOnComponent* GetLockOnComponent() { return LockOnComponent; };
 
@@ -269,6 +274,7 @@ protected:
 	void TargetKilled();
 	void TargetKilled_Implementation();
 
+	
 // Movement
 public:
 	void OnManeuverEnd();

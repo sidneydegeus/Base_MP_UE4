@@ -26,6 +26,9 @@ ABaseWeapon::ABaseWeapon() {
 	PickupComponent = CreateDefaultSubobject<UPickUpComponent>(FName("PickupComponent"));
 	PickupComponent->AttachToComponent(RootPlaceholderComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
+	//PickupComponent->OnComponentBeginOverlap.AddDynamic(this, &ABaseCharacter::OnOverlapBegin);
+	//PickupComponent->OnComponentEndOverlap.AddDynamic(this, &ABaseCharacter::OnOverlapEnd);
+
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(FName("PickupWidget"));
 	PickupWidget->AttachToComponent(PickupComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	PickupWidget->SetVisibility(false);
@@ -106,6 +109,7 @@ void ABaseWeapon::Fire() {
 void ABaseWeapon::Server_Fire_Implementation(FTransform Transform) {
 	//INTENDED: override to add functionality
 }
+
 
 
 

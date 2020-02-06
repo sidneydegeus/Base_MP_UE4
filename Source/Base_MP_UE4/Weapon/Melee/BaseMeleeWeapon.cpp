@@ -28,12 +28,7 @@ void ABaseMeleeWeapon::Server_Fire_Implementation(FTransform Transform) {
 	}
 }
 
-void ABaseMeleeWeapon::BeginOverlap(UPrimitiveComponent* OverlappedComponent,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex,
-	bool bFromSweep,
-	const FHitResult &SweepResult) {
+void ABaseMeleeWeapon::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult) {
 	if (!HasAuthority() || OtherActor == GetOwner()) return;
 	UE_LOG(LogTemp, Warning, TEXT("Overlapping attack"));
 	auto Actor = ActorsHit.Find(OtherActor);

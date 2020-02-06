@@ -55,6 +55,10 @@ ABaseCharacter::ABaseCharacter() {
 
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->SetCollisionProfileName(FName("Custom"));
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore); // Custom channel Projectile
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+
 
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
@@ -104,7 +108,6 @@ void ABaseCharacter::Tick(float DeltaTime) {
 		}
 	}
 }
-
 
 
 
@@ -417,9 +420,8 @@ void ABaseCharacter::TargetKilled_Implementation() {
 /// PickUp Logic
 // TODO: eventually change to item and make more generic?
 void ABaseCharacter::PickUp() {
-	if (OverlappedWeapon == nullptr) return;
-	Server_PickUp(OverlappedWeapon, this);
-	OverlappedWeapon = nullptr;
+	if (OverlappedWeapons.Num() <= 0) return;
+	Server_PickUp(OverlappedWeapons[0], this);
 }
 
 // TODO: move to an enum .h file
@@ -441,7 +443,6 @@ void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, A
 			RangedWeaponSlot = SpawnPickedUpWeapon(Data, this, RangedWeaponSlot);
 			break;
 	}
-	OverlappedWeapon = nullptr;
 	WeaponToPickup->Destroy();
 }
 
