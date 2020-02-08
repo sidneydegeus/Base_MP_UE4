@@ -48,6 +48,7 @@ void UPickUpComponent::OnOverlapBegin(UPrimitiveComponent* OverlappingComp, AAct
 }
 
 void UPickUpComponent::OnOverlapEnd(UPrimitiveComponent* OverlappingComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	UE_LOG(LogTemp, Warning, TEXT("leave overlap"));
 	ABaseCharacter* Character = Cast<ABaseCharacter>(OtherActor);
 	if (Character && Character->IsLocallyControlled()) {
 		ABaseWeapon* Weapon = Cast<ABaseWeapon>(GetOwner());

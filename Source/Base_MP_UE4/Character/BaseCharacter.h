@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Weapon/BaseWeapon.h"
+#include "Weapon/Unarmed.h"
 #include "BaseCharacter.generated.h"
 
 UENUM(BlueprintType)
@@ -123,6 +124,9 @@ public:
 
 
 protected:
+	UPROPERTY(EditAnywhere, Category = Setup)
+	TSubclassOf<class ABaseWeapon> DefaultWeaponClass = AUnarmed::StaticClass();
+
 	UPROPERTY(Replicated)
 	class ABaseWeapon* Unarmed;
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_EquippedWeapon)
@@ -207,14 +211,6 @@ protected:
 	bool bIsAttacking;
 	bool bInCombat;
 
-	// remove blueprintreadwrite
-	UPROPERTY(BlueprintReadWrite)
-	bool bIsLockedOnTarget;
-
-	// remove blueprintreadwrite
-	UPROPERTY(BlueprintReadWrite)
-	bool bIsBeingLockedOn;
-
 
 
 
@@ -228,12 +224,16 @@ public:
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
 
-
-	bool GetIsLockedOnTarget() { return bIsLockedOnTarget; }; //
-	void SetIsLockedOnTarget(bool Value) { bIsLockedOnTarget = Value; } //
-
-	void AddOverlappedWeapon(ABaseWeapon* Weapon) { OverlappedWeapons.Add(Weapon); };
-	void RemoveOverlappedWeapon(ABaseWeapon* Weapon) { if (Weapon) OverlappedWeapons.Remove(Weapon); };
+	void AddOverlappedWeapon(ABaseWeapon* Weapon) { 
+		if (Weapon && OverlappedWeapons.Contains(Weapon) == false) {
+			OverlappedWeapons.Add(Weapon);
+		}
+	};
+	void RemoveOverlappedWeapon(ABaseWeapon* Weapon) { 
+		if (Weapon && OverlappedWeapons.Contains(Weapon)) {
+			OverlappedWeapons.Remove(Weapon);
+		}
+	};
 
 	ULockOnComponent* GetLockOnComponent() { return LockOnComponent; };
 
@@ -321,9 +321,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void PickUp();
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_PickUp(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
-	void Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner);
-	bool Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) { return true; };
+	void Server_PickUp(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner, bool EquipOnPickup = false);
+	void Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner, bool EquipOnPickup = false);
+	bool Server_PickUp_Validate(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner, bool EquipOnPickup = false) { return true; };
 
 private:
 	ABaseWeapon* SpawnPickedUpWeapon(struct FWeaponData Data, AActor* WeaponOwner, ABaseWeapon* OldWeapon);
@@ -334,6 +334,8 @@ public:
 	void UnequipWeapon();
 
 protected:
+	void SpawnDefaultWeapon();
+
 	void WeaponSlot_1();
 	void WeaponSlot_2();
 
@@ -342,15 +344,20 @@ protected:
 	void Server_SetUnarmed_Implementation();
 	bool Server_SetUnarmed_Validate() { return true; }
 
-	void StartEquipWeapon(ABaseWeapon* Weapon);
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_StartEquipWeapon(ABaseWeapon* Weapon);
-	void Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon);
-	bool Server_StartEquipWeapon_Validate(ABaseWeapon* Weapon) { return true; };
+	void Server_SetDefaultWeapon();
+	void Server_SetDefaultWeapon_Implementation();
+	bool Server_SetDefaultWeapon_Validate() { return true; }
+
+	void StartEquipWeapon(ABaseWeapon* Weapon, bool UseAnimation = true);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StartEquipWeapon(ABaseWeapon* Weapon, bool UseAnimation = true);
+	void Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon, bool UseAnimation = true);
+	bool Server_StartEquipWeapon_Validate(ABaseWeapon* Weapon, bool UseAnimation = true) { return true; };
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_WeaponEquip(EEquipWeaponState State);
-	void Multicast_WeaponEquip_Implementation(EEquipWeaponState State);
+	void Multicast_WeaponEquip(EEquipWeaponState State, bool UseAnimation);
+	void Multicast_WeaponEquip_Implementation(EEquipWeaponState State, bool UseAnimation);
 
 	UFUNCTION()
 	virtual void OnRep_EquippedWeapon();

@@ -16,6 +16,7 @@ class BASE_MP_UE4_API ULockOnComponent : public UActorComponent
 
 public:
 	bool bIsBeingLockedOn;
+	bool bIsLockedOnTarget;
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -34,8 +35,6 @@ protected:
 
 	UPROPERTY()
 	class ABaseCharacter* CurrentTarget;
-
-	bool bIsLockedOnTarget;
 
 	bool bDoOnce;
 

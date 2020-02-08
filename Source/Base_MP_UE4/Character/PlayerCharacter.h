@@ -57,4 +57,5 @@ protected:
 
 	virtual void OnRep_EquippedWeapon() override;
 
+	void Test();
 };

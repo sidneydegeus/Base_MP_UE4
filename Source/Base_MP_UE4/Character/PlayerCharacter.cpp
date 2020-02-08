@@ -51,7 +51,12 @@ void APlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 
 	PlayerInputComponent->BindAction("PickUp", IE_Pressed, this, &APlayerCharacter::PickUp);
 	PlayerInputComponent->BindAction("LockTarget", IE_Pressed, this, &APlayerCharacter::LockTarget);
-	
+
+	PlayerInputComponent->BindAction("Test", IE_Pressed, this, &APlayerCharacter::Test);	
+}
+
+void APlayerCharacter::Test() {
+	UE_LOG(LogTemp, Warning, TEXT("array size = %d"), OverlappedWeapons.Num());
 }
 
 void APlayerCharacter::OnRep_CurrentHealth() {

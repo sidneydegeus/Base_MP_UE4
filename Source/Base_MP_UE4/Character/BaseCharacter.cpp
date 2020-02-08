@@ -94,6 +94,8 @@ void ABaseCharacter::BeginPlay() {
 	CharacterAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
 	CurrentHealth = MaxHealth;
 	if (IsLocallyControlled()) Server_SetUnarmed();
+	//if (HasAuthority()) Server_SetDefaultWeapon_Implementation();
+	if (IsLocallyControlled()) Server_SetDefaultWeapon_Implementation();
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
@@ -126,7 +128,7 @@ void ABaseCharacter::TurnAtRate(float Rate) {
 
 // Turn
 void ABaseCharacter::AddControllerYawInput(float Val) {
-	if (!bIsLockedOnTarget) {
+	if (!LockOnComponent->bIsLockedOnTarget) {
 		Super::AddControllerYawInput(Val);
 	}
 }
@@ -138,7 +140,7 @@ void ABaseCharacter::LookUpAtRate(float Rate) {
 
 //LookUp
 void ABaseCharacter::AddControllerPitchInput(float Val) {
-	float Value = UKismetMathLibrary::SelectFloat(0.2f, 1.f, bIsLockedOnTarget) * Val;
+	float Value = UKismetMathLibrary::SelectFloat(0.2f, 1.f, LockOnComponent->bIsLockedOnTarget) * Val;
 	Super::AddControllerPitchInput(Value);
 }
 
@@ -394,11 +396,9 @@ void ABaseCharacter::OnDeath() {
 	bIsAlive = false;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
-	if (bIsBeingLockedOn) {
-		ABaseCharacter* Player = Cast<ABaseCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
-		if (Player) {
-			Player->TargetKilled();
-		}
+	ABaseCharacter* Player = Cast<ABaseCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	if (Player) {
+		Player->TargetKilled();
 	}
 }
 
@@ -433,15 +433,17 @@ static FString EnumToString(const FString& enumName, const T value)
 	return *(pEnum ? pEnum->GetNameStringByIndex(static_cast<uint8>(value)) : "null");
 }
 
-void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner) {
+void ABaseCharacter::Server_PickUp_Implementation(ABaseWeapon* WeaponToPickup, AActor* WeaponOwner, bool EquipOnPickup) {
 	if (WeaponToPickup == nullptr) return;
 	FWeaponData Data = WeaponToPickup->GetWeaponData();
 	switch (WeaponToPickup->WeaponType) {
 		case EWeaponType::Melee:
 			MeleeWeaponSlot = SpawnPickedUpWeapon(Data, this, MeleeWeaponSlot);
+			if (EquipOnPickup) StartEquipWeapon(DetermineWeaponToArm(MeleeWeaponSlot), false);
 			break;
 		case EWeaponType::Ranged:
 			RangedWeaponSlot = SpawnPickedUpWeapon(Data, this, RangedWeaponSlot);
+			if (EquipOnPickup) StartEquipWeapon(DetermineWeaponToArm(RangedWeaponSlot), false);
 			break;
 	}
 	WeaponToPickup->Destroy();
@@ -479,6 +481,7 @@ ABaseWeapon* ABaseCharacter::SpawnPickedUpWeapon(FWeaponData Data, AActor* Weapo
 
 
 /// Equip Weapon logic
+
 void ABaseCharacter::WeaponSlot_1() {
 	StartEquipWeapon(DetermineWeaponToArm(MeleeWeaponSlot));
 }
@@ -524,7 +527,14 @@ void ABaseCharacter::Server_SetUnarmed_Implementation() {
 	if (IsLocallyControlled()) OnRep_EquippedWeapon();
 }
 
-void ABaseCharacter::StartEquipWeapon(ABaseWeapon* Weapon) {
+void ABaseCharacter::Server_SetDefaultWeapon_Implementation() {
+	if (DefaultWeaponClass) {
+		ABaseWeapon* Weapon = GetWorld()->SpawnActor<ABaseWeapon>(DefaultWeaponClass);
+		Server_PickUp(Weapon, GetOwner(), true);
+	} 
+}
+
+void ABaseCharacter::StartEquipWeapon(ABaseWeapon* Weapon, bool UseAnimation) {
 	if (Weapon == nullptr) return;
 
 	EEquipWeaponState EquipWeaponState = DetermineEquipWeaponState(Weapon);
@@ -536,7 +546,7 @@ void ABaseCharacter::StartEquipWeapon(ABaseWeapon* Weapon) {
 	if (Role == ROLE_Authority) {
 		WeaponToUnarm = EquippedWeapon;
 		WeaponToEquip = Weapon;
-		Multicast_WeaponEquip(EquipWeaponState);
+		Multicast_WeaponEquip(EquipWeaponState, UseAnimation);
 	}
 }
 
@@ -544,7 +554,7 @@ void ABaseCharacter::EquipWeapon() {
 	bSwappingWeapon = false;
 	if (!HasAuthority()) return;
 	USceneComponent* CharacterMesh = Cast<USceneComponent>(GetMesh());
-	if (CharacterMesh == nullptr || Unarmed == nullptr || WeaponToUnarm == nullptr || WeaponToEquip == nullptr) return;
+	if (CharacterMesh == nullptr || Unarmed == nullptr  || WeaponToEquip == nullptr) return;
 	EquippedWeapon = WeaponToEquip;
 	FName WeaponSocket = FName(*FString(EnumToString(stringify(EWeaponType), EquippedWeapon->WeaponType) + "WeaponSocket"));
 	EquippedWeapon->AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, WeaponSocket);
@@ -565,8 +575,8 @@ void ABaseCharacter::UnequipWeapon() {
 	if (IsLocallyControlled()) OnRep_EquippedWeapon();
 }
 
-void ABaseCharacter::Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon) {
-	StartEquipWeapon(Weapon);
+void ABaseCharacter::Server_StartEquipWeapon_Implementation(ABaseWeapon* Weapon, bool UseAnimation) {
+	StartEquipWeapon(Weapon, UseAnimation);
 }
 
 void ABaseCharacter::OnRep_EquippedWeapon() {
@@ -574,8 +584,9 @@ void ABaseCharacter::OnRep_EquippedWeapon() {
 	CharacterAnimInstance->SetWeaponTypeEquipped(EquippedWeapon->GetWeaponType());
 }
 
-void ABaseCharacter::Multicast_WeaponEquip_Implementation(EEquipWeaponState EquipWeaponState) {
-	CharacterAnimInstance->EquipWeaponAnimation(EquipWeaponState);
+void ABaseCharacter::Multicast_WeaponEquip_Implementation(EEquipWeaponState EquipWeaponState, bool UseAnimation) {
+	if (UseAnimation) CharacterAnimInstance->EquipWeaponAnimation(EquipWeaponState);
+	else EquipWeapon();
 	bIsAttacking = false;
 	OnLeaveCombat();
 }
