@@ -27,10 +27,22 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* HealthBar;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* AmmoText;
+
 public:
+	UFUNCTION(BlueprintNativeEvent)
+	void UpdateUI();
+	void UpdateUI_Implementation();
+
 	void SetWeaponNameText(FName WeaponName) { 
-		if (WeaponName == "None") WeaponNameText->SetText(FText::FromString(""));
-		else WeaponNameText->SetText(FText::FromName(WeaponName)); 
+		if (WeaponName == "None") {
+			WeaponNameText->SetText(FText::FromString(""));
+			AmmoText->SetText(FText::FromString(""));
+		}
+		else {
+			WeaponNameText->SetText(FText::FromName(WeaponName));
+		}
 	};
 
 	void DisplayCrosshair(bool Display) {
@@ -40,5 +52,9 @@ public:
 
 	void UpdateHealthBar(float Health) {
 		HealthBar->SetPercent(Health);
+	};
+
+	void UpdateAmmo(int Ammo) {
+		AmmoText->SetText(FText::FromString(FString::FromInt(Ammo)));
 	};
 };

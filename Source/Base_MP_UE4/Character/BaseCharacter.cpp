@@ -18,10 +18,12 @@
 #include "Weapon/BaseWeapon.h"
 #include "Weapon/Unarmed.h"
 #include "Weapon/Melee/BaseMeleeWeapon.h"
+#include "Weapon/Ranged/BaseRangedWeapon.h"
 #include "InteractionComponent.h"
 #include "GenericComponents/ExitPawnComponent.h"
 #include "GenericComponents/LockOnComponent.h"
 
+#include "UI/PlayerUI.h"
 #include "Character/CharacterAnimInstance.h"
 
 #define stringify(name) # name
@@ -93,9 +95,8 @@ void ABaseCharacter::BeginPlay() {
 	DefaultMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	CharacterAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
 	CurrentHealth = MaxHealth;
-	if (IsLocallyControlled()) Server_SetUnarmed();
-	//if (HasAuthority()) Server_SetDefaultWeapon_Implementation();
-	if (IsLocallyControlled()) Server_SetDefaultWeapon_Implementation();
+	if (HasAuthority()) Server_SetUnarmed();
+	if (HasAuthority()) Server_SetDefaultWeapon_Implementation();
 }
 
 void ABaseCharacter::Tick(float DeltaTime) {
@@ -110,6 +111,7 @@ void ABaseCharacter::Tick(float DeltaTime) {
 			AddMovementInput(ManeuverInfo.RightManeuverDirection, ManeuverInfo.RightInputValue);
 		}
 	}
+	UpdateUI();
 }
 
 
@@ -379,7 +381,11 @@ float ABaseCharacter::TakeDamage(float Damage, struct FDamageEvent const& Damage
 	return DamageToApply;
 }
 
-void ABaseCharacter::OnRep_CurrentHealth() {}
+void ABaseCharacter::OnRep_CurrentHealth() {
+	float HealthPercentage = (float)CurrentHealth / (float)MaxHealth;
+	if (UI == nullptr) return;
+	UI->UpdateHealthBar(HealthPercentage);
+}
 
 void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
 	CurrentHealth = FMath::Clamp(CurrentHealth + Value, 0, MaxHealth);
@@ -394,8 +400,12 @@ void ABaseCharacter::Server_SetCurrentHealth_Implementation(int32 Value) {
 
 void ABaseCharacter::OnDeath() {
 	bIsAlive = false;
+	//GetCapsuleComponent()->SetActive(false);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Vehicle, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
 	ABaseCharacter* Player = Cast<ABaseCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
 	if (Player) {
 		Player->TargetKilled();
@@ -611,7 +621,7 @@ void ABaseCharacter::DetermineWeaponControlInput(bool Combat) {
 /// Fire
 void ABaseCharacter::Fire() {
 	if (EquippedWeapon == nullptr) return;
-	if (!bIsAttacking && !ManeuverInfo.IsManeuvering) {
+	if (!bIsAttacking && !ManeuverInfo.IsManeuvering && !bSwappingWeapon) {
 		EquippedWeapon->Fire();
 	}
 }
@@ -651,8 +661,6 @@ void ABaseCharacter::Multicast_MeleeAttack_Implementation(int32 Index) {
 	if (CharacterAnimInstance == nullptr) return;
 	PlayAnimMontage(CharacterAnimInstance->MeleeAttackAnimations[Index]);
 }
-
-
 
 
 
@@ -725,4 +733,13 @@ FVector ABaseCharacter::GetRightDirection() {
 
 float ABaseCharacter::DistanceToCharacter(const ACharacter* OtherCharacter) {
 	return GetDistanceTo(OtherCharacter);
+}
+
+void ABaseCharacter::UpdateUI() {
+	if (UI && GetEquippedWeapon() && GetEquippedWeapon()->WeaponType == EWeaponType::Ranged) {
+		ABaseRangedWeapon* RWpn = Cast<ABaseRangedWeapon>(GetEquippedWeapon());
+		if (RWpn)  {
+			UI->UpdateAmmo(RWpn->GetAmmo());
+		}
+	}
 }

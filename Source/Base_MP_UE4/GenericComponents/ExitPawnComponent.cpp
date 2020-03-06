@@ -17,14 +17,18 @@ void UExitPawnComponent::BeginPlay() {
 //	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 //}
 
+void UExitPawnComponent::UnpossesAI() {
+	AController* Controller = GetController();
+	if (Controller == nullptr) return;
+	Controller->UnPossess();
+}
+
 void UExitPawnComponent::ExitPawn() {
 	Server_ExitPawn();
 }
 
 void UExitPawnComponent::Server_ExitPawn_Implementation() {
-	APawn* Owner = Cast<APawn>(GetOwner());
-	if (Owner == nullptr) return;
-	AController* Controller = Owner->GetController();
+	AController* Controller = GetController();
 	if (Controller == nullptr) return;
 	AGameModeBase* Mode = GetWorld()->GetAuthGameMode();
 	if (Mode == nullptr) return;
@@ -44,5 +48,12 @@ void UExitPawnComponent::Server_ExitPawn_Implementation() {
 
 bool UExitPawnComponent::Server_ExitPawn_Validate() {
 	return true;
+}
+
+AController* UExitPawnComponent::GetController() {
+	APawn* Owner = Cast<APawn>(GetOwner());
+	if (Owner == nullptr) return nullptr;
+	AController* Controller = Owner->GetController();
+	return Controller;
 }
 

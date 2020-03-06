@@ -6,8 +6,7 @@
 #include "Components/InputComponent.h"
 #include "Components/SceneComponent.h"
 #include "Vehicle/BaseVehicleMovementComponent.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
+
 
 #include "BaseMP_PlayerController.h"
 #include "BaseMP_PlayerState.h"
@@ -23,20 +22,18 @@ ABaseVehicle::ABaseVehicle() {
 	bReplicateMovement = false;
 	NetUpdateFrequency = 30;
 
-	CreateCameraComponent();
 	CreateMovementComponent();
 	CreateMovementReplicator();
-	CreateExitComponent();
 }
 
 void ABaseVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseVehicle::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseVehicle::MoveRight);
-	PlayerInputComponent->BindAxis("Turn", this, &ABaseVehicle::RotateAzimuthGimbal);
-	PlayerInputComponent->BindAxis("LookUpVehicle", this, &ABaseVehicle::ElevateSpringArm);
+	//PlayerInputComponent->BindAxis("Turn", this, &ABaseVehicle::RotateAzimuthGimbal);
+	//PlayerInputComponent->BindAxis("LookUpVehicle", this, &ABaseVehicle::ElevateSpringArm);
 
-	PlayerInputComponent->BindAction("ExitVehicle", IE_Pressed, this, &ABaseVehicle::ExitVehicle);
+	//PlayerInputComponent->BindAction("ExitVehicle", IE_Pressed, this, &ABaseVehicle::ExitPawn);
 }
 
 void ABaseVehicle::BeginPlay() {
@@ -46,18 +43,12 @@ void ABaseVehicle::BeginPlay() {
 void ABaseVehicle::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
-	FString t1 = "OwnerRole " + UStaticLibrary::GetNetRoleEnumAsString(Role);
-	FString t2 = "RemoteRole " + UStaticLibrary::GetNetRoleEnumAsString(GetRemoteRole());
+	//FString t1 = "OwnerRole " + UStaticLibrary::GetNetRoleEnumAsString(Role);
+	//FString t2 = "RemoteRole " + UStaticLibrary::GetNetRoleEnumAsString(GetRemoteRole());
 
-	DrawDebugString(GetWorld(), FVector(0, 0, 125), t1, this, FColor::White, DeltaTime);
-	DrawDebugString(GetWorld(), FVector(0, 0, 100), t2, this, FColor::White, DeltaTime);
+	//DrawDebugString(GetWorld(), FVector(0, 0, 125), t1, this, FColor::White, DeltaTime);
+	//DrawDebugString(GetWorld(), FVector(0, 0, 100), t2, this, FColor::White, DeltaTime);
 }
-
-void ABaseVehicle::ExitVehicle() {
-	if (ExitComponent == nullptr) return;
-	ExitComponent->ExitPawn();
-}
-
 
 
 /// Component Creation
@@ -69,23 +60,7 @@ void ABaseVehicle::CreateMovementReplicator() {
 	MovementReplicator = CreateDefaultSubobject<UBaseVehicleMovementReplicator>(TEXT("MovementReplicator"));
 }
 
-void ABaseVehicle::CreateExitComponent() {
-	ExitComponent = CreateDefaultSubobject<UExitPawnComponent>(TEXT("ExitableComponent"));
-}
 
-void ABaseVehicle::CreateCameraComponent() {
-	USceneComponent* Base = CreateDefaultSubobject<USceneComponent>(FName("Base"));
-	SetRootComponent(Base);
-
-	AzimuthGimbal = CreateDefaultSubobject<USceneComponent>(FName("AzimuthGimbal"));
-	AzimuthGimbal->SetupAttachment(Base);
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName("SpringArm"));
-	SpringArm->SetupAttachment(AzimuthGimbal);
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
-	Camera->SetupAttachment(SpringArm);
-}
 
 
 
@@ -99,28 +74,6 @@ void ABaseVehicle::MoveForward(float Throw) {
 void ABaseVehicle::MoveRight(float Throw) {
 	if (MovementComponent == nullptr) return;
 	MovementComponent->SetSteeringThrow(Throw);
-}
-
-void ABaseVehicle::RotateAzimuthGimbal(float Delta) {
-	FRotator Rotation;
-	Rotation.Roll = 0; //x
-	Rotation.Pitch = 0; //y
-	Rotation.Yaw = Delta; //z
-	AzimuthGimbal->AddLocalRotation(Rotation);
-}
-
-void ABaseVehicle::ElevateSpringArm(float Delta) {
-	float Min = -70;
-	float Max = 20;
-	TotalDeltaPitch += Delta;
-	TotalDeltaPitch = FMath::Clamp(TotalDeltaPitch, Min, Max);
-	if (TotalDeltaPitch >= Max || TotalDeltaPitch <= Min) Delta = 0;
-
-	FRotator Rotation;
-	Rotation.Roll = 0; //x
-	Rotation.Pitch = Delta; //y
-	Rotation.Yaw = 0; // z
-	SpringArm->AddLocalRotation(Rotation);
 }
 
 /// Possess and UnPossess

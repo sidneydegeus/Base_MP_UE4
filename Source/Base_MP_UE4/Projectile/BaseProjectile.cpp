@@ -94,9 +94,7 @@ void ABaseProjectile::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		this,
 		DamageType
 	);
-
-
-
+	Destroy();
 }
 
 void ABaseProjectile::OnTimerExpire() {

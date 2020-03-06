@@ -27,8 +27,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "State")
 		EWeaponFiringState WeaponFiringState = EWeaponFiringState::Reloading;
 
-	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Firing")
-		uint32 Ammo = 30;
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Replicated, Category = "Firing")
+	int Ammo = 30;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Firing")
 		float LaunchSpeed = 4000;
@@ -45,6 +45,7 @@ public:
 	ABaseRangedWeapon();
 	void AimAt(FHitResult HitResult, bool bResultHit) override;
 	virtual void Fire() override;
+	int GetAmmo() { return Ammo; };
 
 protected:
 	bool SpawnProjectile(FTransform Transform);

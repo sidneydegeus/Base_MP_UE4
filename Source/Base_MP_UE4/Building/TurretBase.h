@@ -3,30 +3,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Vehicle/BaseVehicle.h"
-#include "Tank.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTankDelegate);
+#include "ExtendedPawn.h"
+#include "TurretBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BASE_MP_UE4_API ATank : public ABaseVehicle
+class BASE_MP_UE4_API ATurretBase : public AExtendedPawn
 {
 	GENERATED_BODY()
+	
 
-//Functions
+
+
+	//Functions
 public:
-	ATank();
+	ATurretBase();
 	virtual void Tick(float DeltaTime) override;
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) override;
 
 	UFUNCTION(BlueprintPure, Category = "Health")
-	float GetHealthPercentage() const;
+		float GetHealthPercentage() const;
 
-	FTankDelegate OnDeath;
-	void UpdateAmmo();
+	//FTankDelegate OnDeath;
 
 protected:
 	virtual void BeginPlay() override;
@@ -36,9 +36,9 @@ protected:
 	virtual void UnPossessed() override;
 
 private:
-
+	UFUNCTION(BlueprintCallable)
+	class ABaseWeapon* GetWeapon() const;
 
 	void Fire();
-	//UFUNCTION()
-	//	void OnRep_ReplicatedTransform();
+
 };

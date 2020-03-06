@@ -18,6 +18,7 @@ public:
 	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void ExitPawn();
+	void UnpossesAI();
 
 
 protected:
@@ -29,5 +30,7 @@ private:
 		void Server_ExitPawn();
 		void Server_ExitPawn_Implementation();
 		bool Server_ExitPawn_Validate();
+
+	AController* GetController();
 		
 };

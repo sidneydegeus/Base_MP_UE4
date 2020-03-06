@@ -12,11 +12,37 @@ class BASE_MP_UE4_API AExtendedPawn : public APawn
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(VisibleAnywhere)
+	class USceneComponent* AzimuthGimbal;
+	UPROPERTY(VisibleAnywhere)
+	class USpringArmComponent* SpringArm;
+	UPROPERTY(VisibleAnywhere)
+	class UCameraComponent* Camera;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UUserWidget> UIClass;
 
 	UPROPERTY()
 	UUserWidget* UI;
+
+	UPROPERTY(VisibleAnywhere)
+	class UExitPawnComponent* ExitComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	int32 MaxHealth = 100;
+
+	int32 CurrentHealth;
+
+private:
+	float TotalDeltaPitch;
+
+
+
+public:
+	AExtendedPawn();
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void ExitPawn();
 
 protected:
 	UFUNCTION(BlueprintCallable)
@@ -37,4 +63,13 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void Client_UnPossessed();
 	virtual void Client_UnPossessed_Implementation();
+
+	virtual void RotateAzimuthGimbal(float Delta);
+	virtual void ElevateSpringArm(float Delta);
+
+	class ABaseWeapon* GetWeapon() const;
+
+private:
+	void CreateCameraComponent();
+	void UpdateUI();
 };

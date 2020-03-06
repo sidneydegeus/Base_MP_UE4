@@ -59,12 +59,6 @@ void APlayerCharacter::Test() {
 	UE_LOG(LogTemp, Warning, TEXT("array size = %d"), OverlappedWeapons.Num());
 }
 
-void APlayerCharacter::OnRep_CurrentHealth() {
-	float HealthPercentage = (float)CurrentHealth / (float)MaxHealth;
-	if (UI == nullptr) return;
-	UI->UpdateHealthBar(HealthPercentage);
-}
-
 void APlayerCharacter::OnDeath() {
 	Super::OnDeath();
 	if (IsLocallyControlled() && PlayerController) {
@@ -76,7 +70,6 @@ void APlayerCharacter::OnDeath() {
 void APlayerCharacter::OnRespawn() {
 	if (!ExitComponent) return;
 	ExitComponent->ExitPawn();
-	Destroy();
 }
 
 
@@ -109,6 +102,9 @@ void APlayerCharacter::PossessedBy(AController* NewController) {
 void APlayerCharacter::UnPossessed() {
 	Super::UnPossessed();
 	SetAutonomousProxy(false);
+	if (EquippedWeapon) EquippedWeapon->Destroy();
+	if (MeleeWeaponSlot) MeleeWeaponSlot->Destroy();
+	if (RangedWeaponSlot) RangedWeaponSlot->Destroy();
 	Destroy();
 	Client_UnPossessed();
 }

@@ -14,6 +14,11 @@ class BASE_MP_UE4_API ATankShell : public ABaseProjectile
 {
 	GENERATED_BODY()
 	
-public:
-	//ATankShell();
+protected:
+	virtual void BeginOverlap(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult &SweepResult) override;
 };

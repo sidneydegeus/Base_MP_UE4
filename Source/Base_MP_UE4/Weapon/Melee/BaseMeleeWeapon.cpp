@@ -11,6 +11,7 @@ ABaseMeleeWeapon::ABaseMeleeWeapon() {
 	HitBoxComponent = CreateDefaultSubobject<UCapsuleComponent>(FName("HitBox"));
 	HitBoxComponent->AttachToComponent(RootPlaceholderComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	HitBoxComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	AttackRange = 100.f;
 }
 
 void ABaseMeleeWeapon::BeginPlay() {
@@ -30,10 +31,8 @@ void ABaseMeleeWeapon::Server_Fire_Implementation(FTransform Transform) {
 
 void ABaseMeleeWeapon::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult) {
 	if (!HasAuthority() || OtherActor == GetOwner()) return;
-	UE_LOG(LogTemp, Warning, TEXT("Overlapping attack"));
 	auto Actor = ActorsHit.Find(OtherActor);
 	if (Actor == INDEX_NONE) {
-		UE_LOG(LogTemp, Warning, TEXT("haven't hit actor before, hitting now"));
 		TSubclassOf<UDamageType> DamageType;
 		UGameplayStatics::ApplyDamage(
 			OtherActor,

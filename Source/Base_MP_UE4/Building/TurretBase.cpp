@@ -1,22 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Tank.h"
+#include "TurretBase.h"
 
 #include "Net/UnrealNetwork.h"
 #include "BaseMP_PlayerController.h"
 #include "GenericComponents/SpawnPoint.h"
 #include "Weapon/BaseWeapon.h"
-#include "UI/TankUI.h"
 #include "UObject/ConstructorHelpers.h"
 
-//void ATank::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
-//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//
-//	DOREPLIFETIME(ATank, ReplicatedTransform);
-//}
-
-ATank::ATank() {
+ATurretBase::ATurretBase() {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
@@ -27,26 +20,21 @@ ATank::ATank() {
 	//VehicleUI = GameMenuBPClass.Class;
 }
 
-void ATank::BeginPlay() {
+void ATurretBase::BeginPlay() {
 	Super::BeginPlay();
 	//CurrentHealth = MaxHealth;
 }
 
-void ATank::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) {
+void ATurretBase::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATank::Fire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATurretBase::Fire);
 }
 
-void ATank::Tick(float DeltaTime) {
+void ATurretBase::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
-
-	//if (HasAuthority()) {
-	//	ReplicatedTransform = GetActorTransform();
-	//}
 }
 
-
-void ATank::PossessedBy(AController* NewController) {
+void ATurretBase::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
 
 	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(NewController);
@@ -65,7 +53,7 @@ void ATank::PossessedBy(AController* NewController) {
 	//ABase_PlayerController->SetAimingComponent(AimComponent);
 }
 
-void ATank::UnPossessed() {
+void ATurretBase::UnPossessed() {
 	//UTankAimingComponent* TankAimingComponent = FindComponentByClass<UTankAimingComponent>();
 	//if (TankAimingComponent == nullptr) return;
 	//TankAimingComponent->Deactivate();
@@ -78,29 +66,37 @@ void ATank::UnPossessed() {
 	Super::UnPossessed();
 }
 
-//void ATank::OnRep_ReplicatedTransform() {
-//	SetActorTransform(ReplicatedTransform);
-//}
 
-float ATank::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
+float ATurretBase::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
 	int32 DamagePoints = FPlatformMath::RoundToInt(Damage);
 	int32 DamageToApply = FMath::Clamp(DamagePoints, 0, CurrentHealth);
 
 	CurrentHealth -= DamageToApply;
 	if (CurrentHealth <= 0) {
-		OnDeath.Broadcast();
+		//OnDeath.Broadcast();
 	}
 
 	return DamageToApply;
 }
 
-float ATank::GetHealthPercentage() const {
+float ATurretBase::GetHealthPercentage() const {
 	return (float)CurrentHealth / (float)MaxHealth;
 }
 
+ABaseWeapon* ATurretBase::GetWeapon() const {
+	auto test = GetComponents();
+	for (UActorComponent* Child : test) {
+		auto SpawnPointChild = Cast<USpawnPoint>(Child);
+		if (!SpawnPointChild) continue;
 
+		AActor* SpawnedChild = SpawnPointChild->GetSpawnedActor();
+		auto Weapon = Cast<ABaseWeapon>(SpawnedChild);
+		if (Weapon) return Weapon;
+	}
+	return nullptr;
+}
 
-void ATank::Fire() {
+void ATurretBase::Fire() {
 	auto Weapon = GetWeapon();
 	if (Weapon == nullptr) return;
 	Weapon->Fire();

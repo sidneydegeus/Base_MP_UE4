@@ -50,6 +50,11 @@ void ATurret::AimAt(FHitResult HitResult, bool bResultHit) {
 		CurrentAimDirection = OutLaunchVelocity.GetSafeNormal();
 		MoveBarrelTowards(CurrentAimDirection);
 	}
+
+	FRotator Rotation = Barrel->GetSocketRotation(FName("Projectile"));
+	FVector Location = Barrel->GetSocketLocation(FName("Projectile"));
+	FVector TransformScale = FVector(1, 1, 1);
+	ProjectileSpawnTransform = FTransform(Rotation, Location, TransformScale);
 	//else {
 	//	MoveBarrelTowards(HitResult.TraceEnd);
 	//}
@@ -67,7 +72,7 @@ void ATurret::MoveBarrelTowards(FVector AimDirection) {
 	auto BarrelRotator = Barrel->GetForwardVector().Rotation();
 	auto AimAsRotator = AimDirection.Rotation();
 	auto DeltaRotator = AimAsRotator - BarrelRotator;
-	UE_LOG(LogTemp, Warning, TEXT("delta rotator: %d"), DeltaRotator.Yaw);
+
 	Barrel->Elevate(DeltaRotator.Pitch);
 
 	if (FMath::Abs(DeltaRotator.Yaw) < 180) {

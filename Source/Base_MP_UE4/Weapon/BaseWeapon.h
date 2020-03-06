@@ -55,11 +55,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FName WeaponName;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float AttackRange;
+
 	UPROPERTY(EditDefaultsOnly, Category = WeaponControl)
 	bool bInCombat_CharacterCameraOrientation = false;
 	UPROPERTY(EditDefaultsOnly, Category = WeaponControl)
 	bool bInCombat_CharacterUseControllerRotationYaw = true;
-
 
 	UPROPERTY(EditDefaultsOnly, Category = WeaponControl)
 	bool bOutCombat_CharacterCameraOrientation = true;
@@ -88,6 +90,8 @@ public:
 	EWeaponType GetWeaponType() { return WeaponType; };
 
 	FName GetWeaponName() { return WeaponName; };
+
+	float GetAttackRange() { return AttackRange; }
 
 	bool GetInCombat_CharacterCameraOrientation() { return bInCombat_CharacterCameraOrientation; };
 	bool GetInCombat_CharacterUseControllerRotationYaw() { return bInCombat_CharacterUseControllerRotationYaw; };

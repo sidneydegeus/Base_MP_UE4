@@ -21,6 +21,7 @@ ABaseRangedWeapon::ABaseRangedWeapon() {
 	WeaponType = EWeaponType::Ranged;
 	bOutCombat_CharacterCameraOrientation = false;
 	bOutCombat_CharacterUseControllerRotationYaw = true;
+	AttackRange = 900.f;
 }
 
 void ABaseRangedWeapon::AimAt(FHitResult HitResult, bool bResultHit) {
@@ -66,7 +67,8 @@ FVector ABaseRangedWeapon::SpawnProjectileLocation() {
 /// Fire
 void ABaseRangedWeapon::Fire() {
 	//AimAt(GetHitResult());
-	Server_Fire(ProjectileSpawnTransform);
+	if (Ammo > 0)
+		Server_Fire(ProjectileSpawnTransform);
 }
 
 void ABaseRangedWeapon::Server_Fire_Implementation(FTransform Transform) {

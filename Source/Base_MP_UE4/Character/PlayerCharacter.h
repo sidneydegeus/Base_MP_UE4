@@ -16,11 +16,6 @@ class BASE_MP_UE4_API APlayerCharacter : public ABaseCharacter
 	
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = Setup)
-	TSubclassOf<class UPlayerUI> UIClass;
-	UPROPERTY()
-	UPlayerUI* UI;
-
 	UPROPERTY()
 	class ABaseMP_PlayerController* PlayerController;
 
@@ -34,7 +29,7 @@ public:
 	
 
 protected:
-	virtual void OnRep_CurrentHealth() override;
+
 
 	virtual void OnDeath() override;
 	UFUNCTION()

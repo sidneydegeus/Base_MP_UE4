@@ -182,6 +182,11 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	class ULockOnComponent* LockOnComponent;
 
+	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	TSubclassOf<class UPlayerUI> UIClass;
+	UPROPERTY()
+	UPlayerUI* UI;
+
 private:
 	UPROPERTY()
 	class ABaseWeapon* WeaponToEquip;
@@ -250,7 +255,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetCurrentHealth(int32 Value);
@@ -369,10 +373,11 @@ private:
 	EEquipWeaponState DetermineEquipWeaponState(ABaseWeapon* Weapon);
 
 
+public:
+	void Fire();
 
 // Combat, Attacking
 protected:
-	void Fire();
 	void EnterCombat();
 	void ResetCombatTimer();
 	void OnLeaveCombat();
@@ -382,6 +387,8 @@ protected:
 private:	
 	FVector GetForwardDirection();
 	FVector GetRightDirection();
+
+	void UpdateUI();
 
 
 
