@@ -186,15 +186,20 @@ void ABaseCharacter::Jump() {
 	if (ManeuverInfo.IsManeuvering) return;
 	Super::Jump();
 	bJump = true;
-	if (bIsAttacking) OnStopAttack(true);
+	if (bIsAttacking) {
+		OnStopAttack(true);
+	}
 
 }
 
-void ABaseCharacter::StopJumping() {
-	Super::StopJumping();
-	bJump = false;
-	if (bIsAttacking) OnStopAttack(true);
-}
+//void ABaseCharacter::StopJumping() {
+//	Super::StopJumping();
+//	bJump = false;
+//	if (bIsAttacking) {
+//		UE_LOG(LogTemp, Warning, TEXT("on STOP jumping... stop attack???"));
+//		OnStopAttack(true);
+//	}
+//}
 
 void ABaseCharacter::Interact() {
 	if (InteractionComponent != nullptr) {
@@ -205,7 +210,9 @@ void ABaseCharacter::Interact() {
 /// Movement - Maneuver
 void ABaseCharacter::Maneuver(float Angle, EManeuverType ManeuverType, float ForwardInputValue, float RightInputValue) {
 	if (!GetMovementComponent()->IsFalling() && !ManeuverInfo.IsManeuvering) {
-		if (bIsAttacking) OnStopAttack(true);
+		if (bIsAttacking) {
+			OnStopAttack(true);
+		}
 		ManeuverInfo.ForwardInputValue = ForwardInputValue;
 		ManeuverInfo.RightInputValue = RightInputValue;
 		ManeuverInfo.ForwardManeuverDirection = GetForwardDirection();
@@ -551,7 +558,7 @@ void ABaseCharacter::StartEquipWeapon(ABaseWeapon* Weapon, bool UseAnimation) {
 	bSwappingWeapon = true;
 
 	if (Role < ROLE_Authority) {
-		Server_StartEquipWeapon(Weapon);
+		Server_StartEquipWeapon(Weapon, UseAnimation);
 	}
 	if (Role == ROLE_Authority) {
 		WeaponToUnarm = EquippedWeapon;
@@ -623,6 +630,7 @@ void ABaseCharacter::Fire() {
 	if (EquippedWeapon == nullptr) return;
 	if (!bIsAttacking && !ManeuverInfo.IsManeuvering && !bSwappingWeapon) {
 		EquippedWeapon->Fire();
+		AttackAnimation();
 	}
 }
 
@@ -644,22 +652,42 @@ void ABaseCharacter::EnterCombat() {
 	DetermineWeaponControlInput(bInCombat);
 }
 
-//TODO: make generic for all weapon types. Only  works melee now
-void ABaseCharacter::RequestWeaponAnimation() {
-	if (!HasAuthority() || CharacterAnimInstance == nullptr) return;
+////TODO: make generic for all weapon types. Only  works melee now
+//void ABaseCharacter::RequestWeaponAnimation() {
+//	if (!HasAuthority() || CharacterAnimInstance == nullptr) return;
+//
+//	if (CharacterAnimInstance->MeleeAttackAnimations.Num() > 0) {
+//		auto AttackAnimationIndex = FMath::RandRange(1, CharacterAnimInstance->MeleeAttackAnimations.Num()) - 1;
+//		Multicast_MeleeAttack(AttackAnimationIndex);
+//	}
+//	// TODO: never pick same random number as last random number
+//	FTimerDelegate StopAttackDelegate = FTimerDelegate::CreateUObject(this, &ABaseCharacter::OnStopAttack, false);
+//	GetWorld()->GetTimerManager().SetTimer(IsAttackingHandle, StopAttackDelegate, ResetAttackDelay, false);
+//}
 
-	if (CharacterAnimInstance->MeleeAttackAnimations.Num() > 0) {
-		auto AttackAnimationIndex = FMath::RandRange(1, CharacterAnimInstance->MeleeAttackAnimations.Num()) - 1;
-		Multicast_MeleeAttack(AttackAnimationIndex);
+void ABaseCharacter::AttackAnimation() {
+	if (Role < ROLE_Authority) {
+		Server_AttackAnimation();
 	}
-	// TODO: never pick same random number as last random number
-	FTimerDelegate StopAttackDelegate = FTimerDelegate::CreateUObject(this, &ABaseCharacter::OnStopAttack, false);
-	GetWorld()->GetTimerManager().SetTimer(IsAttackingHandle, StopAttackDelegate, ResetAttackDelay, false);
+	if (Role == ROLE_Authority) {
+		if (CharacterAnimInstance != nullptr || CharacterAnimInstance->MeleeAttackAnimations.Num() > 0) {
+			auto AttackAnimationIndex = FMath::RandRange(1, CharacterAnimInstance->MeleeAttackAnimations.Num()) - 1;
+			//auto Montage = CharacterAnimInstance->MeleeAttackAnimations[AttackAnimationIndex];
+			Multicast_AttackAnimation(AttackAnimationIndex);
+		}
+		FTimerDelegate StopAttackDelegate = FTimerDelegate::CreateUObject(this, &ABaseCharacter::OnStopAttack, false);
+		GetWorld()->GetTimerManager().SetTimer(IsAttackingHandle, StopAttackDelegate, ResetAttackDelay, false);
+	}
 }
 
-void ABaseCharacter::Multicast_MeleeAttack_Implementation(int32 Index) {
+void ABaseCharacter::Server_AttackAnimation_Implementation() {
+	AttackAnimation();
+}
+
+void ABaseCharacter::Multicast_AttackAnimation_Implementation(int32 Index) {
 	if (CharacterAnimInstance == nullptr) return;
-	PlayAnimMontage(CharacterAnimInstance->MeleeAttackAnimations[Index]);
+	CharacterAnimInstance->AttackAnimation(Index);
+	//CharacterAnimInstance->EquipWeaponAnimation(EEquipWeaponState::Unarmed_To_Melee);
 }
 
 
@@ -700,6 +728,7 @@ void ABaseCharacter::OnStopAttack(bool bCancelAnimation) {
 		Weapon->DeactivateHitBoxCollision();
 	}
 	if (bCancelAnimation) {
+		UE_LOG(LogTemp, Warning, TEXT("stopping animation???"));
 		StopAnimMontage();
 	}
 }

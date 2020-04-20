@@ -225,7 +225,7 @@ protected:
 public:
 	ABaseCharacter();
 	ABaseWeapon* GetEquippedWeapon() { return EquippedWeapon; };
-	void RequestWeaponAnimation();
+	//void RequestWeaponAnimation();
 	void SetIsAttacking(bool Value);
 	bool GetInCombat() { return bInCombat; };
 
@@ -270,9 +270,16 @@ protected:
 	void Multicast_OnDeath(int32 Index);
 	void Multicast_OnDeath_Implementation(int32 Index);
 
+	void AttackAnimation();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AttackAnimation();
+	void Server_AttackAnimation_Implementation();
+	bool Server_AttackAnimation_Validate() { return true; };
+
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_MeleeAttack(int32 Index);
-	void Multicast_MeleeAttack_Implementation(int32 Index);
+	void Multicast_AttackAnimation(int32 Index);
+	void Multicast_AttackAnimation_Implementation(int32 Index);
 
 	UFUNCTION(BlueprintNativeEvent)
 	void TargetKilled();
@@ -285,7 +292,6 @@ public:
 
 protected:
 	virtual void Jump() override;
-	virtual void StopJumping() override;
 
 	void Interact();
 

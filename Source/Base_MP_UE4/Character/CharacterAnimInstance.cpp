@@ -26,3 +26,7 @@ void UCharacterAnimInstance::EquipWeaponAnimation(EEquipWeaponState EquipWeaponS
 	if (EquipWeaponState == EEquipWeaponState::Unarmed_To_Unarmed) return;
 	Montage_Play(EquipAnimations[EquipWeaponState]);
 }
+
+void UCharacterAnimInstance::AttackAnimation(int32 Index) {
+	Montage_Play(MeleeAttackAnimations[Index]);
+}

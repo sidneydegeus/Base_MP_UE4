@@ -7,6 +7,8 @@
 #include "Projectile/BaseProjectile.h"
 #include "BaseWeapon.generated.h"
 
+//DECLARE_MULTICAST_DELEGATE(FOnWeaponFireDelegate);
+
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
@@ -35,6 +37,8 @@ class BASE_MP_UE4_API ABaseWeapon : public AActor
 public:
 	UPROPERTY(EditDefaultsOnly)
 	EWeaponType WeaponType;
+
+	//FOnWeaponFireDelegate OnWeaponFireDelegate;
 
 protected:
 	UPROPERTY()

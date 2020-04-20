@@ -65,5 +65,7 @@ public:
 	void SetIsSwappingWeapon(bool Result) { IsSwappingWeapon = Result; };
 
 	void EquipWeaponAnimation(EEquipWeaponState EquipWeaponState);
+
+	void AttackAnimation(int32 Index);
 };
 
