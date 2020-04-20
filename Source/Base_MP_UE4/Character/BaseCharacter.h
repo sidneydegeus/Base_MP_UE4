@@ -244,6 +244,8 @@ public:
 
 	UCharacterAnimInstance* GetCharacterAnimInstance() { return CharacterAnimInstance; };
 
+	void AttackAnimation();
+
 	void OnStartAttack();
 	void OnStopAttack(bool bCancelAnimation = false);
 
@@ -270,8 +272,6 @@ protected:
 	void Multicast_OnDeath(int32 Index);
 	void Multicast_OnDeath_Implementation(int32 Index);
 
-	void AttackAnimation();
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AttackAnimation();
 	void Server_AttackAnimation_Implementation();
@@ -292,6 +292,7 @@ public:
 
 protected:
 	virtual void Jump() override;
+	virtual void StopJumping() override;
 
 	void Interact();
 

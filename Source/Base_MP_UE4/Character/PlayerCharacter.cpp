@@ -106,6 +106,7 @@ void APlayerCharacter::UnPossessed() {
 	if (MeleeWeaponSlot) MeleeWeaponSlot->Destroy();
 	if (RangedWeaponSlot) RangedWeaponSlot->Destroy();
 	Destroy();
+	RemoveUI();
 	Client_UnPossessed();
 }
 
@@ -118,7 +119,10 @@ void APlayerCharacter::Client_PossessedBy_Implementation(ABaseMP_PlayerControlle
 }
 
 void APlayerCharacter::Client_UnPossessed_Implementation() {
-	if (PlayerController == nullptr) return;
+	RemoveUI();
+}
+
+void APlayerCharacter::RemoveUI() {
 	if (UI == nullptr) return;
 	UI->RemoveFromViewport();
 }

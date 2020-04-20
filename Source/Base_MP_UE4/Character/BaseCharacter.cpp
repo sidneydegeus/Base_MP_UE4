@@ -192,14 +192,14 @@ void ABaseCharacter::Jump() {
 
 }
 
-//void ABaseCharacter::StopJumping() {
-//	Super::StopJumping();
-//	bJump = false;
-//	if (bIsAttacking) {
-//		UE_LOG(LogTemp, Warning, TEXT("on STOP jumping... stop attack???"));
-//		OnStopAttack(true);
-//	}
-//}
+void ABaseCharacter::StopJumping() {
+	Super::StopJumping();
+	bJump = false;
+	//if (bIsAttacking) {
+	//	UE_LOG(LogTemp, Warning, TEXT("on STOP jumping... stop attack???"));
+	//	OnStopAttack(true);
+	//}
+}
 
 void ABaseCharacter::Interact() {
 	if (InteractionComponent != nullptr) {
@@ -630,7 +630,9 @@ void ABaseCharacter::Fire() {
 	if (EquippedWeapon == nullptr) return;
 	if (!bIsAttacking && !ManeuverInfo.IsManeuvering && !bSwappingWeapon) {
 		EquippedWeapon->Fire();
-		AttackAnimation();
+		//if (EquippedWeapon->GetWeaponType() == EWeaponType::Melee) {
+		//	AttackAnimation();
+		//}
 	}
 }
 
