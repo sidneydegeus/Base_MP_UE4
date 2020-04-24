@@ -8,6 +8,8 @@
 #include "Weapon/Unarmed.h"
 #include "BaseCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FCharacterStateDelegate);
+
 UENUM(BlueprintType)
 enum class EEquipWeaponState : uint8
 {
@@ -120,8 +122,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	FManeuverInfo ManeuverInfo;
-
-
 
 protected:
 	UPROPERTY(EditAnywhere, Category = Setup)

@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
+#include "ExtendedPawn.h"
 
 void ABaseMP_PlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -23,6 +24,7 @@ void ABaseMP_PlayerController::Tick(float DeltaTime) {
 
 void ABaseMP_PlayerController::AimTowardsCrosshair() {
 	if (Weapon != nullptr && Weapon->GetWeaponType() == EWeaponType::Ranged) {
+		UE_LOG(LogTemp, Warning, TEXT("aim  atttt"));
 		FHitResult HitResult;
 		bool bHitResult = GetSightRayHitLocation(HitResult);
 		Weapon->AimAt(HitResult, bHitResult);
@@ -73,4 +75,14 @@ bool ABaseMP_PlayerController::GetLookVectorHitLocation(FVector LookDirection, F
 	//HitResult.Location = EndLocation;
 	//DrawDebugLine(GetWorld(), StartLocation, HitResult.TraceEnd, FColor::Red, false, 1, 0, 1); //
 	return false;
+}
+
+void ABaseMP_PlayerController::SetPawn(APawn* InPawn) {
+	Super::SetPawn(InPawn);
+	if (InPawn) {
+		auto ExtendedPawn = Cast<AExtendedPawn>(InPawn);
+		if (!ExtendedPawn) return;
+		Weapon = ExtendedPawn->Weapon;
+		//ExtendedPawn->OnDeath.AddUniqueDynamic(this, &ATankPlayerController::OnPossessedTankDeath);
+	}
 }

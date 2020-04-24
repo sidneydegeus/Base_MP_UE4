@@ -35,6 +35,11 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 
+	virtual void SetupUI() override;
+	//UFUNCTION(Client, Reliable)
+	//void Client_SetWeapon(ABaseMP_PlayerController* ABase_PlayerController);
+	//virtual void Client_SetWeapon_Implementation(ABaseMP_PlayerController* ABase_PlayerController);
+
 private:
 	UFUNCTION(BlueprintCallable)
 	class ABaseWeapon* GetWeapon() const;

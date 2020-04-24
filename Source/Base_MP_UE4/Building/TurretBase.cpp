@@ -8,6 +8,7 @@
 #include "GenericComponents/SpawnPoint.h"
 #include "Weapon/BaseWeapon.h"
 #include "UObject/ConstructorHelpers.h"
+#include "UI/TankUI.h"
 
 ATurretBase::ATurretBase() {
 	PrimaryActorTick.bCanEverTick = true;
@@ -37,35 +38,37 @@ void ATurretBase::Tick(float DeltaTime) {
 void ATurretBase::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
 
-	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(NewController);
-	if (ABase_PlayerController == nullptr) return;
+	//ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(NewController);
+	//if (ABase_PlayerController == nullptr) return;
 
 
-	//TODO: set weapon instead
+	////TODO: set weapon instead
 
-	auto Weapon = GetWeapon();
-	if (Weapon == nullptr) return;
-	ABase_PlayerController->SetWeapon(Weapon);
-	//auto AimComponent = Weapon->GetAimingComponent();
-	//if (AimComponent == nullptr) return;
-
-	//AimComponent->Activate(true);
-	//ABase_PlayerController->SetAimingComponent(AimComponent);
+	//auto Weapon = GetWeapon();
+	//if (Weapon == nullptr) return;
+	//ABase_PlayerController->SetWeapon(Weapon);
+	//Client_SetWeapon(ABase_PlayerController);
+	// CLIENT SET WEAPON
 }
 
 void ATurretBase::UnPossessed() {
 	//UTankAimingComponent* TankAimingComponent = FindComponentByClass<UTankAimingComponent>();
 	//if (TankAimingComponent == nullptr) return;
 	//TankAimingComponent->Deactivate();
-	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(Controller);
-	if (ABase_PlayerController == nullptr) return;
-	ABase_PlayerController->SetWeapon(nullptr);
+	//ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(Controller);
+	//if (ABase_PlayerController == nullptr) return;
+	//ABase_PlayerController->SetWeapon(nullptr);
 	//TODO: maybe change the aiming component setting to the controller itself by overwriting UnPosses()
 	//ABase_PlayerController->SetAimingComponent(nullptr);
 	//above needs to be executed first, so that the controller can be cleaned up.
 	Super::UnPossessed();
 }
 
+//void ATurretBase::Client_SetWeapon_Implementation(ABaseMP_PlayerController* ABase_PlayerController) {
+//	auto Weapon = GetWeapon();
+//	if (Weapon == nullptr) return;
+//	ABase_PlayerController->SetWeapon(Weapon);
+//}
 
 float ATurretBase::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
 	int32 DamagePoints = FPlatformMath::RoundToInt(Damage);
@@ -96,8 +99,19 @@ ABaseWeapon* ATurretBase::GetWeapon() const {
 	return nullptr;
 }
 
+
+void ATurretBase::SetupUI() {
+	if (UI) {
+		auto TankUI = Cast<UTankUI>(UI);
+		if (TankUI) {
+			TankUI->Weapon = Weapon;
+		}
+	}
+	Super::SetupUI();
+}
+
 void ATurretBase::Fire() {
-	auto Weapon = GetWeapon();
+	//auto Weapon = GetWeapon();
 	if (Weapon == nullptr) return;
 	Weapon->Fire();
 }

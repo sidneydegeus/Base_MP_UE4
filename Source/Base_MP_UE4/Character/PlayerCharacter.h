@@ -19,6 +19,9 @@ protected:
 	UPROPERTY()
 	class ABaseMP_PlayerController* PlayerController;
 
+	UPROPERTY(BlueprintReadWrite)
+	TArray<AActor*> PlayerSpawnLocations;
+
 	FTimerHandle RespawnTimer;
 
 // FUNCTIONS
@@ -29,8 +32,6 @@ public:
 	
 
 protected:
-
-
 	virtual void OnDeath() override;
 	UFUNCTION()
 	virtual void OnRespawn();
@@ -52,7 +53,6 @@ protected:
 
 	virtual void OnRep_EquippedWeapon() override;
 
-	void Test();
 
 private:
 	void RemoveUI();

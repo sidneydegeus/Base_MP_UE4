@@ -49,15 +49,15 @@ void ATank::Tick(float DeltaTime) {
 void ATank::PossessedBy(AController* NewController) {
 	Super::PossessedBy(NewController);
 
-	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(NewController);
-	if (ABase_PlayerController == nullptr) return;
+	//ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(NewController);
+	//if (ABase_PlayerController == nullptr) return;
 
 
 	//TODO: set weapon instead
 
-	auto Weapon = GetWeapon();
-	if (Weapon == nullptr) return;
-	ABase_PlayerController->SetWeapon(Weapon);
+	//auto Weapon = GetWeapon();
+	//if (Weapon == nullptr) return;
+	//ABase_PlayerController->SetWeapon(Weapon);
 	//auto AimComponent = Weapon->GetAimingComponent();
 	//if (AimComponent == nullptr) return;
 
@@ -69,9 +69,9 @@ void ATank::UnPossessed() {
 	//UTankAimingComponent* TankAimingComponent = FindComponentByClass<UTankAimingComponent>();
 	//if (TankAimingComponent == nullptr) return;
 	//TankAimingComponent->Deactivate();
-	ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(Controller);
-	if (ABase_PlayerController == nullptr) return;
-	ABase_PlayerController->SetWeapon(nullptr);
+	//ABaseMP_PlayerController* ABase_PlayerController = Cast<ABaseMP_PlayerController>(Controller);
+	//if (ABase_PlayerController == nullptr) return;
+	//ABase_PlayerController->SetWeapon(nullptr);
 	//TODO: maybe change the aiming component setting to the controller itself by overwriting UnPosses()
 	//ABase_PlayerController->SetAimingComponent(nullptr);
 	//above needs to be executed first, so that the controller can be cleaned up.
@@ -98,10 +98,18 @@ float ATank::GetHealthPercentage() const {
 	return (float)CurrentHealth / (float)MaxHealth;
 }
 
-
+void ATank::SetupUI() {
+	if (UI) {
+		auto TankUI = Cast<UTankUI>(UI);
+		if (TankUI) {
+			TankUI->Weapon = Weapon;
+		}
+	}
+	Super::SetupUI();
+}
 
 void ATank::Fire() {
-	auto Weapon = GetWeapon();
+	//auto Weapon = GetWeapon();
 	if (Weapon == nullptr) return;
 	Weapon->Fire();
 }

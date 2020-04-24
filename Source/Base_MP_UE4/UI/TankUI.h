@@ -15,6 +15,10 @@ class BASE_MP_UE4_API UTankUI : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(BlueprintReadOnly)
+	class ABaseWeapon* Weapon;
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* AmmoText;

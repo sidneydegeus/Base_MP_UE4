@@ -39,10 +39,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	virtual void SetPawn(APawn* InPawn) override;
 
 private:
 	void AimTowardsCrosshair();
 	bool GetSightRayHitLocation(FHitResult& HitResult) const;
 	bool GetLookDirection(FVector2D ScreenLocation, FVector& LookDirection) const;
 	bool GetLookVectorHitLocation(FVector LookDirection, FHitResult& HitResult) const;
+
 };

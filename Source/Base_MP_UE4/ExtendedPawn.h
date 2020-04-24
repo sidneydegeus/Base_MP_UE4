@@ -11,6 +11,10 @@ class BASE_MP_UE4_API AExtendedPawn : public APawn
 {
 	GENERATED_BODY()
 
+public:
+	UPROPERTY(Replicated)
+	class ABaseWeapon* Weapon;
+
 protected:
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* AzimuthGimbal;
@@ -44,9 +48,16 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void ExitPawn();
 
+	UFUNCTION(BlueprintCallable)
+	void SetWeapon(ABaseWeapon* newWeapon) { Weapon = newWeapon; }
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	UUserWidget* GetUI() { return UI; };
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	virtual void SetupUI();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "UI")
 	void SetupUIEvent();

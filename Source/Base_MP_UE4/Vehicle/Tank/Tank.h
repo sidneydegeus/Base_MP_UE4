@@ -35,6 +35,8 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 
+	virtual void SetupUI() override;
+
 private:
 
 

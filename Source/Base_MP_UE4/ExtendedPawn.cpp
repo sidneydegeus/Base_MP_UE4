@@ -11,6 +11,13 @@
 #include "UI/TankUI.h"
 #include "Weapon/Ranged/BaseRangedWeapon.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
+
+void AExtendedPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AExtendedPawn, Weapon);
+}
+
 
 AExtendedPawn::AExtendedPawn() {
 	ExitComponent = CreateDefaultSubobject<UExitPawnComponent>(TEXT("ExitableComponent"));
@@ -43,7 +50,7 @@ void AExtendedPawn::Client_PossessedBy_Implementation(APlayerController* PlayerC
 	if (UIClass == nullptr) return;
 	UI = CreateWidget<UUserWidget>(PlayerController, UIClass);
 	UI->AddToViewport();
-	SetupUIEvent();
+	SetupUI();
 }
 
 void AExtendedPawn::Client_UnPossessed_Implementation() {
@@ -90,20 +97,24 @@ void AExtendedPawn::CreateCameraComponent() {
 }
 
 ABaseWeapon* AExtendedPawn::GetWeapon() const {
-	auto test = GetComponents();
-	for (UActorComponent* Child : test) {
-		auto SpawnPointChild = Cast<USpawnPoint>(Child);
-		if (!SpawnPointChild) continue;
+	//auto test = GetComponents();
+	//for (UActorComponent* Child : test) {
+	//	auto SpawnPointChild = Cast<USpawnPoint>(Child);
+	//	if (!SpawnPointChild) continue;
 
-		AActor* SpawnedChild = SpawnPointChild->GetSpawnedActor();
-		auto Weapon = Cast<ABaseWeapon>(SpawnedChild);
-		if (Weapon) return Weapon;
-	}
+	//	AActor* SpawnedChild = SpawnPointChild->GetSpawnedActor();
+	//	auto Weapon = Cast<ABaseWeapon>(SpawnedChild);
+	//	if (Weapon) return Weapon;
+	//}
 	return nullptr;
 }
 
+void AExtendedPawn::SetupUI() {
+	SetupUIEvent();
+}
+
 void AExtendedPawn::UpdateUI() {
-	if (UI && GetWeapon() && GetWeapon()->WeaponType == EWeaponType::Ranged) {
+	if (UI && Weapon && Weapon->WeaponType == EWeaponType::Ranged) {
 		ABaseRangedWeapon* RWpn = Cast<ABaseRangedWeapon>(GetWeapon());
 		if (RWpn) {
 			UTankUI* TankUI = Cast<UTankUI>(UI);
